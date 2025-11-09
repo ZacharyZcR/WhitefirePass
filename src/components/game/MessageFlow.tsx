@@ -8,7 +8,15 @@ import { useEffect, useRef } from 'react';
 import type { Message } from '@/types/game';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Brain } from 'lucide-react';
+import {
+  Brain,
+  MessageSquare,
+  Vote,
+  Skull,
+  Activity,
+  FileText,
+  AlertCircle
+} from 'lucide-react';
 
 interface MessageFlowProps {
   messages: Message[];
@@ -62,6 +70,30 @@ function formatTime(timestamp: number): string {
   });
 }
 
+/**
+ * Get icon for message type
+ */
+function getMessageIcon(type: string) {
+  switch (type) {
+    case 'system':
+      return <AlertCircle className="w-4 h-4" />;
+    case 'speech':
+      return <MessageSquare className="w-4 h-4" />;
+    case 'vote':
+      return <Vote className="w-4 h-4" />;
+    case 'death':
+      return <Skull className="w-4 h-4" />;
+    case 'action':
+      return <Activity className="w-4 h-4" />;
+    case 'prompt':
+      return <FileText className="w-4 h-4" />;
+    case 'thinking':
+      return <Brain className="w-4 h-4" />;
+    default:
+      return <MessageSquare className="w-4 h-4" />;
+  }
+}
+
 export function MessageFlow({ messages }: MessageFlowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -88,13 +120,14 @@ export function MessageFlow({ messages }: MessageFlowProps) {
           >
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
+                {getMessageIcon(message.type)}
                 <span className="font-bold text-sm text-foreground">
                   {message.from}
                 </span>
                 {message.type !== 'system' && (
                   <Badge
                     variant="outline"
-                    className="text-xs"
+                    className="text-xs flex items-center gap-1"
                   >
                     {messageTypeNames[message.type] || message.type}
                   </Badge>

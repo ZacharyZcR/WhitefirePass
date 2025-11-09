@@ -446,7 +446,12 @@ function parseAIResponse(response: string): {
   const speechMatch = response.match(/【发言】\s*([\s\S]*?)$/);
 
   const thinking = thinkingMatch?.[1]?.trim() || '';
-  const speech = speechMatch?.[1]?.trim() || response.trim();
+  let speech = speechMatch?.[1]?.trim() || response.trim();
+
+  // Enforce 150 character limit for speech
+  if (speech.length > 150) {
+    speech = speech.substring(0, 150);
+  }
 
   return { thinking, speech };
 }
