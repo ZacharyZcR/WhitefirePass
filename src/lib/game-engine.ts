@@ -17,6 +17,28 @@ import type {
 export function createGame(config: GameConfig): GameState {
   const players = createPlayers(config.roles);
 
+  // Count roles
+  const roleCounts = config.roles.reduce(
+    (acc, role) => {
+      acc[role] = (acc[role] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
+  const roleNames: Record<string, string> = {
+    werewolf: '狼人',
+    villager: '村民',
+    seer: '预言家',
+    witch: '女巫',
+    hunter: '猎人',
+  };
+
+  // Build role description
+  const roleDescription = Object.entries(roleCounts)
+    .map(([role, count]) => `${roleNames[role]}${count}人`)
+    .join('、');
+
   return {
     phase: 'setup',
     round: 0,
@@ -25,9 +47,19 @@ export function createGame(config: GameConfig): GameState {
       {
         id: generateId(),
         type: 'system',
-        from: 'system',
+        from: '旁白',
         content: '游戏开始！正在分配角色...',
         timestamp: Date.now(),
+        round: 0,
+        phase: 'setup',
+        visibility: 'all',
+      },
+      {
+        id: generateId(),
+        type: 'system',
+        from: '旁白',
+        content: `本局共${config.roles.length}人参与游戏。角色配置：${roleDescription}。`,
+        timestamp: Date.now() + 1,
         round: 0,
         phase: 'setup',
         visibility: 'all',
@@ -131,7 +163,7 @@ export function processNightPhase(state: GameState): {
   if (state.nightVotes.length === 0) {
     return {
       killedPlayer: null,
-      message: createMessage('system', '昨夜平安无事'),
+      message: createMessage('旁白', '昨夜平安无事'),
     };
   }
 
@@ -157,14 +189,14 @@ export function processNightPhase(state: GameState): {
   if (!player || !player.isAlive) {
     return {
       killedPlayer: null,
-      message: createMessage('system', '昨夜平安无事'),
+      message: createMessage('旁白', '昨夜平安无事'),
     };
   }
 
   return {
     killedPlayer: player,
     message: createMessage(
-      'system',
+      '旁白',
       `昨夜 ${player.name} 被狼人杀害了`,
     ),
   };
@@ -180,7 +212,7 @@ export function processVoting(state: GameState): {
   if (state.votes.length === 0) {
     return {
       eliminated: null,
-      message: createMessage('system', '没有人投票'),
+      message: createMessage('旁白', '没有人投票'),
     };
   }
 
@@ -204,14 +236,14 @@ export function processVoting(state: GameState): {
   if (!player) {
     return {
       eliminated: null,
-      message: createMessage('system', '没有人被淘汰'),
+      message: createMessage('旁白', '没有人被淘汰'),
     };
   }
 
   return {
     eliminated: player,
     message: createMessage(
-      'system',
+      '旁白',
       `${player.name} 被投票淘汰了。`,
     ),
   };

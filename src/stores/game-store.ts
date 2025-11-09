@@ -119,7 +119,7 @@ export const useGameStore = create<GameStore>()(
         gameState.round = 1;
         gameState.currentPlayerIndex = 0;
         gameState.messages.push(
-          addMessage(gameState, 'system', '第 1 回合开始。天亮了，请大家发言！', 'system', 'all'),
+          addMessage(gameState, '旁白', '第 1 回合开始。天亮了，请大家发言！', 'system', 'all'),
         );
         set({ gameState: { ...gameState }, isProcessing: false });
         return;
@@ -161,14 +161,14 @@ export const useGameStore = create<GameStore>()(
       gameState.nightPhase = 'werewolf-discuss';
       gameState.currentPlayerIndex = 0;
       gameState.messages.push(
-        addMessage(gameState, 'system', '狼人请开始讨论今晚的目标', 'system', 'werewolf'),
+        addMessage(gameState, '旁白', '狼人请开始讨论今晚的目标', 'system', 'werewolf'),
       );
     } else if (gameState.nightPhase === 'werewolf-discuss') {
       // Werewolf discuss ended, go to werewolf vote
       gameState.nightPhase = 'werewolf-vote';
       gameState.currentPlayerIndex = 0;
       gameState.messages.push(
-        addMessage(gameState, 'system', '狼人请投票选择击杀目标', 'system', 'werewolf'),
+        addMessage(gameState, '旁白', '狼人请投票选择击杀目标', 'system', 'werewolf'),
       );
     } else if (gameState.nightPhase === 'werewolf-vote') {
       // All night phases completed, advance to day
@@ -192,7 +192,7 @@ export const useGameStore = create<GameStore>()(
       gameState.currentPlayerIndex = 0;
       gameState.votes = [];
       gameState.messages.push(
-        addMessage(gameState, 'system', '讨论结束。现在开始投票！', 'system', 'all'),
+        addMessage(gameState, '旁白', '讨论结束。现在开始投票！', 'system', 'all'),
       );
     } else if (gameState.phase === 'voting') {
       // Voting phase ended, process votes and go to night
@@ -213,13 +213,13 @@ export const useGameStore = create<GameStore>()(
       const seer = gameState.players.find((p) => p.role === 'seer' && p.isAlive);
       if (seer) {
         gameState.messages.push(
-          addMessage(gameState, 'system', '夜幕降临... 预言家请睁眼', 'system', 'all'),
+          addMessage(gameState, '旁白', '夜幕降临... 预言家请睁眼', 'system', 'all'),
         );
       } else {
         // Skip to werewolf discuss if seer is dead
         gameState.nightPhase = 'werewolf-discuss';
         gameState.messages.push(
-          addMessage(gameState, 'system', '夜幕降临... 狼人请睁眼', 'system', 'all'),
+          addMessage(gameState, '旁白', '夜幕降临... 狼人请睁眼', 'system', 'all'),
         );
       }
     } else if (gameState.phase === 'night') {
@@ -236,7 +236,7 @@ export const useGameStore = create<GameStore>()(
       gameState.phase = 'day';
       gameState.currentPlayerIndex = 0;
       gameState.messages.push(
-        addMessage(gameState, 'system', `第 ${gameState.round} 回合。天亮了！`, 'system', 'all'),
+        addMessage(gameState, '旁白', `第 ${gameState.round} 回合。天亮了！`, 'system', 'all'),
       );
     }
 
@@ -526,7 +526,7 @@ function recordSeerCheck(
   gameState.messages.push(
     addMessage(
       gameState,
-      'system',
+      '旁白',
       `查验结果：${targetName} 是 ${roleNames[targetPlayer.role]}`,
       'system',
       'seer',
