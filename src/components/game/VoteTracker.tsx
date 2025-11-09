@@ -16,7 +16,7 @@ interface VoteTrackerProps {
 }
 
 export function VoteTracker({ gameState }: VoteTrackerProps) {
-  const { votes, nightVotes, seerChecks, round } = gameState;
+  const { votes, nightVotes, seerChecks = [], round } = gameState;
 
   // Group votes by round
   const votesByRound = new Map<number, typeof votes>();
