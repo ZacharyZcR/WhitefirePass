@@ -3,7 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { ProxyAgent } from 'undici';
+import { ProxyAgent, fetch as undiciFetch } from 'undici';
 
 const PROXY_URL = 'http://127.0.0.1:7897';
 const proxyAgent = new ProxyAgent(PROXY_URL);
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await fetch(
+    const response = await undiciFetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${model ?? 'gemini-2.5-pro'}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
@@ -52,7 +52,6 @@ export async function POST(request: NextRequest) {
             // No maxOutputTokens limit - let AI think freely
           },
         }),
-        // @ts-expect-error - undici fetch supports dispatcher
         dispatcher: proxyAgent,
       },
     );
