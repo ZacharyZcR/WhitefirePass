@@ -82,7 +82,7 @@ export function MessageFlow({ messages }: MessageFlowProps) {
           <div
             key={message.id}
             className={cn(
-              'rounded-lg p-3 transition-all hover:scale-[1.01] shadow-md',
+              'rounded-lg p-3 shadow-md',
               messageStyles[message.type] || 'bg-card',
             )}
           >
