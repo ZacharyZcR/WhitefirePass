@@ -4,7 +4,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { GameState, GameConfig, Message, Player } from '@/types/game';
+import type { GameState, GameConfig, Message, Player, SavedGame } from '@/types/game';
 import {
   createGame,
   checkWinCondition,
@@ -33,6 +33,12 @@ interface GameStore {
   retryCurrentStep: () => Promise<void>;
   clearError: () => void;
   updatePlayerPersonality: (playerId: string, personality: string) => void;
+
+  // Save/Load actions
+  saveGame: (name: string) => SavedGame;
+  loadGame: (id: string) => boolean;
+  deleteGame: (id: string) => void;
+  getSavedGames: () => SavedGame[];
 
   // Internal actions
   advanceToNextPhase: () => void;
@@ -92,6 +98,68 @@ export const useGameStore = create<GameStore>()(
       player.personality = personality;
       set({ gameState: { ...gameState } });
     }
+  },
+
+  /**
+   * Save current game state
+   */
+  saveGame: (name: string): SavedGame => {
+    const { gameState } = get();
+    if (!gameState) {
+      throw new Error('No active game to save');
+    }
+
+    const savedGame: SavedGame = {
+      id: `save-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      name,
+      state: JSON.parse(JSON.stringify(gameState)) as GameState, // Deep clone
+      savedAt: Date.now(),
+    };
+
+    // Get existing saves
+    const saves = getSavedGamesFromStorage();
+    saves.push(savedGame);
+
+    // Store in localStorage
+    localStorage.setItem('werewolf-saved-games', JSON.stringify(saves));
+
+    return savedGame;
+  },
+
+  /**
+   * Load a saved game
+   */
+  loadGame: (id: string): boolean => {
+    const saves = getSavedGamesFromStorage();
+    const savedGame = saves.find((s) => s.id === id);
+
+    if (!savedGame) {
+      return false;
+    }
+
+    set({
+      gameState: JSON.parse(JSON.stringify(savedGame.state)) as GameState, // Deep clone
+      isProcessing: false,
+      lastError: null,
+    });
+
+    return true;
+  },
+
+  /**
+   * Delete a saved game
+   */
+  deleteGame: (id: string): void => {
+    const saves = getSavedGamesFromStorage();
+    const filtered = saves.filter((s) => s.id !== id);
+    localStorage.setItem('werewolf-saved-games', JSON.stringify(filtered));
+  },
+
+  /**
+   * Get all saved games
+   */
+  getSavedGames: (): SavedGame[] => {
+    return getSavedGamesFromStorage();
   },
 
   /**
@@ -470,12 +538,7 @@ function parseAIResponse(response: string): {
   const speechMatch = response.match(/【发言】\s*([\s\S]*?)$/);
 
   const thinking = thinkingMatch?.[1]?.trim() || '';
-  let speech = speechMatch?.[1]?.trim() || response.trim();
-
-  // Enforce 150 character limit for speech
-  if (speech.length > 150) {
-    speech = speech.substring(0, 150);
-  }
+  const speech = speechMatch?.[1]?.trim() || response.trim();
 
   return { thinking, speech };
 }
@@ -538,25 +601,22 @@ function recordSeerCheck(
 ): void {
   if (!targetPlayer?.isAlive) return;
 
+  // Check if target is good (not werewolf)
+  const isGood = targetPlayer.role !== 'werewolf';
+
   gameState.seerChecks.push({
     round: gameState.round,
     target: targetName,
-    role: targetPlayer.role,
+    isGood,
   });
 
-  const roleNames: Record<string, string> = {
-    werewolf: '狼人',
-    villager: '村民',
-    seer: '预言家',
-    witch: '女巫',
-    hunter: '猎人',
-  };
+  const factionName = isGood ? '好人' : '狼人';
 
   gameState.messages.push(
     addMessage(
       gameState,
       '旁白',
-      `查验结果：${targetName} 是 ${roleNames[targetPlayer.role]}`,
+      `查验结果：${targetName} 是 ${factionName}`,
       'system',
       'seer',
     ),
@@ -586,7 +646,7 @@ function getRoleInstructionsForDisplay(role: string, phase: string, nightPhase?:
       if (nightPhase === 'werewolf-discuss') {
         return `【狼人身份 - 讨论阶段】
 你是狼人。现在是夜晚，只有狼人能看到这些对话。
-⚠️ 当前阶段：讨论今晚的击杀目标
+【当前阶段】讨论今晚的击杀目标
 - 和其他狼人交流你的想法
 - 分析哪个玩家威胁最大
 - 可以提出建议但不要做最终决定
@@ -594,7 +654,7 @@ function getRoleInstructionsForDisplay(role: string, phase: string, nightPhase?:
       } else if (nightPhase === 'werewolf-vote') {
         return `【狼人身份 - 投票阶段】
 你是狼人。现在需要投票决定击杀目标。
-⚠️ 重要：投票选择今晚要杀的人
+【重要】投票选择今晚要杀的人
 - 根据刚才的讨论做出决定
 - 只回复要杀的玩家名字（如：Alice）
 - 不要解释原因，不要说其他内容`;
@@ -602,7 +662,7 @@ function getRoleInstructionsForDisplay(role: string, phase: string, nightPhase?:
     }
     return `【狼人身份 - ${phase === 'day' ? '白天' : '投票'}阶段】
 你是狼人，但必须伪装成村民。
-⚠️ 重要规则：
+【重要规则】
 - 绝不暴露自己是狼人
 - 绝不暴露其他狼人的身份
 - 像村民一样说话和投票
@@ -612,7 +672,7 @@ function getRoleInstructionsForDisplay(role: string, phase: string, nightPhase?:
     if (phase === 'night' && nightPhase === 'seer') {
       return `【预言家身份 - 查验阶段】
 你是预言家。现在是夜晚查验时间。
-⚠️ 重要：选择一个玩家查验身份
+【重要】选择一个玩家查验身份
 - 根据白天的讨论选择最可疑的人
 - 只回复要查验的玩家名字（如：Alice）
 - 不要解释原因，不要说其他内容
@@ -742,4 +802,17 @@ function getActionPrompt(phase: string, nightPhase: string | undefined, role: st
     }
   }
   return '';
+}
+
+/**
+ * Helper function to get saved games from localStorage
+ */
+function getSavedGamesFromStorage(): SavedGame[] {
+  try {
+    const saved = localStorage.getItem('werewolf-saved-games');
+    if (!saved) return [];
+    return JSON.parse(saved) as SavedGame[];
+  } catch {
+    return [];
+  }
 }

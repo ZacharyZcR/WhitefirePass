@@ -142,9 +142,9 @@ function buildPrompt(player: Player, gameState: GameState): string {
     ? `
 【你的查验记录】
 ${gameState.seerChecks.length > 0
-  ? gameState.seerChecks.map((check) => `第${check.round}回合查验：${check.target} 是 ${roleNames[check.role]}`).join('\n')
+  ? gameState.seerChecks.map((check) => `第${check.round}回合查验：${check.target} 是 ${check.isGood ? '好人' : '狼人'}`).join('\n')
   : round === 1
-    ? '⚠️ 重要：游戏没有第0晚！你现在还没有进行过任何查验，因此没有任何查验信息。你的第一次查验将在今晚（第1回合夜晚）进行。'
+    ? '【重要】游戏没有第0晚！你现在还没有进行过任何查验，因此没有任何查验信息。你的第一次查验将在今晚（第1回合夜晚）进行。'
     : '你还没有查验任何人'
 }`
     : '';
@@ -181,7 +181,7 @@ ${messageHistory}
 建议400-500字以内，充分展现你的思考深度）
 
 【发言】
-（在这里写出你要对大家说的话。⚠️ 强制限制：必须在150字以内，超出部分将被截断）
+（在这里写出你要对大家说的话。建议100-150字以内，保持简洁明了，同时保证表达完整）
 
 注意：思考部分只有你自己能看到，发言部分所有人都能看到。`;
   }
@@ -235,7 +235,7 @@ ${messageHistory}
 建议300-400字，充分思考）
 
 【发言】
-（和队友讨论今晚的目标，阐述你的建议和理由。⚠️ 强制限制：必须在150字以内）
+（和队友讨论今晚的目标，阐述你的建议和理由。建议100-150字以内，保持表达完整清晰）
 
 注意：思考和发言都只有狼人能看到。`;
     }
@@ -273,7 +273,7 @@ function getRoleInstructions(role: string, phase: string, nightPhase?: string): 
         if (nightPhase === 'werewolf-discuss') {
           return `【狼人身份 - 讨论阶段】
 你是狼人。现在是夜晚，只有狼人能看到这些对话。
-⚠️ 当前阶段：讨论今晚的击杀目标
+【当前阶段】讨论今晚的击杀目标
 - 和其他狼人深入交流你的想法和分析
 - 详细分析哪个玩家威胁最大及原因
 - 提出你的建议并充分阐述理由
@@ -281,7 +281,7 @@ function getRoleInstructions(role: string, phase: string, nightPhase?: string): 
         } else if (nightPhase === 'werewolf-vote') {
           return `【狼人身份 - 投票阶段】
 你是狼人。现在需要投票决定击杀目标。
-⚠️ 重要：投票选择今晚要杀的人
+【重要】投票选择今晚要杀的人
 - 根据刚才的讨论做出决定
 - 只回复要杀的玩家名字（如：Alice）
 - 不要解释原因，不要说其他内容`;
@@ -289,7 +289,7 @@ function getRoleInstructions(role: string, phase: string, nightPhase?: string): 
       }
       return `【狼人身份 - ${phase === 'day' ? '白天' : '投票'}阶段】
 你是狼人，但必须伪装成村民。
-⚠️ 重要规则：
+【重要规则】
 - 绝不暴露自己是狼人
 - 绝不暴露其他狼人的身份
 - 像村民一样说话和投票
@@ -298,7 +298,7 @@ function getRoleInstructions(role: string, phase: string, nightPhase?: string): 
       if (phase === 'night' && nightPhase === 'seer') {
         return `【预言家身份 - 查验阶段】
 你是预言家。现在是夜晚查验时间。
-⚠️ 重要：选择一个玩家查验身份
+【重要】选择一个玩家查验身份
 - 根据白天的讨论选择最可疑的人
 - 只回复要查验的玩家名字（如：Alice）
 - 不要解释原因，不要说其他内容
@@ -306,7 +306,7 @@ function getRoleInstructions(role: string, phase: string, nightPhase?: string): 
       }
       return `【预言家身份】
 你是预言家，每晚可以查验一名玩家的真实身份。
-⚠️ 关于查验信息的使用：
+【关于查验信息的使用】
 - 查验结果会显示在上方的【你的查验记录】中
 - 如果记录为空，说明你还没有查验信息
 - 你可以选择公开查验结果来获取信任，但这会让你成为狼人的目标

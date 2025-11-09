@@ -9,8 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGameStore } from '@/stores/game-store';
 import { testGeminiKey } from '@/lib/gemini';
+import { SaveGameManager } from '@/components/game/SaveGameManager';
+import { PersonalityEditor } from '@/components/game/PersonalityEditor';
 import type { GameConfig, GameState } from '@/types/game';
 import {
   Gamepad2,
@@ -19,6 +22,12 @@ import {
   Dog,
   Users,
   Eye,
+  AlertTriangle,
+  CheckCircle2,
+  ArrowRight,
+  RotateCw,
+  Save,
+  Sparkles,
 } from 'lucide-react';
 
 const DEFAULT_CONFIG: GameConfig = {
@@ -56,12 +65,61 @@ function ApiKeyInput({
         </a>
         {' '}获取你的 API 密钥
       </p>
-      <p className="text-xs text-amber-600">
-        ⚠️ 确保 API 密钥有效且已启用 Gemini API
+      <p className="text-xs text-amber-600 flex items-center gap-1">
+        <AlertTriangle className="w-3 h-3" />
+        确保 API 密钥有效且已启用 Gemini API
       </p>
-      <p className="text-xs text-green-600">
-        ✓ 已配置代理：127.0.0.1:7897
+      <p className="text-xs text-green-600 flex items-center gap-1">
+        <CheckCircle2 className="w-3 h-3" />
+        已配置代理：127.0.0.1:7897
       </p>
+    </div>
+  );
+}
+
+function ErrorDisplay({
+  error,
+  onClear,
+}: {
+  error: string;
+  onClear: () => void;
+}) {
+  return (
+    <div className="rounded-lg bg-red-50 border border-red-200 p-3">
+      <div className="flex items-start gap-2">
+        <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
+        <div className="flex-1">
+          <p className="text-sm font-medium text-red-900">请求失败</p>
+          <p className="text-xs text-red-700 mt-1">{error}</p>
+        </div>
+        <button
+          onClick={onClear}
+          className="text-red-400 hover:text-red-600"
+          aria-label="关闭错误提示"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function DefaultConfigInfo() {
+  return (
+    <div className="rounded-lg bg-muted p-3 space-y-2">
+      <p className="text-sm font-medium">默认配置：</p>
+      <ul className="text-xs space-y-1 text-muted-foreground">
+        <li>• 6 名玩家（全部为 AI）</li>
+        <li className="flex items-center gap-1">
+          • 2 名狼人 <Dog className="w-3 h-3" />
+        </li>
+        <li className="flex items-center gap-1">
+          • 3 名村民 <Users className="w-3 h-3" />
+        </li>
+        <li className="flex items-center gap-1">
+          • 1 名预言家 <Eye className="w-3 h-3" />
+        </li>
+      </ul>
     </div>
   );
 }
@@ -73,6 +131,86 @@ const phaseNames: Record<string, string> = {
   voting: '投票',
   end: '结束',
 };
+
+function ControlTabContent({
+  hasActiveGame,
+  gameState,
+  isGameEnded,
+  apiKey,
+  isValidating,
+  isProcessing,
+  canExecuteNext,
+  lastError,
+  onApiKeyChange,
+  onStart,
+  onNextStep,
+  onRetry,
+  onReset,
+  onClearError,
+  onOpenPersonalityEditor,
+}: {
+  hasActiveGame: boolean;
+  gameState: GameState | null;
+  isGameEnded: boolean;
+  apiKey: string;
+  isValidating: boolean;
+  isProcessing: boolean;
+  canExecuteNext: boolean;
+  lastError: string | null;
+  onApiKeyChange: (value: string) => void;
+  onStart: () => void;
+  onNextStep: () => void;
+  onRetry: () => void;
+  onReset: () => void;
+  onClearError: () => void;
+  onOpenPersonalityEditor: () => void;
+}) {
+  return (
+    <>
+      {!hasActiveGame && <ApiKeyInput value={apiKey} onChange={onApiKeyChange} />}
+
+      {hasActiveGame && gameState && (
+        <>
+          <GameStatus
+            isRunning={isProcessing}
+            phase={gameState.phase}
+            round={gameState.round}
+            winner={gameState.winner}
+          />
+          {!isGameEnded && <CurrentPlayerDisplay gameState={gameState} />}
+          {lastError && <ErrorDisplay error={lastError} onClear={onClearError} />}
+        </>
+      )}
+
+      <div className="space-y-2">
+        <ControlButtons
+          gameState={gameState}
+          isValidating={isValidating}
+          isProcessing={isProcessing}
+          canExecuteNext={canExecuteNext}
+          hasError={Boolean(lastError)}
+          onStart={onStart}
+          onNextStep={onNextStep}
+          onRetry={onRetry}
+          onReset={onReset}
+        />
+      </div>
+
+      {hasActiveGame && (
+        <Button
+          onClick={onOpenPersonalityEditor}
+          variant="outline"
+          className="w-full flex items-center gap-2"
+        >
+          <Sparkles className="w-4 h-4" />
+          编辑 AI 人设
+        </Button>
+      )}
+
+      {!hasActiveGame && <DefaultConfigInfo />}
+    </>
+  );
+}
 
 function CurrentPlayerDisplay({ gameState }: { gameState: GameState }) {
   const alivePlayers = gameState.players
@@ -140,7 +278,17 @@ function ControlButtons({
           className="w-full bg-orange-600 hover:bg-orange-700 text-white"
           disabled={isProcessing}
         >
-          {isProcessing ? '⏳ 重试中...' : '🔄 重试当前步骤'}
+          {isProcessing ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              重试中...
+            </>
+          ) : (
+            <>
+              <RotateCw className="w-4 h-4 mr-2" />
+              重试当前步骤
+            </>
+          )}
         </Button>
       ) : (
         <Button
@@ -148,7 +296,17 @@ function ControlButtons({
           className="w-full"
           disabled={!canExecuteNext}
         >
-          {isProcessing ? '⏳ 处理中...' : '➡️ 下一步'}
+          {isProcessing ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              处理中...
+            </>
+          ) : (
+            <>
+              <ArrowRight className="w-4 h-4 mr-2" />
+              下一步
+            </>
+          )}
         </Button>
       )}
       <Button
@@ -235,6 +393,7 @@ export function ControlPanel() {
   } = useGameStore();
   const [apiKey, setApiKey] = useState(storedApiKey);
   const [isValidating, setIsValidating] = useState(false);
+  const [personalityEditorOpen, setPersonalityEditorOpen] = useState(false);
 
   // Sync local state with persisted apiKey from store
   useEffect(() => {
@@ -254,19 +413,23 @@ export function ControlPanel() {
     const isValid = await testGeminiKey(trimmedKey);
     setIsValidating(false);
 
-    if (isValid) {
-      saveApiKey(trimmedKey);
-      startGame(DEFAULT_CONFIG);
-    } else {
+    if (!isValid) {
       alert(
         'API 密钥验证失败！\n\n请检查：\n1. API 密钥是否正确\n2. 是否已启用 Gemini API\n3. 网络连接是否正常\n\n获取 API 密钥：https://aistudio.google.com/app/apikey',
       );
+      return;
     }
+
+    saveApiKey(trimmedKey);
+    startGame(DEFAULT_CONFIG);
   };
 
   const canExecuteNext = Boolean(gameState && !isProcessing && gameState.phase !== 'end' && !lastError);
+  const hasActiveGame = Boolean(gameState);
+  const isGameEnded = gameState?.phase === 'end' || gameState?.phase === 'setup';
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>游戏控制</CardTitle>
@@ -274,73 +437,51 @@ export function ControlPanel() {
           配置并控制 AI 狼人杀游戏
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {!gameState && <ApiKeyInput value={apiKey} onChange={setApiKey} />}
+      <CardContent>
+        <Tabs defaultValue="control" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="control" className="flex items-center gap-2">
+              <Gamepad2 className="w-4 h-4" />
+              游戏控制
+            </TabsTrigger>
+            <TabsTrigger value="saves" className="flex items-center gap-2">
+              <Save className="w-4 h-4" />
+              存档管理
+            </TabsTrigger>
+          </TabsList>
 
-        {gameState && (
-          <>
-            <GameStatus
-              isRunning={isProcessing}
-              phase={gameState.phase}
-              round={gameState.round}
-              winner={gameState.winner}
+          <TabsContent value="control" className="space-y-4 mt-4">
+            <ControlTabContent
+              hasActiveGame={hasActiveGame}
+              gameState={gameState}
+              isGameEnded={isGameEnded}
+              apiKey={apiKey}
+              isValidating={isValidating}
+              isProcessing={isProcessing}
+              canExecuteNext={canExecuteNext}
+              lastError={lastError}
+              onApiKeyChange={setApiKey}
+              onStart={() => void handleStart()}
+              onNextStep={() => void executeNextStep()}
+              onRetry={() => void retryCurrentStep()}
+              onReset={resetGame}
+              onClearError={clearError}
+              onOpenPersonalityEditor={() => setPersonalityEditorOpen(true)}
             />
-            {gameState.phase !== 'end' && gameState.phase !== 'setup' && (
-              <CurrentPlayerDisplay gameState={gameState} />
-            )}
-            {lastError && (
-              <div className="rounded-lg bg-red-50 border border-red-200 p-3">
-                <div className="flex items-start gap-2">
-                  <span className="text-red-600 font-semibold">⚠️</span>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-red-900">请求失败</p>
-                    <p className="text-xs text-red-700 mt-1">{lastError}</p>
-                  </div>
-                  <button
-                    onClick={clearError}
-                    className="text-red-400 hover:text-red-600"
-                    aria-label="关闭错误提示"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
+          </TabsContent>
 
-        <div className="space-y-2">
-          <ControlButtons
-            gameState={gameState}
-            isValidating={isValidating}
-            isProcessing={isProcessing}
-            canExecuteNext={canExecuteNext}
-            hasError={Boolean(lastError)}
-            onStart={() => void handleStart()}
-            onNextStep={() => void executeNextStep()}
-            onRetry={() => void retryCurrentStep()}
-            onReset={resetGame}
-          />
-        </div>
-
-        {!gameState && (
-          <div className="rounded-lg bg-muted p-3 space-y-2">
-            <p className="text-sm font-medium">默认配置：</p>
-            <ul className="text-xs space-y-1 text-muted-foreground">
-              <li>• 6 名玩家（全部为 AI）</li>
-              <li className="flex items-center gap-1">
-                • 2 名狼人 <Dog className="w-3 h-3" />
-              </li>
-              <li className="flex items-center gap-1">
-                • 3 名村民 <Users className="w-3 h-3" />
-              </li>
-              <li className="flex items-center gap-1">
-                • 1 名预言家 <Eye className="w-3 h-3" />
-              </li>
-            </ul>
-          </div>
-        )}
+          <TabsContent value="saves" className="mt-4">
+            <SaveGameManager />
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
+
+    {/* Personality Editor Dialog */}
+    <PersonalityEditor
+      open={personalityEditorOpen}
+      onOpenChange={setPersonalityEditorOpen}
+    />
+  </>
   );
 }

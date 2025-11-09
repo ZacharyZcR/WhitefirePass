@@ -49,14 +49,6 @@ export function VoteTracker({ gameState }: VoteTrackerProps) {
       .map(([target, count]) => ({ target, count }));
   };
 
-  const roleNames: Record<string, string> = {
-    werewolf: '狼人',
-    villager: '村民',
-    seer: '预言家',
-    witch: '女巫',
-    hunter: '猎人',
-  };
-
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="flex-shrink-0 pb-3">
@@ -91,12 +83,12 @@ export function VoteTracker({ gameState }: VoteTrackerProps) {
                         <Badge
                           className={cn(
                             'text-xs',
-                            check.role === 'werewolf'
+                            !check.isGood
                               ? 'bg-red-600 hover:bg-red-700'
                               : 'bg-blue-600 hover:bg-blue-700',
                           )}
                         >
-                          {roleNames[check.role]}
+                          {check.isGood ? '好人' : '狼人'}
                         </Badge>
                       </div>
                     </div>

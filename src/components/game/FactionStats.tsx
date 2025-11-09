@@ -12,7 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Users, Dog, Shield, Swords } from 'lucide-react';
+import { Users, Dog, Shield, Swords, AlertTriangle, CheckCircle2, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FactionStatsProps {
@@ -113,18 +113,29 @@ export function FactionStats({ gameState }: FactionStatsProps) {
         {/* Victory condition hint */}
         {totalAlive > 0 && (
           <div className={cn(
-            "text-xs p-2 rounded text-center font-medium transition-colors",
+            "text-xs p-2 rounded text-center font-medium transition-colors flex items-center justify-center gap-1",
             aliveWerewolves.length >= aliveVillagers.length
               ? "bg-red-950/50 text-red-400"
               : aliveWerewolves.length === 0
                 ? "bg-blue-950/50 text-blue-400"
                 : "bg-yellow-950/50 text-yellow-400"
           )}>
-            {aliveWerewolves.length >= aliveVillagers.length
-              ? "⚠️ 狼人占据优势！"
-              : aliveWerewolves.length === 0
-                ? "✓ 好人获胜！"
-                : "🎯 势均力敌"}
+            {aliveWerewolves.length >= aliveVillagers.length ? (
+              <>
+                <AlertTriangle className="w-3 h-3" />
+                狼人占据优势！
+              </>
+            ) : aliveWerewolves.length === 0 ? (
+              <>
+                <CheckCircle2 className="w-3 h-3" />
+                好人获胜！
+              </>
+            ) : (
+              <>
+                <Target className="w-3 h-3" />
+                势均力敌
+              </>
+            )}
           </div>
         )}
       </CardContent>

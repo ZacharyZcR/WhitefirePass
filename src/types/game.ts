@@ -88,7 +88,7 @@ export interface NightAction {
 export interface SeerCheck {
   round: number;
   target: string;
-  role: Role;
+  isGood: boolean;  // true = 好人阵营, false = 狼人阵营
 }
 
 /**
