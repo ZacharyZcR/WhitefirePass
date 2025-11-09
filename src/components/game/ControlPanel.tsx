@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -221,12 +221,11 @@ function GameStatus({
 }
 
 export function ControlPanel() {
-  const [apiKey, setApiKey] = useState('');
-  const [isValidating, setIsValidating] = useState(false);
   const {
     gameState,
     isProcessing,
     lastError,
+    apiKey: storedApiKey,
     setApiKey: saveApiKey,
     startGame,
     resetGame,
@@ -234,6 +233,15 @@ export function ControlPanel() {
     retryCurrentStep,
     clearError,
   } = useGameStore();
+  const [apiKey, setApiKey] = useState(storedApiKey);
+  const [isValidating, setIsValidating] = useState(false);
+
+  // Sync local state with persisted apiKey from store
+  useEffect(() => {
+    if (storedApiKey) {
+      setApiKey(storedApiKey);
+    }
+  }, [storedApiKey]);
 
   const handleStart = async () => {
     const trimmedKey = apiKey.trim();
