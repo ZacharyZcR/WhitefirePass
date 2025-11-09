@@ -602,7 +602,7 @@ function getRoleInstructionsForDisplay(role: string, phase: string, nightPhase?:
  */
 function getActionPrompt(phase: string, nightPhase: string | undefined, role: string): string {
   if (phase === 'day') {
-    return '请发表你的看法（1-2句话）';
+    return '请发表你的看法';
   }
   if (phase === 'voting') {
     return '请投票选择一个玩家（只回复名字）';
@@ -612,7 +612,7 @@ function getActionPrompt(phase: string, nightPhase: string | undefined, role: st
       return '请选择要查验的玩家（只回复名字）';
     }
     if (nightPhase === 'werewolf-discuss' && role === 'werewolf') {
-      return '请和队友讨论今晚的目标（1-2句话）';
+      return '请和队友讨论今晚的目标';
     }
     if (nightPhase === 'werewolf-vote' && role === 'werewolf') {
       return '请投票选择今晚要杀的玩家（只回复名字）';
