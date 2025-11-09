@@ -305,7 +305,7 @@ function getPromptForDisplay(
   player: { name: string; role: string },
   gameState: GameState,
 ): string {
-  const { phase, round, messages } = gameState;
+  const { phase, round, messages, players } = gameState;
   const alivePlayers = getAlivePlayers(gameState);
 
   // Filter messages based on visibility
@@ -320,7 +320,7 @@ function getPromptForDisplay(
   });
 
   const recentMessages = visibleMessages
-    .filter((m) => m.type === 'speech' || m.type === 'vote' || m.type === 'system' || m.type === 'thinking')
+    .filter((m) => m.type !== 'prompt')  // Exclude prompt messages
     .slice(-50);
 
   const roleNames: Record<string, string> = {
@@ -339,6 +339,11 @@ function getPromptForDisplay(
     end: '结束',
   };
 
+  // Get teammate information for werewolves
+  const werewolfTeammates = player.role === 'werewolf'
+    ? players.filter((p) => p.role === 'werewolf' && p.name !== player.name)
+    : [];
+
   const roleInstructions = getRoleInstructionsForDisplay(player.role, phase);
 
   return `【AI Prompt】
@@ -347,6 +352,7 @@ function getPromptForDisplay(
 阶段：${phaseNames[phase]}
 回合：${round}
 存活玩家：${alivePlayers.map((p) => p.name).join('、')}
+${werewolfTeammates.length > 0 ? `狼人队友：${werewolfTeammates.map((p) => p.name).join('、')}` : ''}
 
 ${roleInstructions}
 

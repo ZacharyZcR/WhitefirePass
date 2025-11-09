@@ -97,7 +97,9 @@ function buildPrompt(player: Player, gameState: GameState): string {
     return false;
   });
 
-  const recentMessages = visibleMessages.slice(-50);
+  const recentMessages = visibleMessages
+    .filter((m) => m.type !== 'prompt')  // Exclude prompt messages to prevent identity leak
+    .slice(-50);
   const messageHistory = recentMessages
     .map((m) => `${m.from}: ${m.content}`)
     .join('\n');
@@ -118,6 +120,11 @@ function buildPrompt(player: Player, gameState: GameState): string {
     end: '结束',
   };
 
+  // Get teammate information for werewolves
+  const werewolfTeammates = player.role === 'werewolf'
+    ? players.filter((p) => p.role === 'werewolf' && p.name !== player.name)
+    : [];
+
   const basePrompt = `你是 ${player.name}，正在玩狼人杀游戏。
 
 【你的性格设定】
@@ -128,6 +135,7 @@ ${player.personality || '你是一个普通玩家，按照自己的判断行事�
 当前阶段：${phaseNames[phase]}
 回合数：${round}
 存活玩家：${alivePlayers.map((p) => p.name).join('、')}
+${werewolfTeammates.length > 0 ? `你的狼人队友：${werewolfTeammates.map((p) => p.name).join('、')}` : ''}
 
 ${getRoleInstructions(player.role, phase)}
 
