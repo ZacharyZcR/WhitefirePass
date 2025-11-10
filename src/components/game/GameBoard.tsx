@@ -4,6 +4,7 @@
 
 'use client';
 
+import { useEffect } from 'react';
 import { useGameStore } from '@/stores/game-store';
 import { PlayerCard } from './PlayerCard';
 import { MessageFlow } from './MessageFlow';
@@ -75,9 +76,31 @@ function getPhaseTheme(phase: string) {
 }
 
 export function GameBoard() {
-  const { gameState, clues, markClueAsRead } = useGameStore();
+  const { gameState, clues, markClueAsRead, executeNextStep, isProcessing, lastError } = useGameStore();
   const phase = gameState?.phase || 'setup';
   const theme = getPhaseTheme(phase);
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in input/textarea
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // Space or Enter: Next step
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault();
+        const canExecuteNext = gameState && !isProcessing && gameState.phase !== 'end' && !lastError;
+        if (canExecuteNext) {
+          void executeNextStep();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [gameState, isProcessing, lastError, executeNextStep]);
 
   // Show start menu if no active game
   if (!gameState) {

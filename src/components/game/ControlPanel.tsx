@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Kbd } from '@/components/ui/kbd';
 import { useGameStore } from '@/stores/game-store';
 import { testGeminiKey } from '@/lib/gemini';
 import { SaveGameManager } from '@/components/game/SaveGameManager';
@@ -350,6 +351,17 @@ function ControlButtons({
         <RotateCw className="w-4 h-4 mr-2" />
         重置游戏
       </Button>
+
+      {/* Keyboard shortcuts hint */}
+      <div className="mt-2 p-2 rounded-lg bg-muted/50 text-xs text-muted-foreground">
+        <div className="flex items-center justify-center gap-2">
+          <span>快捷键：</span>
+          <Kbd>Space</Kbd>
+          <span>或</span>
+          <Kbd>Enter</Kbd>
+          <span>下一步</span>
+        </div>
+      </div>
     </>
   );
 }

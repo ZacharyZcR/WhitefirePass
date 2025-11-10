@@ -54,7 +54,8 @@ const messageTypeNames: Record<string, string> = {
  * Phase names in Chinese
  */
 const phaseNames: Record<string, string> = {
-  setup: '准备',
+  prologue: '序章',
+  setup: '序章',
   night: '夜晚',
   day: '白天',
   voting: '投票',
@@ -160,6 +161,27 @@ function MessageBadges({ message, messageTypeName, playerRole }: {
 }
 
 /**
+ * Phase divider component - shows when round or phase changes
+ */
+function PhaseDivider({ round, phase }: { round?: number; phase?: string }) {
+  const phaseName = phase ? (phaseNames[phase] ?? phase) : '';
+
+  return (
+    <div className="flex items-center gap-3 my-4">
+      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-border" />
+      <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
+        <span className="text-xs font-semibold text-primary font-cinzel tracking-wider">
+          {round ? `第 ${round} 回合` : ''}
+          {round && phase ? ' · ' : ''}
+          {phaseName}
+        </span>
+      </div>
+      <div className="flex-1 h-px bg-gradient-to-l from-transparent via-border to-border" />
+    </div>
+  );
+}
+
+/**
  * Individual message item component
  */
 function MessageItem({ message, index, players }: {
@@ -224,6 +246,38 @@ export function MessageFlow({ messages, players, filterTypes }: MessageFlowProps
     }
   }, [filteredMessages]);
 
+  // Build list with dividers between round/phase changes
+  const renderMessagesWithDividers = () => {
+    const elements: JSX.Element[] = [];
+    let lastRound: number | undefined;
+    let lastPhase: string | undefined;
+
+    filteredMessages.forEach((message, idx) => {
+      // Check if round or phase changed
+      const roundChanged = message.round !== undefined && message.round !== lastRound;
+      const phaseChanged = message.phase !== undefined && message.phase !== lastPhase;
+
+      if ((roundChanged || phaseChanged) && (message.round || message.phase)) {
+        elements.push(
+          <PhaseDivider
+            key={`divider-${message.round}-${message.phase}-${idx}`}
+            round={roundChanged ? message.round : undefined}
+            phase={message.phase}
+          />
+        );
+      }
+
+      elements.push(
+        <MessageItem key={message.id} message={message} index={idx} players={players} />
+      );
+
+      lastRound = message.round;
+      lastPhase = message.phase;
+    });
+
+    return elements;
+  };
+
   return (
     <div ref={scrollRef} className="h-full w-full overflow-y-auto p-4 space-y-3">
       {filteredMessages.length === 0 ? (
@@ -231,9 +285,7 @@ export function MessageFlow({ messages, players, filterTypes }: MessageFlowProps
           <p>暂无消息。开始游戏后将显示游戏进程！</p>
         </div>
       ) : (
-        filteredMessages.map((message, idx) => (
-          <MessageItem key={message.id} message={message} index={idx} players={players} />
-        ))
+        renderMessagesWithDividers()
       )}
     </div>
   );
