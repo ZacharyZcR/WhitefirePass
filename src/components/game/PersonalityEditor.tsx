@@ -43,9 +43,26 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
     ? gameState.players.find((p) => p.id === selectedPlayerId)
     : null;
 
+  const handleDialogChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      // If closing dialog, reset selection first
+      setSelectedPlayerId(null);
+    }
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-hidden flex flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <Dialog open={open} onOpenChange={handleDialogChange}>
+      <DialogContent
+        className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950"
+        onInteractOutside={(e) => {
+          // If detail panel is open, close it instead of the dialog
+          if (selectedPlayer) {
+            e.preventDefault();
+            handleClose();
+          }
+        }}
+      >
         <DialogHeader className="flex-shrink-0 border-b border-amber-900/30 pb-4">
           <DialogTitle className="flex items-center gap-2 text-amber-100">
             <Sparkles className="w-5 h-5 text-amber-500" />
@@ -65,10 +82,10 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden relative">
           {/* Gallery View - responsive grid */}
-          <div className="h-full overflow-y-auto overflow-x-hidden py-6 px-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-3xl mx-auto">
+          <div className={`h-full overflow-y-auto overflow-x-hidden py-6 px-4 ${selectedPlayer ? 'pointer-events-none' : ''}`}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-2xl mx-auto">
               {gameState.players.map((player) => (
                 <div
                   key={player.id}
@@ -89,7 +106,7 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
           {/* Detail Panel - slides in from right as overlay */}
           {selectedPlayer && (
             <div className="absolute inset-0 flex items-center justify-end animate-in slide-in-from-right duration-500">
-              <div className="h-full w-full sm:w-[500px] lg:w-[600px] bg-gradient-to-l from-slate-950 via-slate-900 to-slate-950/95 backdrop-blur-md border-l border-amber-900/30 shadow-2xl overflow-y-auto">
+              <div className="h-full w-full sm:w-[450px] lg:w-[550px] bg-gradient-to-l from-slate-950 via-slate-900 to-slate-950/95 backdrop-blur-md border-l border-amber-900/30 shadow-2xl overflow-y-auto">
                 <div className="p-6 sm:p-8 space-y-6">
                   {/* Card at top */}
                   <div className="flex justify-center perspective-1000">
