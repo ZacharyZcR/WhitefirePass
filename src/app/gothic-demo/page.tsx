@@ -1,12 +1,16 @@
 /**
- * Gothic Design Demo Page
- * Pure SVG ornamental designs inspired by medieval manuscripts
+ * Gothic Design Demo - Using Mature UI Components
+ * Based on established patterns from Diablo, Darkest Dungeon UI
  */
 
 'use client';
 
 import { useState } from 'react';
-import { Mountain, Skull, Flame, Moon, Crown, Sword } from 'lucide-react';
+import {
+  Mountain, Skull, Flame, Moon, Crown, Sword,
+  ChevronLeft, ChevronRight, X, Award, Shield,
+  Sparkles, Target, Zap
+} from 'lucide-react';
 
 export default function GothicDemoPage() {
   const [activeButton, setActiveButton] = useState<string | null>(null);
@@ -16,168 +20,182 @@ export default function GothicDemoPage() {
       <div className="max-w-7xl mx-auto space-y-12">
         {/* Page Header */}
         <div className="text-center space-y-4 mb-16">
-          <h1 className="text-5xl font-cinzel text-slate-200 tracking-wider">
-            Gothic Design System
-          </h1>
-          <p className="text-slate-400 font-serif">
-            Pure SVG ornamental borders inspired by medieval manuscripts
+          <div className="inline-block relative">
+            <h1 className="text-6xl font-cinzel text-amber-200 tracking-wider relative z-10
+              [text-shadow:_0_0_30px_rgb(251_191_36_/_50%),_0_2px_4px_rgb(0_0_0_/_80%)]">
+              Gothic UI System
+            </h1>
+            {/* Decorative underline */}
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-64 h-px bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
+            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-48 h-px bg-gradient-to-r from-transparent via-amber-600/50 to-transparent" />
+          </div>
+          <p className="text-slate-400 font-serif text-lg">
+            Production-Ready Dark Fantasy Components
           </p>
         </div>
 
-        {/* Gothic Buttons Section */}
-        <section className="space-y-6">
-          <h2 className="text-3xl font-cinzel text-slate-300 mb-8">Gothic Buttons</h2>
+        {/* Buttons Section */}
+        <section className="space-y-8">
+          <SectionHeader icon={<Sparkles className="w-6 h-6" />} title="Action Buttons" />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <GothicButton
-              variant="primary"
-              icon={<Flame className="w-5 h-5" />}
-              onClick={() => setActiveButton('primary')}
-              active={activeButton === 'primary'}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <DiabloButton
+              variant="gold"
+              icon={<Crown className="w-5 h-5" />}
+              onClick={() => setActiveButton('gold')}
             >
-              Primary Action
-            </GothicButton>
+              Golden Action
+            </DiabloButton>
 
-            <GothicButton
-              variant="danger"
-              icon={<Skull className="w-5 h-5" />}
-              onClick={() => setActiveButton('danger')}
-              active={activeButton === 'danger'}
+            <DiabloButton
+              variant="red"
+              icon={<Flame className="w-5 h-5" />}
+              onClick={() => setActiveButton('red')}
             >
               Danger Action
-            </GothicButton>
+            </DiabloButton>
 
-            <GothicButton
-              variant="royal"
-              icon={<Crown className="w-5 h-5" />}
-              onClick={() => setActiveButton('royal')}
-              active={activeButton === 'royal'}
-            >
-              Royal Action
-            </GothicButton>
-
-            <GothicButton
-              variant="shadow"
+            <DiabloButton
+              variant="purple"
               icon={<Moon className="w-5 h-5" />}
-              onClick={() => setActiveButton('shadow')}
-              active={activeButton === 'shadow'}
+              onClick={() => setActiveButton('purple')}
             >
-              Shadow Action
-            </GothicButton>
+              Magic Action
+            </DiabloButton>
 
-            <GothicButton
-              variant="battle"
-              icon={<Sword className="w-5 h-5" />}
-              onClick={() => setActiveButton('battle')}
-              active={activeButton === 'battle'}
+            <DiabloButton
+              variant="blue"
+              icon={<Shield className="w-5 h-5" />}
+              onClick={() => setActiveButton('blue')}
             >
-              Battle Action
-            </GothicButton>
+              Defense Action
+            </DiabloButton>
 
-            <GothicButton
-              variant="mountain"
-              icon={<Mountain className="w-5 h-5" />}
-              onClick={() => setActiveButton('mountain')}
-              active={activeButton === 'mountain'}
+            <DiabloButton
+              variant="green"
+              icon={<Target className="w-5 h-5" />}
+              onClick={() => setActiveButton('green')}
             >
-              Mountain Action
-            </GothicButton>
+              Success Action
+            </DiabloButton>
+
+            <DiabloButton
+              variant="gray"
+              icon={<Skull className="w-5 h-5" />}
+              onClick={() => setActiveButton('gray')}
+            >
+              Neutral Action
+            </DiabloButton>
           </div>
         </section>
 
-        {/* Gothic Containers Section */}
-        <section className="space-y-6">
-          <h2 className="text-3xl font-cinzel text-slate-300 mb-8">Gothic Containers</h2>
+        {/* Panels Section */}
+        <section className="space-y-8">
+          <SectionHeader icon={<Award className="w-6 h-6" />} title="Content Panels" />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <GothicContainer variant="ornate">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DiabloPanel variant="gold" title="Character Stats">
               <div className="space-y-4">
-                <h3 className="text-2xl font-cinzel text-amber-300 flex items-center gap-2">
-                  <Crown className="w-6 h-6" />
-                  Ornate Panel
-                </h3>
-                <p className="text-slate-300 font-serif leading-relaxed">
-                  Hand-drawn SVG borders inspired by illuminated manuscripts from the
-                  Gothic period. Features flowing acanthus leaves and intricate filigree.
-                </p>
+                <StatBar label="Health" value={850} max={1000} color="red" />
+                <StatBar label="Mana" value={420} max={500} color="blue" />
+                <StatBar label="Stamina" value={750} max={800} color="green" />
               </div>
-            </GothicContainer>
+            </DiabloPanel>
 
-            <GothicContainer variant="shadow">
-              <div className="space-y-4">
-                <h3 className="text-2xl font-cinzel text-purple-300 flex items-center gap-2">
-                  <Moon className="w-6 h-6" />
-                  Shadow Panel
-                </h3>
-                <p className="text-slate-300 font-serif leading-relaxed">
-                  Dark variant with moonlight-inspired decorative elements.
-                  Perfect for mysterious content with deep shadows and ethereal patterns.
-                </p>
+            <DiabloPanel variant="red" title="Active Effects">
+              <div className="space-y-2">
+                <EffectBadge icon={<Flame />} label="Burning" stacks={3} />
+                <EffectBadge icon={<Shield />} label="Protected" stacks={1} />
+                <EffectBadge icon={<Zap />} label="Empowered" stacks={2} />
               </div>
-            </GothicContainer>
+            </DiabloPanel>
 
-            <GothicContainer variant="blood">
-              <div className="space-y-4">
-                <h3 className="text-2xl font-cinzel text-red-300 flex items-center gap-2">
-                  <Flame className="w-6 h-6" />
-                  Blood Panel
-                </h3>
-                <p className="text-slate-300 font-serif leading-relaxed">
-                  Crimson-themed with flame motifs and aggressive angular ornaments.
-                  Creates intensity perfect for warnings or dramatic reveals.
-                </p>
+            <DiabloPanel variant="purple" title="Inventory">
+              <div className="grid grid-cols-4 gap-2">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="aspect-square border-2 border-purple-500/30 bg-purple-950/20
+                      hover:border-purple-400/60 hover:bg-purple-900/30 transition-all cursor-pointer
+                      flex items-center justify-center text-purple-500/30 text-xs"
+                  >
+                    {i === 0 && <Sword className="w-6 h-6 text-purple-400" />}
+                    {i === 1 && <Shield className="w-6 h-6 text-blue-400" />}
+                    {i === 2 && <Crown className="w-6 h-6 text-amber-400" />}
+                  </div>
+                ))}
               </div>
-            </GothicContainer>
+            </DiabloPanel>
 
-            <GothicContainer variant="frost">
-              <div className="space-y-4">
-                <h3 className="text-2xl font-cinzel text-cyan-300 flex items-center gap-2">
-                  <Mountain className="w-6 h-6" />
-                  Frost Panel
-                </h3>
-                <p className="text-slate-300 font-serif leading-relaxed">
-                  Ice-inspired with crystalline patterns and cool blue tones.
-                  Complements the Whitefire Pass winter landscape aesthetic.
-                </p>
+            <DiabloPanel variant="blue" title="Quest Log">
+              <div className="space-y-3">
+                <QuestItem
+                  title="Defeat the Marked"
+                  progress={2}
+                  total={3}
+                  status="active"
+                />
+                <QuestItem
+                  title="Protect the Innocent"
+                  progress={5}
+                  total={5}
+                  status="complete"
+                />
+                <QuestItem
+                  title="Discover the Truth"
+                  progress={0}
+                  total={1}
+                  status="locked"
+                />
               </div>
-            </GothicContainer>
+            </DiabloPanel>
           </div>
         </section>
 
-        {/* Large Feature Container */}
-        <section>
-          <h2 className="text-3xl font-cinzel text-slate-300 mb-8">Featured Container</h2>
+        {/* Modal Example */}
+        <section className="space-y-8">
+          <SectionHeader icon={<Mountain className="w-6 h-6" />} title="Dialog / Modal" />
 
-          <GothicContainer variant="ornate" size="large">
+          <DiabloModal>
             <div className="space-y-6">
-              <div className="text-center space-y-3">
+              <div className="text-center space-y-2">
                 <Crown className="w-16 h-16 mx-auto text-amber-400" />
-                <h3 className="text-4xl font-cinzel text-amber-300">
-                  The Whitefire Covenant
-                </h3>
-                <p className="text-sm font-cinzel tracking-widest text-slate-400 uppercase">
-                  A Sacred Contract Written in Snow and Ash
+                <h2 className="text-3xl font-cinzel text-amber-200">The Whitefire Covenant</h2>
+                <p className="text-sm text-slate-400 font-cinzel tracking-widest uppercase">
+                  A Sacred Contract
                 </p>
               </div>
 
               <div className="h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
 
-              <div className="grid md:grid-cols-2 gap-6 text-center">
-                <div className="space-y-3">
-                  <h4 className="text-lg font-cinzel text-slate-200">The Harvest</h4>
-                  <p className="text-slate-400 font-serif text-sm leading-relaxed">
-                    Three marked souls hunt beneath the moon's cold gaze.
-                  </p>
-                </div>
-                <div className="space-y-3">
-                  <h4 className="text-lg font-cinzel text-slate-200">The Lamb</h4>
-                  <p className="text-slate-400 font-serif text-sm leading-relaxed">
-                    Twelve travelers must expose the darkness before all hope fades.
-                  </p>
-                </div>
+              <div className="space-y-4 text-slate-300 font-serif">
+                <p>
+                  Fifteen travelers stand at the threshold of fate. The mountain spirit has spoken:
+                  only truth shall break the storm.
+                </p>
+                <p>
+                  Three souls bear the mark of harvest. Twelve seek salvation.
+                  All must choose: sacrifice or damnation.
+                </p>
+              </div>
+
+              <div className="flex gap-4">
+                <DiabloButton variant="gold" icon={<ChevronRight className="w-4 h-4" />}>
+                  Accept Contract
+                </DiabloButton>
+                <DiabloButton variant="gray" icon={<X className="w-4 h-4" />}>
+                  Decline
+                </DiabloButton>
               </div>
             </div>
-          </GothicContainer>
+          </DiabloModal>
+        </section>
+
+        {/* Navigation Example */}
+        <section className="space-y-8">
+          <SectionHeader icon={<Target className="w-6 h-6" />} title="Navigation" />
+
+          <DiabloNavigation />
         </section>
       </div>
     </div>
@@ -185,127 +203,73 @@ export default function GothicDemoPage() {
 }
 
 /**
- * Pure SVG Gothic Ornaments Library
+ * Section Header Component
  */
-const GothicOrnaments = {
-  // Fleur-de-lis (classic French royal symbol)
-  FleurDeLis: ({ className = '', size = 24 }: { className?: string; size?: number }) => (
-    <svg width={size} height={size} viewBox="0 0 100 100" className={className}>
-      <g fill="currentColor">
-        {/* Center stem */}
-        <path d="M 45,85 L 45,45 Q 45,40 50,40 Q 55,40 55,45 L 55,85 Q 55,90 50,95 Q 45,90 45,85 Z" />
-        {/* Center petal */}
-        <path d="M 50,10 Q 40,15 40,30 Q 40,40 50,45 Q 60,40 60,30 Q 60,15 50,10 Z" />
-        {/* Left petal */}
-        <path d="M 20,50 Q 15,45 15,35 Q 15,25 25,25 Q 30,25 35,30 Q 38,35 35,45 Q 32,50 25,50 Q 22,50 20,50 Z" />
-        {/* Right petal */}
-        <path d="M 80,50 Q 85,45 85,35 Q 85,25 75,25 Q 70,25 65,30 Q 62,35 65,45 Q 68,50 75,50 Q 78,50 80,50 Z" />
-        {/* Left tendril */}
-        <path d="M 35,40 Q 30,42 25,40 Q 20,38 18,35 Q 16,32 18,30 Q 20,28 23,30 Q 26,32 30,35 Q 33,38 35,40 Z" />
-        {/* Right tendril */}
-        <path d="M 65,40 Q 70,42 75,40 Q 80,38 82,35 Q 84,32 82,30 Q 80,28 77,30 Q 74,32 70,35 Q 67,38 65,40 Z" />
-        {/* Bottom decoration */}
-        <ellipse cx="50" cy="90" rx="8" ry="5" />
-      </g>
-    </svg>
-  ),
-
-  // Corner ornament with acanthus leaf
-  CornerOrnament: ({ className = '', flip = '' }: { className?: string; flip?: string }) => (
-    <svg width="80" height="80" viewBox="0 0 100 100" className={`${className} ${flip}`}>
-      <g fill="currentColor" opacity="0.4">
-        {/* Main scroll */}
-        <path d="M 10,90 Q 10,70 20,60 Q 30,50 40,50 Q 30,50 25,40 Q 20,30 20,20 Q 20,10 30,5 Q 40,0 50,10 Q 55,15 52,25 Q 50,35 40,40 Q 50,45 60,40 Q 70,35 75,30 Q 80,25 85,30 Q 90,35 85,45 Q 80,55 70,60 Q 60,65 50,65 Q 60,70 65,80 Q 70,90 60,95 Q 50,100 45,90 Q 40,80 40,70 Q 35,75 30,80 Q 25,85 20,85 Q 15,85 12,87 Q 10,89 10,90 Z" />
-        {/* Detail curves */}
-        <path d="M 25,45 Q 30,40 35,45 M 45,55 Q 50,50 55,55 M 35,65 Q 40,60 45,65" strokeWidth="1.5" stroke="currentColor" fill="none" />
-        {/* Leaf veins */}
-        <path d="M 40,25 L 42,28 M 38,30 L 40,33 M 36,35 L 38,38" strokeWidth="1" stroke="currentColor" fill="none" opacity="0.6" />
-      </g>
-    </svg>
-  ),
-
-  // Border vine element
-  BorderVine: ({ className = '', color = 'currentColor' }: { className?: string; color?: string }) => (
-    <svg width="200" height="40" viewBox="0 0 200 40" className={className} preserveAspectRatio="none">
-      <defs>
-        <path id="leaf" d="M 0,0 Q 3,-4 6,0 Q 3,4 0,0 Z" />
-      </defs>
-      <g stroke={color} fill={color} opacity="0.3">
-        {/* Main vine */}
-        <path
-          d="M 0,20 Q 20,15 40,20 T 80,20 Q 100,15 120,20 T 160,20 Q 180,15 200,20"
-          strokeWidth="2"
-          fill="none"
-        />
-        {/* Leaves */}
-        <use href="#leaf" x="20" y="20" transform="rotate(-30, 23, 20)" />
-        <use href="#leaf" x="40" y="20" transform="rotate(30, 43, 20)" />
-        <use href="#leaf" x="60" y="20" transform="rotate(-30, 63, 20)" />
-        <use href="#leaf" x="80" y="20" transform="rotate(30, 83, 20)" />
-        <use href="#leaf" x="100" y="20" transform="rotate(-30, 103, 20)" />
-        <use href="#leaf" x="120" y="20" transform="rotate(30, 123, 20)" />
-        <use href="#leaf" x="140" y="20" transform="rotate(-30, 143, 20)" />
-        <use href="#leaf" x="160" y="20" transform="rotate(30, 163, 20)" />
-        <use href="#leaf" x="180" y="20" transform="rotate(-30, 183, 20)" />
-      </g>
-    </svg>
-  ),
-};
-
-/**
- * Gothic Button Component
- */
-interface GothicButtonProps {
-  children: React.ReactNode;
-  variant: 'primary' | 'danger' | 'royal' | 'shadow' | 'battle' | 'mountain';
-  icon?: React.ReactNode;
-  onClick?: () => void;
-  active?: boolean;
+function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="p-2 bg-amber-500/10 border border-amber-500/30 text-amber-400">
+        {icon}
+      </div>
+      <h2 className="text-2xl font-cinzel text-amber-200 tracking-wide">{title}</h2>
+      <div className="flex-1 h-px bg-gradient-to-r from-amber-500/30 to-transparent" />
+    </div>
+  );
 }
 
-function GothicButton({ children, variant, icon, onClick, active }: GothicButtonProps) {
+/**
+ * Diablo-style Button
+ */
+interface DiabloButtonProps {
+  children: React.ReactNode;
+  variant: 'gold' | 'red' | 'purple' | 'blue' | 'green' | 'gray';
+  icon?: React.ReactNode;
+  onClick?: () => void;
+}
+
+function DiabloButton({ children, variant, icon, onClick }: DiabloButtonProps) {
   const variants = {
-    primary: {
-      gradient: 'from-amber-600 to-amber-800',
-      border: 'border-amber-400',
-      shadow: 'shadow-amber-500/50',
-      glow: 'shadow-[0_0_20px_rgba(251,191,36,0.3)]',
-      ornament: 'text-amber-300',
+    gold: {
+      bg: 'bg-gradient-to-b from-amber-600 via-amber-700 to-amber-900',
+      border: 'border-amber-500/60',
+      shadow: 'shadow-[0_0_20px_rgba(217,119,6,0.3)]',
+      hover: 'hover:from-amber-500 hover:via-amber-600 hover:to-amber-800 hover:shadow-[0_0_30px_rgba(217,119,6,0.5)]',
+      text: 'text-amber-50',
     },
-    danger: {
-      gradient: 'from-red-700 to-red-900',
-      border: 'border-red-400',
-      shadow: 'shadow-red-500/50',
-      glow: 'shadow-[0_0_20px_rgba(239,68,68,0.3)]',
-      ornament: 'text-red-300',
+    red: {
+      bg: 'bg-gradient-to-b from-red-700 via-red-800 to-red-950',
+      border: 'border-red-500/60',
+      shadow: 'shadow-[0_0_20px_rgba(185,28,28,0.3)]',
+      hover: 'hover:from-red-600 hover:via-red-700 hover:to-red-900 hover:shadow-[0_0_30px_rgba(185,28,28,0.5)]',
+      text: 'text-red-50',
     },
-    royal: {
-      gradient: 'from-purple-700 to-purple-900',
-      border: 'border-purple-400',
-      shadow: 'shadow-purple-500/50',
-      glow: 'shadow-[0_0_20px_rgba(168,85,247,0.3)]',
-      ornament: 'text-purple-300',
+    purple: {
+      bg: 'bg-gradient-to-b from-purple-700 via-purple-800 to-purple-950',
+      border: 'border-purple-500/60',
+      shadow: 'shadow-[0_0_20px_rgba(126,34,206,0.3)]',
+      hover: 'hover:from-purple-600 hover:via-purple-700 hover:to-purple-900 hover:shadow-[0_0_30px_rgba(126,34,206,0.5)]',
+      text: 'text-purple-50',
     },
-    shadow: {
-      gradient: 'from-slate-700 to-slate-900',
-      border: 'border-slate-400',
-      shadow: 'shadow-slate-500/50',
-      glow: 'shadow-[0_0_20px_rgba(148,163,184,0.3)]',
-      ornament: 'text-slate-300',
+    blue: {
+      bg: 'bg-gradient-to-b from-blue-700 via-blue-800 to-blue-950',
+      border: 'border-blue-500/60',
+      shadow: 'shadow-[0_0_20px_rgba(29,78,216,0.3)]',
+      hover: 'hover:from-blue-600 hover:via-blue-700 hover:to-blue-900 hover:shadow-[0_0_30px_rgba(29,78,216,0.5)]',
+      text: 'text-blue-50',
     },
-    battle: {
-      gradient: 'from-orange-700 to-orange-900',
-      border: 'border-orange-400',
-      shadow: 'shadow-orange-500/50',
-      glow: 'shadow-[0_0_20px_rgba(249,115,22,0.3)]',
-      ornament: 'text-orange-300',
+    green: {
+      bg: 'bg-gradient-to-b from-green-700 via-green-800 to-green-950',
+      border: 'border-green-500/60',
+      shadow: 'shadow-[0_0_20px_rgba(21,128,61,0.3)]',
+      hover: 'hover:from-green-600 hover:via-green-700 hover:to-green-900 hover:shadow-[0_0_30px_rgba(21,128,61,0.5)]',
+      text: 'text-green-50',
     },
-    mountain: {
-      gradient: 'from-cyan-700 to-cyan-900',
-      border: 'border-cyan-400',
-      shadow: 'shadow-cyan-500/50',
-      glow: 'shadow-[0_0_20px_rgba(34,211,238,0.3)]',
-      ornament: 'text-cyan-300',
+    gray: {
+      bg: 'bg-gradient-to-b from-slate-700 via-slate-800 to-slate-950',
+      border: 'border-slate-500/60',
+      shadow: 'shadow-[0_0_20px_rgba(71,85,105,0.3)]',
+      hover: 'hover:from-slate-600 hover:via-slate-700 hover:to-slate-900 hover:shadow-[0_0_30px_rgba(71,85,105,0.5)]',
+      text: 'text-slate-50',
     },
   };
 
@@ -315,158 +279,224 @@ function GothicButton({ children, variant, icon, onClick, active }: GothicButton
     <button
       onClick={onClick}
       className={`
-        relative group
-        px-8 py-4
-        bg-gradient-to-br ${v.gradient}
-        border-2 ${v.border}
-        ${active ? `ring-4 ring-${v.border.split('-')[1]}-400/50` : ''}
-        font-cinzel tracking-widest text-sm uppercase
-        text-white
-        transition-all duration-500
-        ${v.shadow}
-        hover:${v.glow}
-        hover:scale-[1.02]
-        overflow-visible
+        relative group px-6 py-3
+        ${v.bg} ${v.border} ${v.text}
+        border-2 border-t-4 border-b
+        ${v.shadow} ${v.hover}
+        font-cinzel tracking-wider text-sm uppercase
+        transition-all duration-300
+        active:translate-y-0.5 active:shadow-none
+
+        before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/10 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity
+
+        after:absolute after:inset-x-0 after:top-0 after:h-px after:bg-white/20
       `}
     >
-      {/* Corner ornaments */}
-      <GothicOrnaments.FleurDeLis
-        className={`absolute -top-4 -left-4 ${v.ornament} transition-all duration-500 group-hover:scale-125 drop-shadow-lg`}
-        size={32}
-      />
-      <GothicOrnaments.FleurDeLis
-        className={`absolute -top-4 -right-4 ${v.ornament} transition-all duration-500 group-hover:scale-125 drop-shadow-lg`}
-        size={32}
-      />
-      <GothicOrnaments.FleurDeLis
-        className={`absolute -bottom-4 -left-4 ${v.ornament} transition-all duration-500 group-hover:scale-125 drop-shadow-lg`}
-        size={32}
-      />
-      <GothicOrnaments.FleurDeLis
-        className={`absolute -bottom-4 -right-4 ${v.ornament} transition-all duration-500 group-hover:scale-125 drop-shadow-lg`}
-        size={32}
-      />
-
-      {/* Border vines */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <GothicOrnaments.BorderVine className="absolute top-0 left-0 w-full" color={`rgb(${v.border.includes('amber') ? '251,191,36' : v.border.includes('red') ? '248,113,113' : v.border.includes('purple') ? '216,180,254' : v.border.includes('slate') ? '203,213,225' : v.border.includes('orange') ? '251,146,60' : '103,232,249'})`} />
-        <GothicOrnaments.BorderVine className="absolute bottom-0 left-0 w-full scale-y-[-1]" color={`rgb(${v.border.includes('amber') ? '251,191,36' : v.border.includes('red') ? '248,113,113' : v.border.includes('purple') ? '216,180,254' : v.border.includes('slate') ? '203,213,225' : v.border.includes('orange') ? '251,146,60' : '103,232,249'})`} />
-      </div>
-
-      {/* Content */}
-      <span className="relative z-10 flex items-center justify-center gap-3">
+      <span className="relative z-10 flex items-center justify-center gap-2">
         {icon}
         {children}
       </span>
 
-      {/* Inner shadow */}
-      <div className="absolute inset-0 border border-white/10 pointer-events-none" />
+      {/* Corner accents */}
+      <span className="absolute top-0 left-0 w-1 h-1 bg-white/40" />
+      <span className="absolute top-0 right-0 w-1 h-1 bg-white/40" />
+      <span className="absolute bottom-0 left-0 w-1 h-1 bg-black/40" />
+      <span className="absolute bottom-0 right-0 w-1 h-1 bg-black/40" />
     </button>
   );
 }
 
 /**
- * Gothic Container Component
+ * Diablo-style Panel
  */
-interface GothicContainerProps {
+interface DiabloPanelProps {
   children: React.ReactNode;
-  variant: 'ornate' | 'shadow' | 'blood' | 'frost';
-  size?: 'normal' | 'large';
+  variant: 'gold' | 'red' | 'purple' | 'blue';
+  title: string;
 }
 
-function GothicContainer({ children, variant, size = 'normal' }: GothicContainerProps) {
+function DiabloPanel({ children, variant, title }: DiabloPanelProps) {
   const variants = {
-    ornate: {
-      gradient: 'from-amber-950/70 via-slate-900/90 to-amber-950/70',
-      border: 'border-amber-500/60',
-      shadow: 'shadow-amber-500/30',
-      ornament: 'text-amber-400',
-      glow: 'shadow-[0_0_40px_rgba(251,191,36,0.2)]',
+    gold: {
+      border: 'border-amber-600/40',
+      titleBg: 'bg-gradient-to-r from-amber-900/80 to-amber-800/60',
+      titleText: 'text-amber-200',
+      glow: 'shadow-[inset_0_0_20px_rgba(217,119,6,0.1)]',
     },
-    shadow: {
-      gradient: 'from-purple-950/70 via-slate-900/90 to-purple-950/70',
-      border: 'border-purple-500/60',
-      shadow: 'shadow-purple-500/30',
-      ornament: 'text-purple-400',
-      glow: 'shadow-[0_0_40px_rgba(168,85,247,0.2)]',
+    red: {
+      border: 'border-red-600/40',
+      titleBg: 'bg-gradient-to-r from-red-900/80 to-red-800/60',
+      titleText: 'text-red-200',
+      glow: 'shadow-[inset_0_0_20px_rgba(185,28,28,0.1)]',
     },
-    blood: {
-      gradient: 'from-red-950/70 via-slate-900/90 to-red-950/70',
-      border: 'border-red-500/60',
-      shadow: 'shadow-red-500/30',
-      ornament: 'text-red-400',
-      glow: 'shadow-[0_0_40px_rgba(239,68,68,0.2)]',
+    purple: {
+      border: 'border-purple-600/40',
+      titleBg: 'bg-gradient-to-r from-purple-900/80 to-purple-800/60',
+      titleText: 'text-purple-200',
+      glow: 'shadow-[inset_0_0_20px_rgba(126,34,206,0.1)]',
     },
-    frost: {
-      gradient: 'from-cyan-950/70 via-slate-900/90 to-cyan-950/70',
-      border: 'border-cyan-500/60',
-      shadow: 'shadow-cyan-500/30',
-      ornament: 'text-cyan-400',
-      glow: 'shadow-[0_0_40px_rgba(34,211,238,0.2)]',
+    blue: {
+      border: 'border-blue-600/40',
+      titleBg: 'bg-gradient-to-r from-blue-900/80 to-blue-800/60',
+      titleText: 'text-blue-200',
+      glow: 'shadow-[inset_0_0_20px_rgba(29,78,216,0.1)]',
     },
   };
 
   const v = variants[variant];
-  const padding = size === 'large' ? 'p-16' : 'p-10';
 
   return (
-    <div className="relative group">
-      <div
-        className={`
-          relative
-          ${padding}
-          bg-gradient-to-br ${v.gradient}
-          border-4 ${v.border}
-          shadow-2xl ${v.shadow}
-          backdrop-blur-md
-          transition-all duration-700
-          hover:${v.glow}
-          overflow-visible
-        `}
-      >
-        {/* Corner ornaments */}
-        <GothicOrnaments.CornerOrnament
-          className={`absolute -top-8 -left-8 ${v.ornament} transition-all duration-700 group-hover:scale-110`}
-        />
-        <GothicOrnaments.CornerOrnament
-          className={`absolute -top-8 -right-8 ${v.ornament} transition-all duration-700 group-hover:scale-110 scale-x-[-1]`}
-        />
-        <GothicOrnaments.CornerOrnament
-          className={`absolute -bottom-8 -left-8 ${v.ornament} transition-all duration-700 group-hover:scale-110 scale-y-[-1]`}
-        />
-        <GothicOrnaments.CornerOrnament
-          className={`absolute -bottom-8 -right-8 ${v.ornament} transition-all duration-700 group-hover:scale-110 scale-[-1]`}
-        />
+    <div className={`
+      border-4 ${v.border} ${v.glow}
+      bg-gradient-to-br from-slate-900/90 via-slate-950/95 to-black/90
+      backdrop-blur-sm
+    `}>
+      {/* Title bar */}
+      <div className={`
+        ${v.titleBg} ${v.titleText}
+        px-4 py-2 border-b-2 ${v.border}
+        font-cinzel tracking-wider uppercase text-sm
+        flex items-center justify-between
+      `}>
+        <span>{title}</span>
+        <ChevronRight className="w-4 h-4 opacity-50" />
+      </div>
 
-        {/* Side center ornaments */}
-        <GothicOrnaments.FleurDeLis
-          className={`absolute top-1/2 -left-6 -translate-y-1/2 ${v.ornament} transition-all duration-700 group-hover:scale-110 drop-shadow-lg`}
-          size={48}
-        />
-        <GothicOrnaments.FleurDeLis
-          className={`absolute top-1/2 -right-6 -translate-y-1/2 ${v.ornament} transition-all duration-700 group-hover:scale-110 drop-shadow-lg`}
-          size={48}
-        />
-        <GothicOrnaments.FleurDeLis
-          className={`absolute -top-6 left-1/2 -translate-x-1/2 ${v.ornament} transition-all duration-700 group-hover:scale-110 drop-shadow-lg`}
-          size={48}
-        />
-        <GothicOrnaments.FleurDeLis
-          className={`absolute -bottom-6 left-1/2 -translate-x-1/2 ${v.ornament} transition-all duration-700 group-hover:scale-110 drop-shadow-lg`}
-          size={48}
-        />
+      {/* Content */}
+      <div className="p-6">
+        {children}
+      </div>
 
-        {/* Inner borders */}
-        <div className="absolute inset-4 border-2 border-white/10 pointer-events-none" />
-        <div className="absolute inset-6 border border-white/5 pointer-events-none" />
+      {/* Corner decorations */}
+      <span className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-white/20" />
+      <span className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-white/20" />
+      <span className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-white/20" />
+      <span className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-white/20" />
+    </div>
+  );
+}
 
-        {/* Content */}
-        <div className="relative z-10">
-          {children}
-        </div>
+/**
+ * Modal Component
+ */
+function DiabloModal({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="max-w-2xl mx-auto">
+      <div className="
+        relative
+        border-4 border-amber-600/60
+        bg-gradient-to-br from-slate-900 via-slate-950 to-black
+        shadow-[0_0_60px_rgba(217,119,6,0.3),inset_0_0_40px_rgba(0,0,0,0.5)]
+        p-8
+      ">
+        {/* Decorative corners */}
+        <div className="absolute -top-3 -left-3 w-6 h-6 border-t-4 border-l-4 border-amber-500" />
+        <div className="absolute -top-3 -right-3 w-6 h-6 border-t-4 border-r-4 border-amber-500" />
+        <div className="absolute -bottom-3 -left-3 w-6 h-6 border-b-4 border-l-4 border-amber-500" />
+        <div className="absolute -bottom-3 -right-3 w-6 h-6 border-b-4 border-r-4 border-amber-500" />
 
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-gradient-radial from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Navigation Component
+ */
+function DiabloNavigation() {
+  const tabs = [
+    { icon: <Sword />, label: 'Combat' },
+    { icon: <Shield />, label: 'Defense' },
+    { icon: <Crown />, label: 'Character' },
+    { icon: <Target />, label: 'Skills' },
+  ];
+
+  return (
+    <div className="flex gap-2 bg-slate-950/50 p-2 border-2 border-slate-700/50">
+      {tabs.map((tab, i) => (
+        <button
+          key={i}
+          className="
+            flex-1 flex items-center justify-center gap-2 px-4 py-3
+            bg-gradient-to-b from-slate-700 to-slate-800
+            border-2 border-slate-600/60
+            hover:from-amber-700 hover:to-amber-800 hover:border-amber-500/60
+            text-slate-300 hover:text-amber-100
+            font-cinzel text-sm uppercase tracking-wider
+            transition-all duration-300
+            active:translate-y-0.5
+          "
+        >
+          <span className="w-5 h-5">{tab.icon}</span>
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Helper Components
+ */
+function StatBar({ label, value, max, color }: { label: string; value: number; max: number; color: 'red' | 'blue' | 'green' }) {
+  const percentage = (value / max) * 100;
+  const colors = {
+    red: 'bg-red-600',
+    blue: 'bg-blue-600',
+    green: 'bg-green-600',
+  };
+
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-xs text-slate-400 font-cinzel">
+        <span>{label}</span>
+        <span>{value} / {max}</span>
+      </div>
+      <div className="h-3 bg-slate-950 border border-slate-700">
+        <div
+          className={`h-full ${colors[color]} transition-all duration-300 shadow-[inset_0_1px_2px_rgba(255,255,255,0.2)]`}
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function EffectBadge({ icon, label, stacks }: { icon: React.ReactNode; label: string; stacks: number }) {
+  return (
+    <div className="flex items-center gap-3 px-3 py-2 bg-slate-900/50 border border-slate-700/50 hover:border-amber-500/30 transition-colors">
+      <div className="w-8 h-8 flex items-center justify-center text-amber-400">
+        {icon}
+      </div>
+      <div className="flex-1">
+        <div className="text-sm text-slate-200 font-cinzel">{label}</div>
+      </div>
+      <div className="px-2 py-0.5 bg-slate-800 border border-slate-600 text-xs text-slate-300 font-bold">
+        x{stacks}
+      </div>
+    </div>
+  );
+}
+
+function QuestItem({ title, progress, total, status }: { title: string; progress: number; total: number; status: 'active' | 'complete' | 'locked' }) {
+  const statusColors = {
+    active: 'border-blue-500/40 text-blue-300',
+    complete: 'border-green-500/40 text-green-300',
+    locked: 'border-slate-600/40 text-slate-500',
+  };
+
+  return (
+    <div className={`p-3 border-2 ${statusColors[status]} bg-slate-950/30`}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-cinzel">{title}</span>
+        <span className="text-xs">{progress}/{total}</span>
+      </div>
+      <div className="h-1 bg-slate-900 border border-slate-800">
+        <div
+          className="h-full bg-current transition-all duration-300"
+          style={{ width: `${(progress / total) * 100}%` }}
+        />
       </div>
     </div>
   );
