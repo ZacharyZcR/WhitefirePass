@@ -98,11 +98,11 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 overflow-auto relative">
+        <div className="flex-1 min-h-0 overflow-hidden relative">
           {/* Gallery View - responsive grid */}
           <div
-            className={`py-6 px-4 transition-opacity duration-300 ${
-              showDetail ? 'opacity-0 pointer-events-none absolute inset-0' : 'opacity-100'
+            className={`absolute inset-0 overflow-y-auto overflow-x-hidden py-6 px-4 transition-opacity duration-300 ${
+              showDetail ? 'opacity-0 pointer-events-none' : 'opacity-100'
             } ${flippingCardId ? 'pointer-events-none' : ''}`}
           >
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-2xl mx-auto">
