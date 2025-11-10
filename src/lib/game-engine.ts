@@ -362,7 +362,7 @@ export function processNightPhase(state: GameState): {
   if (state.nightVotes.length === 0) {
     return {
       killedPlayer: null,
-      message: createMessage('旁白', '白蜡篝火跳动。这一夜，无人死去。'),
+      message: createMessage('叙述者', '白蜡篝火跳动。这一夜，无人死去。'),
       isTied: false,
       tiedPlayers: [],
     };
@@ -395,7 +395,7 @@ export function processNightPhase(state: GameState): {
     return {
       killedPlayer: null,
       message: createMessage(
-        '旁白',
+        '叙述者',
         `烙印者们的意见分歧。${playersWithMaxVotes.join('、')} 各得 ${maxVotes} 票。需要重新商议。`,
       ),
       isTied: true,
@@ -409,7 +409,7 @@ export function processNightPhase(state: GameState): {
   if (!player || !player.isAlive) {
     return {
       killedPlayer: null,
-      message: createMessage('旁白', '白蜡篝火跳动。这一夜，无人死去。'),
+      message: createMessage('叙述者', '白蜡篝火跳动。这一夜，无人死去。'),
       isTied: false,
       tiedPlayers: [],
     };
@@ -421,7 +421,7 @@ export function processNightPhase(state: GameState): {
     return {
       killedPlayer: null,
       message: createMessage(
-        '旁白',
+        '叙述者',
         `门闩阻挡了利爪。${targetName} 的房门从外被锁死，躲过了一劫。`,
       ),
       isTied: false,
@@ -432,7 +432,7 @@ export function processNightPhase(state: GameState): {
   return {
     killedPlayer: player,
     message: createMessage(
-      '旁白',
+      '叙述者',
       `黎明时分，${player.name} 的房门被推开。冰冷的尸体躺在地上，灵魂已被收割。`,
     ),
     isTied: false,
@@ -452,7 +452,7 @@ export function processVoting(state: GameState): {
   if (state.votes.length === 0) {
     return {
       eliminated: null,
-      message: createMessage('旁白', '无人被选为献祭。'),
+      message: createMessage('叙述者', '无人被选为献祭。'),
       isTied: false,
       tiedPlayers: [],
     };
@@ -484,7 +484,7 @@ export function processVoting(state: GameState): {
     return {
       eliminated: null,
       message: createMessage(
-        '旁白',
+        '叙述者',
         `献祭石的指向分散。${playersWithMaxVotes.join('、')} 各得 ${maxVotes} 票。平票，无人被献祭。`,
       ),
       isTied: true,
@@ -497,7 +497,7 @@ export function processVoting(state: GameState): {
   if (!player) {
     return {
       eliminated: null,
-      message: createMessage('旁白', '无人被选为献祭。'),
+      message: createMessage('叙述者', '无人被选为献祭。'),
       isTied: false,
       tiedPlayers: [],
     };
@@ -506,7 +506,7 @@ export function processVoting(state: GameState): {
   return {
     eliminated: player,
     message: createMessage(
-      '旁白',
+      '叙述者',
       `献祭仪式完成。${player.name} 被推入白蜡篝火，化为灰烬。`,
     ),
     isTied: false,

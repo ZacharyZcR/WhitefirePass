@@ -41,7 +41,7 @@ const messageStyles: Record<string, string> = {
  * Message type names in Chinese
  */
 const messageTypeNames: Record<string, string> = {
-  system: '旁白',
+  system: '叙述者',
   speech: '发言',
   vote: '投票',
   death: '死亡',

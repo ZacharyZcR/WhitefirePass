@@ -303,14 +303,14 @@ export const useGameStore = create<GameStore>()(
       gameState.nightPhase = 'marked-discuss';
       gameState.currentPlayerIndex = 0;
       gameState.messages.push(
-        addMessage(gameState, '旁白', '饥饿的呼唤开始了...', 'system', 'marked'),
+        addMessage(gameState, '叙述者', '饥饿的呼唤开始了...', 'system', 'marked'),
       );
     } else if (gameState.nightPhase === 'marked-discuss') {
       // Marked discuss ended, go to marked vote
       gameState.nightPhase = 'marked-vote';
       gameState.currentPlayerIndex = 0;
       gameState.messages.push(
-        addMessage(gameState, '旁白', '烙印者请投票选择今晚的猎物', 'system', 'marked'),
+        addMessage(gameState, '叙述者', '烙印者请投票选择今晚的猎物', 'system', 'marked'),
       );
     } else if (gameState.nightPhase === 'marked-vote') {
       // Check werewolf votes for ties
@@ -334,7 +334,7 @@ export const useGameStore = create<GameStore>()(
         gameState.messages.push(
           addMessage(
             gameState,
-            '旁白',
+            '叙述者',
             `第 ${gameState.revoteRound} 次平票（${tiedPlayers.join('、')}）！烙印者必须重新讨论并达成一致。`,
             'system',
             'marked',
@@ -357,7 +357,7 @@ export const useGameStore = create<GameStore>()(
           gameState.nightPhase = 'guard';
           gameState.currentPlayerIndex = 0;
           gameState.messages.push(
-            addMessage(gameState, '旁白', '设闩者，选择今晚要守护的人...', 'system', 'guard'),
+            addMessage(gameState, '叙述者', '设闩者，选择今晚要守护的人...', 'system', 'guard'),
           );
         } else {
           // No guard, proceed to coroner phase
@@ -387,7 +387,7 @@ export const useGameStore = create<GameStore>()(
           gameState.messages.push(
             addMessage(
               gameState,
-              '旁白',
+              '叙述者',
               `食灰者在梦中品尝了 ${sacrificedPlayer.name} 的灵魂...`,
               'system',
               'coroner',
@@ -470,7 +470,7 @@ export const useGameStore = create<GameStore>()(
 黎明到来。游戏，正式开始。`,
         },
         {
-          from: '旁白',
+          from: '叙述者',
           content: `【身份已被烙印】
 
 收割阵营：${roleCounts['marked'] || 0}名烙印者
@@ -527,7 +527,7 @@ export const useGameStore = create<GameStore>()(
       gameState.currentPlayerIndex = 0;
       gameState.votes = [];
       gameState.messages.push(
-        addMessage(gameState, '旁白', '讨论结束。现在开始投票！', 'system', 'all'),
+        addMessage(gameState, '叙述者', '讨论结束。现在开始投票！', 'system', 'all'),
       );
 
       // Trigger transition animation
@@ -907,7 +907,7 @@ function recordListenerCheck(
   gameState.messages.push(
     addMessage(
       gameState,
-      '旁白',
+      '叙述者',
       `倾听结果：${targetName} 的灵魂是 ${factionName} 的`,
       'system',
       'listener',
@@ -944,7 +944,7 @@ function recordGuardAction(
     gameState.messages.push(
       addMessage(
         gameState,
-        '旁白',
+        '叙述者',
         `你不能连续两晚守护同一个人！守护失败。`,
         'system',
         'guard',
@@ -965,7 +965,7 @@ function recordGuardAction(
   gameState.messages.push(
     addMessage(
       gameState,
-      '旁白',
+      '叙述者',
       `你守护了 ${targetName}。门闩已经从外面锁好。`,
       'system',
       'guard',
@@ -1048,7 +1048,7 @@ function handleDayVotingResult(
     if (gameState.isRevote) {
       // Second tie - nobody gets eliminated
       gameState.messages.push(
-        addMessage(gameState, '旁白', '再次平票！本回合不淘汰任何人。', 'system', 'all'),
+        addMessage(gameState, '叙述者', '再次平票！本回合不淘汰任何人。', 'system', 'all'),
       );
       // Clear last sacrificed player since no one was eliminated
       gameState.lastSacrificedPlayer = undefined;
@@ -1063,7 +1063,7 @@ function handleDayVotingResult(
       gameState.messages.push(
         addMessage(
           gameState,
-          '旁白',
+          '叙述者',
           `平票玩家 ${tiedPlayers.join('、')} 不能发言。其他玩家请进行讨论并投票。`,
           'system',
           'all',
@@ -1108,7 +1108,7 @@ function handleNightKillResult(
   gameState.isRevote = false;
   gameState.tiedPlayers = [];
   gameState.messages.push(
-    addMessage(gameState, '旁白', `第 ${gameState.round} 回合。天亮了！`, 'system', 'all'),
+    addMessage(gameState, '叙述者', `第 ${gameState.round} 回合。天亮了！`, 'system', 'all'),
   );
 
   // On Day 2, reveal heretic existence to marked players and awaken the heretic
@@ -1198,12 +1198,12 @@ function enterNightPhase(gameState: GameState): void {
   const listener = gameState.players.find((p) => p.role === 'listener' && p.isAlive);
   if (listener) {
     gameState.messages.push(
-      addMessage(gameState, '旁白', '夜幕降临... 寂静山庄陷入黑暗。', 'system', 'all'),
+      addMessage(gameState, '叙述者', '夜幕降临... 寂静山庄陷入黑暗。', 'system', 'all'),
     );
   } else {
     gameState.nightPhase = 'marked-discuss';
     gameState.messages.push(
-      addMessage(gameState, '旁白', '夜幕降临... 饥饿者的时刻到了。', 'system', 'all'),
+      addMessage(gameState, '叙述者', '夜幕降临... 饥饿者的时刻到了。', 'system', 'all'),
     );
   }
 }
