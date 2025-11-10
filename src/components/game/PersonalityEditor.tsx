@@ -98,54 +98,56 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 overflow-hidden relative">
-          {/* Gallery View - responsive grid */}
-          <div
-            className={`absolute inset-0 overflow-y-auto overflow-x-hidden py-6 px-4 transition-opacity duration-300 ${
-              showDetail ? 'opacity-0 pointer-events-none' : 'opacity-100'
-            } ${flippingCardId ? 'pointer-events-none' : ''}`}
-          >
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-2xl mx-auto">
-              {gameState.players.map((player) => (
-                <div
-                  key={player.id}
-                  className="perspective-1000 flex justify-center cursor-pointer"
-                  onClick={() => handleCardClick(player.id)}
-                >
-                  <TarotCard
-                    player={player}
-                    isFlipped={flippingCardId === player.id}
-                    size="small"
-                    className="hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-              ))}
+        <div className="flex-1 min-h-0 relative">
+          {!showDetail ? (
+            /* Gallery View - responsive grid */
+            <div
+              className={`h-full overflow-y-auto overflow-x-hidden py-6 px-4 ${
+                flippingCardId ? 'pointer-events-none' : ''
+              }`}
+            >
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-2xl mx-auto">
+                {gameState.players.map((player) => (
+                  <div
+                    key={player.id}
+                    className="perspective-1000 flex justify-center cursor-pointer"
+                    onClick={() => handleCardClick(player.id)}
+                  >
+                    <TarotCard
+                      player={player}
+                      isFlipped={flippingCardId === player.id}
+                      size="small"
+                      className="hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            /* Detail View - full container */
+            selectedPlayer && (
+              <div className="h-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 animate-in fade-in duration-500">
+                <div className="h-full overflow-y-auto">
+                  <div className="max-w-6xl mx-auto p-6 sm:p-8">
+                    <div className="flex flex-col lg:flex-row gap-8 items-start">
+                      {/* Left: Card */}
+                      <div className="flex-shrink-0 w-full lg:w-auto flex justify-center perspective-1000">
+                        <TarotCard
+                          player={selectedPlayer}
+                          isFlipped={true}
+                          size="default"
+                        />
+                      </div>
 
-          {/* Detail View - full container */}
-          {showDetail && selectedPlayer && (
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 animate-in fade-in duration-500">
-              <div className="h-full overflow-y-auto">
-                <div className="max-w-6xl mx-auto p-6 sm:p-8">
-                  <div className="flex flex-col lg:flex-row gap-8 items-start">
-                    {/* Left: Card */}
-                    <div className="flex-shrink-0 w-full lg:w-auto flex justify-center perspective-1000">
-                      <TarotCard
-                        player={selectedPlayer}
-                        isFlipped={true}
-                        size="default"
-                      />
-                    </div>
-
-                    {/* Right: Detail panel */}
-                    <div className="flex-1 min-w-0">
-                      <TravelerDetail player={selectedPlayer} />
+                      {/* Right: Detail panel */}
+                      <div className="flex-1 min-w-0">
+                        <TravelerDetail player={selectedPlayer} />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )
           )}
         </div>
       </DialogContent>
