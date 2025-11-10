@@ -88,13 +88,82 @@ export function GameBoard() {
     <>
       <div
         className={cn(
-          "h-screen w-screen overflow-hidden flex flex-col bg-gradient-to-br transition-all duration-1000 ease-in-out",
+          "h-screen w-screen overflow-hidden flex flex-col bg-gradient-to-br transition-all duration-1000 ease-in-out relative",
           theme.gradient
         )}
       >
+      {/* Gothic Corner Decorations - Subtle and elegant */}
+      <div className="absolute inset-0 pointer-events-none z-0 opacity-8">
+        {/* Top-left corner */}
+        <div className="absolute top-0 left-0 text-foreground/30">
+          <svg width="120" height="120" viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="0.5">
+            <path d="M0,60 Q15,35 30,20 Q45,5 60,0" opacity="0.6" />
+            <path d="M0,60 Q10,45 20,30 Q30,15 40,10" opacity="0.4" />
+            <path d="M0,60 Q5,40 10,20 Q15,10 20,5" opacity="0.3" />
+            <path d="M0,60 Q0,30 0,0" opacity="0.5" />
+            <circle cx="12" cy="12" r="1.5" fill="currentColor" opacity="0.3" />
+            <circle cx="24" cy="24" r="1.2" fill="currentColor" opacity="0.25" />
+            <circle cx="36" cy="36" r="1" fill="currentColor" opacity="0.2" />
+            <circle cx="48" cy="48" r="0.8" fill="currentColor" opacity="0.15" />
+          </svg>
+        </div>
+        {/* Top-right corner */}
+        <div className="absolute top-0 right-0 text-foreground/30 scale-x-[-1]">
+          <svg width="120" height="120" viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="0.5">
+            <path d="M0,60 Q15,35 30,20 Q45,5 60,0" opacity="0.6" />
+            <path d="M0,60 Q10,45 20,30 Q30,15 40,10" opacity="0.4" />
+            <path d="M0,60 Q5,40 10,20 Q15,10 20,5" opacity="0.3" />
+            <path d="M0,60 Q0,30 0,0" opacity="0.5" />
+            <circle cx="12" cy="12" r="1.5" fill="currentColor" opacity="0.3" />
+            <circle cx="24" cy="24" r="1.2" fill="currentColor" opacity="0.25" />
+            <circle cx="36" cy="36" r="1" fill="currentColor" opacity="0.2" />
+            <circle cx="48" cy="48" r="0.8" fill="currentColor" opacity="0.15" />
+          </svg>
+        </div>
+        {/* Bottom-left corner */}
+        <div className="absolute bottom-0 left-0 text-foreground/30 scale-y-[-1]">
+          <svg width="120" height="120" viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="0.5">
+            <path d="M0,60 Q15,35 30,20 Q45,5 60,0" opacity="0.6" />
+            <path d="M0,60 Q10,45 20,30 Q30,15 40,10" opacity="0.4" />
+            <path d="M0,60 Q5,40 10,20 Q15,10 20,5" opacity="0.3" />
+            <path d="M0,60 Q0,30 0,0" opacity="0.5" />
+            <circle cx="12" cy="12" r="1.5" fill="currentColor" opacity="0.3" />
+            <circle cx="24" cy="24" r="1.2" fill="currentColor" opacity="0.25" />
+            <circle cx="36" cy="36" r="1" fill="currentColor" opacity="0.2" />
+            <circle cx="48" cy="48" r="0.8" fill="currentColor" opacity="0.15" />
+          </svg>
+        </div>
+        {/* Bottom-right corner */}
+        <div className="absolute bottom-0 right-0 text-foreground/30 scale-[-1]">
+          <svg width="120" height="120" viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="0.5">
+            <path d="M0,60 Q15,35 30,20 Q45,5 60,0" opacity="0.6" />
+            <path d="M0,60 Q10,45 20,30 Q30,15 40,10" opacity="0.4" />
+            <path d="M0,60 Q5,40 10,20 Q15,10 20,5" opacity="0.3" />
+            <path d="M0,60 Q0,30 0,0" opacity="0.5" />
+            <circle cx="12" cy="12" r="1.5" fill="currentColor" opacity="0.3" />
+            <circle cx="24" cy="24" r="1.2" fill="currentColor" opacity="0.25" />
+            <circle cx="36" cy="36" r="1" fill="currentColor" opacity="0.2" />
+            <circle cx="48" cy="48" r="0.8" fill="currentColor" opacity="0.15" />
+          </svg>
+        </div>
+      </div>
+
       {/* Fixed Header */}
-      <header className="flex-shrink-0 border-b border-border/50 backdrop-blur-sm bg-background/10 shadow-lg">
-        <div className="px-6 py-4 flex items-center justify-between">
+      <header className="flex-shrink-0 border-b border-border/50 backdrop-blur-sm bg-background/10 shadow-lg relative z-10">
+        <div className="px-6 py-4 flex items-center justify-between relative">
+          {/* Header decorative underline */}
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-px pointer-events-none">
+            <div className="w-full h-full bg-gradient-to-r from-transparent via-foreground/10 to-transparent" />
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+              <svg width="32" height="16" viewBox="0 0 32 16" className="text-foreground/10" fill="none" stroke="currentColor" strokeWidth="0.5">
+                <circle cx="16" cy="8" r="2.5" opacity="0.4" />
+                <circle cx="16" cy="8" r="4.5" opacity="0.2" />
+                <path d="M4,8 L10,8" opacity="0.3" />
+                <path d="M22,8 L28,8" opacity="0.3" />
+              </svg>
+            </div>
+          </div>
+
           <div className="flex items-center gap-3">
             <Mountain className="w-8 h-8 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
             <div>
@@ -123,12 +192,27 @@ export function GameBoard() {
       </header>
 
       {/* Main Content Area - No Scroll */}
-      <div className="flex-1 flex gap-4 p-4 overflow-hidden">
+      <div className="flex-1 flex gap-4 p-4 overflow-hidden relative z-10">
         {/* Left Sidebar - Players & Controls */}
-        <div className="w-96 flex flex-col gap-4 overflow-hidden">
+        <div className="w-96 flex flex-col gap-4 overflow-hidden relative">
+          {/* Vertical decorative line on the right edge */}
+          <div className="absolute top-0 bottom-0 -right-2 w-px pointer-events-none">
+            <div className="w-full h-full bg-gradient-to-b from-transparent via-foreground/10 to-transparent" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              <svg width="16" height="48" viewBox="0 0 16 48" className="text-foreground/10" fill="none" stroke="currentColor" strokeWidth="0.5">
+                <circle cx="8" cy="24" r="2.5" opacity="0.4" />
+                <circle cx="8" cy="24" r="4.5" opacity="0.2" />
+                <path d="M8,8 L8,16" opacity="0.3" />
+                <path d="M8,32 L8,40" opacity="0.3" />
+              </svg>
+            </div>
+          </div>
           {/* Players List - Scrollable */}
           <div className="flex-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border shadow-xl shadow-inner-glow overflow-hidden flex flex-col">
-            <div className="flex-shrink-0 px-4 py-3 border-b border-border bg-gradient-to-r from-card via-card/50 to-card">
+            <div className="flex-shrink-0 px-4 py-3 border-b border-border bg-gradient-to-r from-card via-card/50 to-card relative">
+              {/* Title decorative elements */}
+              <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-foreground/20" />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-foreground/20" />
               <h2 className="text-lg font-bold text-card-foreground font-cinzel tracking-wide">
                 玩家列表
                 <span className="block text-[10px] text-muted-foreground font-normal tracking-widest opacity-60 mt-0.5">
