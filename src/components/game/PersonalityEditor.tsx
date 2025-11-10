@@ -123,22 +123,26 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
             </div>
           </div>
 
-          {/* Detail Panel - slides in from right as overlay */}
+          {/* Detail View - full container */}
           {showDetail && selectedPlayer && (
-            <div className="absolute inset-0 flex items-center justify-end animate-in slide-in-from-right duration-500">
-              <div className="h-full w-full sm:w-[450px] lg:w-[550px] bg-gradient-to-l from-slate-950 via-slate-900 to-slate-950/95 backdrop-blur-md border-l border-amber-900/30 shadow-2xl overflow-y-auto">
-                <div className="p-6 sm:p-8 space-y-6">
-                  {/* Card at top */}
-                  <div className="flex justify-center perspective-1000">
-                    <TarotCard
-                      player={selectedPlayer}
-                      isFlipped={true}
-                      size="small"
-                    />
-                  </div>
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 animate-in fade-in duration-500">
+              <div className="h-full overflow-y-auto">
+                <div className="max-w-6xl mx-auto p-6 sm:p-8">
+                  <div className="flex flex-col lg:flex-row gap-8 items-start">
+                    {/* Left: Card */}
+                    <div className="flex-shrink-0 w-full lg:w-auto flex justify-center perspective-1000">
+                      <TarotCard
+                        player={selectedPlayer}
+                        isFlipped={true}
+                        size="default"
+                      />
+                    </div>
 
-                  {/* Detail panel */}
-                  <TravelerDetail player={selectedPlayer} />
+                    {/* Right: Detail panel */}
+                    <div className="flex-1 min-w-0">
+                      <TravelerDetail player={selectedPlayer} />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
