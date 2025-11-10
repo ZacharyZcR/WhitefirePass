@@ -204,9 +204,23 @@ function CardBorder() {
 }
 
 /**
- * Card back pattern - intricate vintage design
+ * Role names in English for card backs
  */
-function CardBackPattern() {
+const ROLE_ENGLISH_NAMES: Record<string, string> = {
+  marked: 'THE MARKED',
+  heretic: 'THE HERETIC',
+  listener: 'THE LISTENER',
+  coroner: 'ASH-WALKER',
+  twin: 'THE TWIN',
+  guard: 'GUARDIAN',
+  innocent: 'THE INNOCENT',
+};
+
+/**
+ * Card back pattern - role-specific designs
+ */
+function CardBackPattern({ role }: { role: string }) {
+  const englishName = ROLE_ENGLISH_NAMES[role] || 'TRAVELER';
   return (
     <svg
       className="absolute inset-0 w-full h-full"
@@ -227,83 +241,8 @@ function CardBackPattern() {
       <rect width="200" height="320" fill="url(#dots)" />
       <rect width="200" height="320" fill="url(#lines)" />
 
-      {/* Central mandala design */}
-      <g className="text-amber-600" transform="translate(100, 160)">
-        {/* Outer circle */}
-        <circle r="60" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.8" />
-        <circle r="55" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.6" />
-        <circle r="50" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.7" />
-
-        {/* Inner decorative rings */}
-        {[...Array(12)].map((_, i) => {
-          const angle = (i * 360) / 12;
-          const rad = (angle * Math.PI) / 180;
-          const x1 = Math.cos(rad) * 45;
-          const y1 = Math.sin(rad) * 45;
-          const x2 = Math.cos(rad) * 60;
-          const y2 = Math.sin(rad) * 60;
-          return (
-            <line
-              key={i}
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              stroke="currentColor"
-              strokeWidth="0.8"
-              opacity="0.5"
-            />
-          );
-        })}
-
-        {/* Petals pattern */}
-        {[...Array(8)].map((_, i) => {
-          const angle = (i * 360) / 8;
-          return (
-            <g key={i} transform={`rotate(${angle})`}>
-              <ellipse
-                rx="8"
-                ry="20"
-                cy="-35"
-                fill="currentColor"
-                opacity="0.3"
-              />
-              <ellipse
-                rx="6"
-                ry="15"
-                cy="-35"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="0.5"
-                opacity="0.6"
-              />
-            </g>
-          );
-        })}
-
-        {/* Center ornament */}
-        <circle r="12" fill="currentColor" opacity="0.2" />
-        <circle r="8" fill="none" stroke="currentColor" strokeWidth="1" />
-        <circle r="4" fill="currentColor" opacity="0.4" />
-
-        {/* Small decorative dots */}
-        {[...Array(8)].map((_, i) => {
-          const angle = (i * 360) / 8 + 22.5;
-          const rad = (angle * Math.PI) / 180;
-          const x = Math.cos(rad) * 25;
-          const y = Math.sin(rad) * 25;
-          return (
-            <circle
-              key={`dot-${i}`}
-              cx={x}
-              cy={y}
-              r="2"
-              fill="currentColor"
-              opacity="0.5"
-            />
-          );
-        })}
-      </g>
+      {/* Role-specific central design */}
+      <RoleCenterPattern role={role} />
 
       {/* Corner flourishes */}
       <g className="text-amber-700/40">
@@ -316,12 +255,239 @@ function CardBackPattern() {
         <path d="M170 280 Q160 290 150 280 T130 280" stroke="currentColor" strokeWidth="1" fill="none" />
       </g>
 
-      {/* Top and bottom text areas */}
-      <g className="text-amber-700/60">
-        <rect x="60" y="50" width="80" height="20" rx="2" stroke="currentColor" strokeWidth="0.8" fill="none" />
-        <rect x="60" y="250" width="80" height="20" rx="2" stroke="currentColor" strokeWidth="0.8" fill="none" />
-      </g>
+      {/* Role name at top - Gothic font */}
+      <text
+        x="100"
+        y="65"
+        textAnchor="middle"
+        className="font-cinzel tracking-widest fill-amber-600"
+        fontSize="10"
+        fontWeight="600"
+        letterSpacing="2"
+      >
+        {englishName}
+      </text>
+
+      {/* Decorative line under name */}
+      <line
+        x1="40"
+        y1="72"
+        x2="160"
+        y2="72"
+        stroke="currentColor"
+        strokeWidth="0.5"
+        className="text-amber-700/60"
+      />
     </svg>
+  );
+}
+
+/**
+ * Role-specific center patterns
+ */
+function RoleCenterPattern({ role }: { role: string }) {
+  const centerY = 160;
+
+  // Marked - Flame symbol
+  if (role === 'marked') {
+    return (
+      <g className="text-red-700" transform={`translate(100, ${centerY})`}>
+        <circle r="55" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.6" />
+        {/* Flame shape */}
+        <path
+          d="M0,-40 Q-15,-20 -10,0 Q-5,10 0,20 Q5,10 10,0 Q15,-20 0,-40 Z"
+          fill="currentColor"
+          opacity="0.4"
+        />
+        <path
+          d="M0,-30 Q-8,-15 -5,0 Q-2,8 0,15 Q2,8 5,0 Q8,-15 0,-30 Z"
+          fill="currentColor"
+          opacity="0.6"
+        />
+        {/* Radiating lines */}
+        {[...Array(8)].map((_, i) => {
+          const angle = (i * 360) / 8;
+          return (
+            <line
+              key={i}
+              x1="0"
+              y1="0"
+              x2={Math.cos((angle * Math.PI) / 180) * 50}
+              y2={Math.sin((angle * Math.PI) / 180) * 50}
+              stroke="currentColor"
+              strokeWidth="0.8"
+              opacity="0.3"
+            />
+          );
+        })}
+      </g>
+    );
+  }
+
+  // Heretic - Broken cross
+  if (role === 'heretic') {
+    return (
+      <g className="text-slate-600" transform={`translate(100, ${centerY})`}>
+        <circle r="55" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.6" />
+        {/* Broken cross */}
+        <line x1="-25" y1="0" x2="-5" y2="0" stroke="currentColor" strokeWidth="3" opacity="0.7" />
+        <line x1="5" y1="0" x2="25" y2="0" stroke="currentColor" strokeWidth="3" opacity="0.7" />
+        <line x1="0" y1="-25" x2="0" y2="-5" stroke="currentColor" strokeWidth="3" opacity="0.7" />
+        <line x1="0" y1="5" x2="0" y2="25" stroke="currentColor" strokeWidth="3" opacity="0.7" />
+        {/* Cracks */}
+        <path d="M-5,-5 L5,5 M5,-5 L-5,5" stroke="currentColor" strokeWidth="1" opacity="0.5" />
+        <circle r="40" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.4" strokeDasharray="5,5" />
+      </g>
+    );
+  }
+
+  // Listener - Ear/wave pattern
+  if (role === 'listener') {
+    return (
+      <g className="text-purple-700" transform={`translate(100, ${centerY})`}>
+        <circle r="55" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.6" />
+        {/* Concentric waves */}
+        {[15, 25, 35, 45].map((r, i) => (
+          <circle
+            key={i}
+            r={r}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1"
+            opacity={0.6 - i * 0.1}
+          />
+        ))}
+        {/* Sound wave symbols */}
+        <path
+          d="M-50,0 Q-45,-10 -40,0 T-30,0"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          opacity="0.5"
+        />
+        <path
+          d="M50,0 Q45,-10 40,0 T30,0"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          opacity="0.5"
+        />
+      </g>
+    );
+  }
+
+  // Coroner - Skull/ash symbol
+  if (role === 'coroner') {
+    return (
+      <g className="text-cyan-700" transform={`translate(100, ${centerY})`}>
+        <circle r="55" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.6" />
+        {/* Simplified skull */}
+        <circle cx="0" cy="-5" r="18" fill="currentColor" opacity="0.3" />
+        <circle cx="-8" cy="-8" r="4" fill="currentColor" opacity="0.6" />
+        <circle cx="8" cy="-8" r="4" fill="currentColor" opacity="0.6" />
+        <path
+          d="M-6,5 L-3,8 L0,5 L3,8 L6,5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          opacity="0.6"
+        />
+        {/* Ash particles */}
+        {[...Array(12)].map((_, i) => {
+          const angle = (i * 360) / 12;
+          const rad = (angle * Math.PI) / 180;
+          const x = Math.cos(rad) * 35;
+          const y = Math.sin(rad) * 35;
+          return (
+            <circle
+              key={i}
+              cx={x}
+              cy={y}
+              r="1.5"
+              fill="currentColor"
+              opacity="0.4"
+            />
+          );
+        })}
+      </g>
+    );
+  }
+
+  // Twin - Yin-yang style
+  if (role === 'twin') {
+    return (
+      <g className="text-teal-700" transform={`translate(100, ${centerY})`}>
+        <circle r="55" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.6" />
+        {/* Yin-yang */}
+        <circle r="40" fill="currentColor" opacity="0.2" />
+        <path
+          d="M0,-40 A40,40 0 0,1 0,40 A20,20 0 0,1 0,0 A20,20 0 0,0 0,-40 Z"
+          fill="currentColor"
+          opacity="0.4"
+        />
+        <circle cy="-20" r="4" fill="currentColor" opacity="0.7" />
+        <circle cy="20" r="4" fill="currentColor" opacity="0.3" />
+        <circle r="40" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
+      </g>
+    );
+  }
+
+  // Guard - Shield/lock symbol
+  if (role === 'guard') {
+    return (
+      <g className="text-amber-700" transform={`translate(100, ${centerY})`}>
+        <circle r="55" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.6" />
+        {/* Shield shape */}
+        <path
+          d="M0,-35 L25,-20 L25,10 Q25,30 0,40 Q-25,30 -25,10 L-25,-20 Z"
+          fill="currentColor"
+          opacity="0.3"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
+        {/* Lock in center */}
+        <rect x="-8" y="-5" width="16" height="12" rx="2" fill="currentColor" opacity="0.6" />
+        <circle cy="-10" r="8" fill="none" stroke="currentColor" strokeWidth="2.5" opacity="0.6" />
+      </g>
+    );
+  }
+
+  // Innocent - Simple circle
+  if (role === 'innocent') {
+    return (
+      <g className="text-blue-700" transform={`translate(100, ${centerY})`}>
+        <circle r="55" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.6" />
+        {/* Simple mandala */}
+        {[30, 40, 50].map((r, i) => (
+          <circle
+            key={i}
+            r={r}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1"
+            opacity={0.5 - i * 0.1}
+          />
+        ))}
+        {/* Petals */}
+        {[...Array(6)].map((_, i) => {
+          const angle = (i * 360) / 6;
+          return (
+            <g key={i} transform={`rotate(${angle})`}>
+              <circle cy="-35" r="8" fill="currentColor" opacity="0.3" />
+            </g>
+          );
+        })}
+        <circle r="12" fill="currentColor" opacity="0.4" />
+      </g>
+    );
+  }
+
+  // Default pattern
+  return (
+    <g className="text-amber-600" transform={`translate(100, ${centerY})`}>
+      <circle r="55" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.6" />
+      <circle r="30" fill="currentColor" opacity="0.3" />
+    </g>
   );
 }
 
@@ -381,7 +547,7 @@ export function TarotCard({ player, className, isFlipped = false, size = 'defaul
         style={{ backfaceVisibility: 'hidden' }}
       >
         <div className="relative w-full h-full bg-gradient-to-br from-amber-900 via-amber-950 to-black">
-          <CardBackPattern />
+          <CardBackPattern role={player.role} />
           <CardBorder />
         </div>
       </div>
