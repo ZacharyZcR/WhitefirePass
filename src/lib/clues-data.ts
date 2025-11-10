@@ -37,7 +37,7 @@ export const TRAVELER_TESTAMENT: Clue = {
 他说{redacted:bad}███{/redacted}。`,
     },
     {
-      date: '10月25日',
+      date: '1913年10月25日',
       text: `暴雪依旧肆虐。更可怕的事发生了。
 
 {warning:door}门打不开了{/warning}。所有的门窗都打不开。
@@ -61,7 +61,7 @@ export const TRAVELER_TESTAMENT: Clue = {
 是从那{cold:white}苍白的火焰{/cold}中传来的，像是在召唤什么。`,
     },
     {
-      date: '10月26日',
+      date: '1913年10月26日',
       text: `清晨醒来，我察觉到某种{fear:change}可怕的变化{/fear}。
 
 有些人不一样了。
@@ -95,7 +95,7 @@ export const TRAVELER_TESTAMENT: Clue = {
 而某些人的眼睛里，确实有某种{evil:dark}黑暗的东西{/evil}在闪烁。`,
     },
     {
-      date: '10月27日',
+      date: '1913年10月27日',
       text: `{warning:warning}仪式开始了{/warning}。
 
 昨夜，有人死了。
@@ -133,7 +133,7 @@ export const TRAVELER_TESTAMENT: Clue = {
 天黑后，我们在那{cold:white}苍白的火焰{/cold}旁，将她{redacted:sacrifice}███{/redacted}。`,
     },
     {
-      date: '10月28日',
+      date: '1913年10月28日',
       text: `又一个白昼与黑夜的循环。
 
 又死了两个人。昨夜一个，今日白昼被献祭一个。
