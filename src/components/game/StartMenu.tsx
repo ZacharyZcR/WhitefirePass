@@ -50,8 +50,11 @@ export function StartMenu() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [isValidating, setIsValidating] = useState(false);
-  const [isEntering, setIsEntering] = useState(true);
+
+  // Animation stages
+  const [stage, setStage] = useState<'initial' | 'icon' | 'title' | 'divider' | 'subtitle' | 'description' | 'buttons' | 'complete'>('initial');
   const [snowVisible, setSnowVisible] = useState(false);
+  const [backgroundVisible, setBackgroundVisible] = useState(false);
 
   const {
     apiKey: storedApiKey,
@@ -66,20 +69,22 @@ export function StartMenu() {
     }
   }, [storedApiKey]);
 
-  // Entry animation
+  // Orchestrated entry animation sequence
   useEffect(() => {
-    const timer1 = setTimeout(() => {
-      setIsEntering(false);
-    }, 100);
+    const timers: NodeJS.Timeout[] = [];
 
-    const timer2 = setTimeout(() => {
-      setSnowVisible(true);
-    }, 800);
+    // Sequence timing (in milliseconds)
+    timers.push(setTimeout(() => setBackgroundVisible(true), 100));  // Background fades in from black
+    timers.push(setTimeout(() => setStage('icon'), 600));            // Mountain icon appears
+    timers.push(setTimeout(() => setStage('title'), 1300));          // Title fades in
+    timers.push(setTimeout(() => setStage('divider'), 1900));        // Divider draws
+    timers.push(setTimeout(() => setStage('subtitle'), 2300));       // English subtitle
+    timers.push(setTimeout(() => setStage('description'), 2800));    // Description
+    timers.push(setTimeout(() => setStage('buttons'), 3300));        // Buttons appear
+    timers.push(setTimeout(() => setStage('complete'), 3800));       // Complete
+    timers.push(setTimeout(() => setSnowVisible(true), 2300));       // Snow starts falling
 
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-    };
+    return () => timers.forEach(clearTimeout);
   }, []);
 
   useEffect(() => {
@@ -181,6 +186,15 @@ export function StartMenu() {
 
   return (
     <>
+    {/* Black overlay that fades out */}
+    <div
+      className={`
+        fixed inset-0 bg-black z-50 pointer-events-none
+        transition-opacity duration-1000 ease-out
+        ${backgroundVisible ? 'opacity-0' : 'opacity-100'}
+      `}
+    />
+
     <div className="relative h-screen w-screen overflow-hidden bg-gradient-to-b from-slate-50 via-slate-100 to-slate-200">
       {/* Snow effect canvas */}
       <canvas
@@ -211,40 +225,89 @@ export function StartMenu() {
 
       {/* Main content - Centered */}
       <div className="relative z-20 flex flex-col items-center justify-center h-full px-8">
-        <div
-          className={`
-            text-center space-y-16
-            transition-all duration-1500 ease-out
-            ${isEntering ? 'opacity-0 scale-95 translate-y-12' : 'opacity-100 scale-100 translate-y-0'}
-          `}
-        >
+        <div className="text-center space-y-16">
 
-          {/* Single Mountain Icon - Large and Elegant */}
+          {/* Single Mountain Icon - Appears with scale and glow */}
           <div className="flex justify-center">
             <Mountain
-              className="w-32 h-32 text-slate-400 drop-shadow-[0_2px_20px_rgba(0,0,0,0.15)]"
+              className={`
+                w-32 h-32 text-slate-400 drop-shadow-[0_2px_20px_rgba(0,0,0,0.15)]
+                transition-all duration-1000 ease-out
+                ${stage === 'initial' ? 'opacity-0 scale-50' : 'opacity-100 scale-100'}
+              `}
               strokeWidth={1.5}
             />
           </div>
 
-          {/* Game Title - Minimalist */}
+          {/* Game Title - Fades in with slight upward movement */}
           <div className="space-y-6">
-            <h1 className="text-8xl font-bold font-cinzel tracking-[0.2em] text-slate-700 drop-shadow-sm">
+            <h1
+              className={`
+                text-8xl font-bold font-cinzel tracking-[0.2em] text-slate-700 drop-shadow-sm
+                transition-all duration-1000 ease-out
+                ${['initial', 'icon'].includes(stage)
+                  ? 'opacity-0 translate-y-4'
+                  : 'opacity-100 translate-y-0'
+                }
+              `}
+            >
               白烬山口
             </h1>
-            <div className="h-px w-48 mx-auto bg-gradient-to-r from-transparent via-slate-400 to-transparent" />
-            <p className="text-xl font-cinzel tracking-[0.3em] text-slate-500 uppercase">
+
+            {/* Divider - Draws from center */}
+            <div className="relative h-px w-48 mx-auto overflow-hidden">
+              <div
+                className={`
+                  absolute inset-0 bg-gradient-to-r from-transparent via-slate-400 to-transparent
+                  transition-all duration-800 ease-out
+                  ${['initial', 'icon', 'title'].includes(stage)
+                    ? 'scale-x-0'
+                    : 'scale-x-100'
+                  }
+                `}
+              />
+            </div>
+
+            {/* English subtitle - Fades in */}
+            <p
+              className={`
+                text-xl font-cinzel tracking-[0.3em] text-slate-500 uppercase
+                transition-all duration-800 ease-out
+                ${['initial', 'icon', 'title', 'divider'].includes(stage)
+                  ? 'opacity-0'
+                  : 'opacity-100'
+                }
+              `}
+            >
               Whitefire Pass
             </p>
           </div>
 
-          {/* Subtitle - One Line */}
-          <p className="text-base font-serif text-slate-600 tracking-wide max-w-xl mx-auto leading-relaxed">
+          {/* Description - Fades in with delay */}
+          <p
+            className={`
+              text-base font-serif text-slate-600 tracking-wide max-w-xl mx-auto leading-relaxed
+              transition-all duration-800 ease-out
+              ${['initial', 'icon', 'title', 'divider', 'subtitle'].includes(stage)
+                ? 'opacity-0 translate-y-2'
+                : 'opacity-100 translate-y-0'
+              }
+            `}
+          >
             十五名旅人困于暴雪山庄，白蜡篝火见证生死博弈
           </p>
 
-          {/* Action Buttons - Two Clean Buttons */}
-          <div className="flex gap-6 justify-center pt-8">
+          {/* Action Buttons - Slide up from bottom */}
+          <div
+            className={`
+              flex gap-6 justify-center pt-8
+              transition-all duration-800 ease-out
+              ${['initial', 'icon', 'title', 'divider', 'subtitle', 'description'].includes(stage)
+                ? 'opacity-0 translate-y-8'
+                : 'opacity-100 translate-y-0'
+              }
+            `}
+          >
             <Button
               onClick={handleStart}
               disabled={isValidating}
@@ -277,8 +340,14 @@ export function StartMenu() {
 
         </div>
 
-        {/* Footer Quote - Subtle */}
-        <div className="absolute bottom-12 left-0 right-0 text-center">
+        {/* Footer Quote - Fades in last */}
+        <div
+          className={`
+            absolute bottom-12 left-0 right-0 text-center
+            transition-all duration-1000 ease-out delay-500
+            ${stage === 'complete' ? 'opacity-100' : 'opacity-0'}
+          `}
+        >
           <p className="text-sm text-slate-500 font-serif italic tracking-wider">
             "每个秘密都致命"
           </p>
