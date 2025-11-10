@@ -293,7 +293,7 @@ export const useGameStore = create<GameStore>()(
           gameState.nightPhase = 'guard';
           gameState.currentPlayerIndex = 0;
           gameState.messages.push(
-            addMessage(gameState, '旁白', '设闩者，选择今晚要守护的人...', 'system', 'all'),
+            addMessage(gameState, '旁白', '设闩者，选择今晚要守护的人...', 'system', 'guard'),
           );
         } else {
           // No guard, proceed to coroner phase
@@ -433,6 +433,8 @@ export const useGameStore = create<GameStore>()(
       if (gameState.phase === 'night') {
         if (gameState.nightPhase === 'listener' && currentPlayer.role === 'listener') {
           visibility = 'listener';  // Only listener can see their check
+        } else if (gameState.nightPhase === 'guard' && currentPlayer.role === 'guard') {
+          visibility = 'guard';  // Only guard can see their guard action
         } else if (currentPlayer.role === 'marked') {
           visibility = 'marked'; // Only marked can see night discussion
         }
