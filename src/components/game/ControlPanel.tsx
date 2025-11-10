@@ -235,6 +235,17 @@ function ControlTabContent({
 }
 
 function CurrentPlayerDisplay({ gameState }: { gameState: GameState }) {
+  // Don't show current player during prologue/setup
+  if (gameState.phase === 'prologue' || gameState.phase === 'setup') {
+    return (
+      <div className="rounded-lg bg-slate-50 p-3">
+        <p className="text-sm font-medium text-slate-900">
+          序章叙述中...
+        </p>
+      </div>
+    );
+  }
+
   const alivePlayers = gameState.players
     .filter((p) => p.isAlive)
     .filter((p) => gameState.phase !== 'night' || p.role === 'marked');
