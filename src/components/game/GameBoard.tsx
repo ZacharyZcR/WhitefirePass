@@ -4,6 +4,7 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useGameStore } from '@/stores/game-store';
 import { PlayerCard } from './PlayerCard';
 import { MessageFlow } from './MessageFlow';
@@ -13,6 +14,7 @@ import { FactionStats } from './FactionStats';
 import { VotingProgress } from './VotingProgress';
 import { CurrentSpeaker } from './CurrentSpeaker';
 import { StartMenu } from './StartMenu';
+import { GameTransition } from './GameTransition';
 import { Mountain, Gamepad2, Moon, Sun, Users as UsersIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -71,19 +73,52 @@ export function GameBoard() {
   const { gameState } = useGameStore();
   const phase = gameState?.phase || 'setup';
   const theme = getPhaseTheme(phase);
+  const [showTransition, setShowTransition] = useState(false);
+  const [previousPhase, setPreviousPhase] = useState<string>('setup');
+  const [isGameEntering, setIsGameEntering] = useState(false);
+
+  // Detect phase change from setup to game
+  useEffect(() => {
+    if (previousPhase === 'setup' && phase !== 'setup' && gameState) {
+      setShowTransition(true);
+      setIsGameEntering(true);
+    }
+    setPreviousPhase(phase);
+  }, [phase, previousPhase, gameState]);
+
+  // Game entry animation
+  useEffect(() => {
+    if (isGameEntering) {
+      const timer = setTimeout(() => {
+        setIsGameEntering(false);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isGameEntering]);
 
   // Show start menu if no active game
   if (!gameState || phase === 'setup') {
     return <StartMenu />;
   }
 
+  // Show transition animation
+  if (showTransition) {
+    return <GameTransition onComplete={() => setShowTransition(false)} />;
+  }
+
   return (
-    <div className={cn(
-      "h-screen w-screen overflow-hidden flex flex-col bg-gradient-to-br transition-all duration-1000 ease-in-out",
-      theme.gradient
-    )}>
+    <div
+      className={cn(
+        "h-screen w-screen overflow-hidden flex flex-col bg-gradient-to-br transition-all duration-1000 ease-in-out",
+        theme.gradient,
+        isGameEntering ? 'opacity-0' : 'opacity-100'
+      )}
+    >
       {/* Fixed Header */}
-      <header className="flex-shrink-0 border-b border-border/50 backdrop-blur-sm bg-background/10 shadow-lg">
+      <header className={cn(
+        "flex-shrink-0 border-b border-border/50 backdrop-blur-sm bg-background/10 shadow-lg transition-all duration-1000 ease-out",
+        isGameEntering ? 'translate-y-[-100%]' : 'translate-y-0'
+      )}>
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Mountain className="w-8 h-8 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
@@ -113,7 +148,10 @@ export function GameBoard() {
       </header>
 
       {/* Main Content Area - No Scroll */}
-      <div className="flex-1 flex gap-4 p-4 overflow-hidden">
+      <div className={cn(
+        "flex-1 flex gap-4 p-4 overflow-hidden transition-all duration-1000 ease-out delay-300",
+        isGameEntering ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'
+      )}>
         {/* Left Sidebar - Players & Controls */}
         <div className="w-96 flex flex-col gap-4 overflow-hidden">
           {/* Players List - Scrollable */}

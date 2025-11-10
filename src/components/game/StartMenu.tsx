@@ -50,6 +50,8 @@ export function StartMenu() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [isValidating, setIsValidating] = useState(false);
+  const [isEntering, setIsEntering] = useState(true);
+  const [snowVisible, setSnowVisible] = useState(false);
 
   const {
     apiKey: storedApiKey,
@@ -63,6 +65,22 @@ export function StartMenu() {
       setApiKey(storedApiKey);
     }
   }, [storedApiKey]);
+
+  // Entry animation
+  useEffect(() => {
+    const timer1 = setTimeout(() => {
+      setIsEntering(false);
+    }, 100);
+
+    const timer2 = setTimeout(() => {
+      setSnowVisible(true);
+    }, 800);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -167,7 +185,9 @@ export function StartMenu() {
       {/* Snow effect canvas */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 pointer-events-none"
+        className={`absolute inset-0 pointer-events-none transition-opacity duration-2000 ${
+          snowVisible ? 'opacity-100' : 'opacity-0'
+        }`}
         style={{ zIndex: 10 }}
       />
 
@@ -191,7 +211,13 @@ export function StartMenu() {
 
       {/* Main content - Centered */}
       <div className="relative z-20 flex flex-col items-center justify-center h-full px-8">
-        <div className="text-center space-y-16 animate-in fade-in duration-1500">
+        <div
+          className={`
+            text-center space-y-16
+            transition-all duration-1500 ease-out
+            ${isEntering ? 'opacity-0 scale-95 translate-y-12' : 'opacity-100 scale-100 translate-y-0'}
+          `}
+        >
 
           {/* Single Mountain Icon - Large and Elegant */}
           <div className="flex justify-center">
