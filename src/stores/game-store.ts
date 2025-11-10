@@ -224,14 +224,13 @@ export const useGameStore = create<GameStore>()(
         return;
       }
 
-      // Handle setup phase - game starts with night phase
+      // Handle setup phase - game starts with day phase
       if (gameState.phase === 'setup') {
-        gameState.phase = 'night';
+        gameState.phase = 'day';
         gameState.round = 1;
         gameState.currentPlayerIndex = 0;
-        gameState.nightPhase = 'listener';
         gameState.messages.push(
-          addMessage(gameState, '旁白', '第 1 回合，第 1 夜。聆心者请睁眼...', 'system', 'all'),
+          addMessage(gameState, '旁白', '第 1 回合开始。天亮了，请大家发言！', 'system', 'all'),
         );
         set({ gameState: { ...gameState }, isProcessing: false });
         return;
@@ -469,7 +468,7 @@ export const useGameStore = create<GameStore>()(
 
 无论这是真是假，他们已经没有别的选择。
 
-夜幕降临。游戏，正式开始。`,
+黎明到来。游戏，正式开始。`,
           'system',
           'all'
         )
@@ -512,7 +511,7 @@ export const useGameStore = create<GameStore>()(
   - 没有特殊能力
   - 依靠观察和推理找出收割者
 
-夜幕即将降临。第一个夜晚开始...`,
+天亮了。第一个白天，开始讨论...`,
           'system',
           'all'
         )

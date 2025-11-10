@@ -4,7 +4,6 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useGameStore } from '@/stores/game-store';
 import { PlayerCard } from './PlayerCard';
 import { MessageFlow } from './MessageFlow';
@@ -13,7 +12,6 @@ import { VoteTracker } from './VoteTracker';
 import { VotingProgress } from './VotingProgress';
 import { CurrentSpeaker } from './CurrentSpeaker';
 import { StartMenu } from './StartMenu';
-import { GameTransition } from './GameTransition';
 import { CluesPanel } from './CluesPanel';
 import { Mountain, Gamepad2, Moon, Sun, Users as UsersIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -80,46 +78,10 @@ export function GameBoard() {
   const { gameState, clues, markClueAsRead } = useGameStore();
   const phase = gameState?.phase || 'setup';
   const theme = getPhaseTheme(phase);
-  const [showTransition, setShowTransition] = useState(false);
-  const [previousPhase, setPreviousPhase] = useState<string | null>(null);
-  const [isGameEntering, setIsGameEntering] = useState(false);
-
-  // Initialize previousPhase on first render
-  useEffect(() => {
-    if (previousPhase === null && gameState) {
-      setPreviousPhase(phase);
-    }
-  }, [previousPhase, phase, gameState]);
-
-  // Detect phase change from setup to night - show transition
-  useEffect(() => {
-    if (previousPhase === 'setup' && phase === 'night' && gameState) {
-      setShowTransition(true);
-      setIsGameEntering(true);
-    }
-    if (previousPhase !== null && previousPhase !== phase) {
-      setPreviousPhase(phase);
-    }
-  }, [phase, previousPhase, gameState]);
-
-  // Game entry animation
-  useEffect(() => {
-    if (isGameEntering) {
-      const timer = setTimeout(() => {
-        setIsGameEntering(false);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [isGameEntering]);
 
   // Show start menu if no active game
   if (!gameState) {
     return <StartMenu />;
-  }
-
-  // Show transition animation
-  if (showTransition) {
-    return <GameTransition onComplete={() => setShowTransition(false)} />;
   }
 
   return (
@@ -127,15 +89,11 @@ export function GameBoard() {
       <div
         className={cn(
           "h-screen w-screen overflow-hidden flex flex-col bg-gradient-to-br transition-all duration-1000 ease-in-out",
-          theme.gradient,
-          isGameEntering ? 'opacity-0' : 'opacity-100'
+          theme.gradient
         )}
       >
       {/* Fixed Header */}
-      <header className={cn(
-        "flex-shrink-0 border-b border-border/50 backdrop-blur-sm bg-background/10 shadow-lg transition-all duration-1000 ease-out",
-        isGameEntering ? 'translate-y-[-100%]' : 'translate-y-0'
-      )}>
+      <header className="flex-shrink-0 border-b border-border/50 backdrop-blur-sm bg-background/10 shadow-lg">
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Mountain className="w-8 h-8 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />

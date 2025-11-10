@@ -296,24 +296,30 @@ function createPlayers(roles: Role[]): Player[] {
 
 /**
  * Advance to next game phase
+ * Flow: prologue → setup → day → voting → night → day → voting → ...
  */
 export function advancePhase(state: GameState): GamePhase {
-  const phaseOrder: GamePhase[] = ['prologue', 'setup', 'night', 'day', 'voting', 'end'];
-  const currentIndex = phaseOrder.indexOf(state.phase);
-
   if (state.phase === 'prologue') {
     return 'setup';
+  }
+
+  if (state.phase === 'setup') {
+    return 'day';
+  }
+
+  if (state.phase === 'day') {
+    return 'voting';
   }
 
   if (state.phase === 'voting') {
     return checkWinCondition(state) ? 'end' : 'night';
   }
 
-  if (state.phase === 'setup') {
-    return 'night';
+  if (state.phase === 'night') {
+    return 'day';
   }
 
-  return phaseOrder[currentIndex + 1] || 'end';
+  return 'end';
 }
 
 /**
