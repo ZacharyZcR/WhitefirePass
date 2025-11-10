@@ -19,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { StoryIntro } from './StoryIntro';
 import type { GameConfig } from '@/types/game';
 
 interface Snowflake {
@@ -51,6 +52,16 @@ export function StartMenu() {
   const [apiKey, setApiKey] = useState('');
   const [isValidating, setIsValidating] = useState(false);
 
+  // Story intro control
+  const [showStory, setShowStory] = useState(() => {
+    // Check if user has seen the story before
+    if (typeof window !== 'undefined') {
+      const hasSeen = localStorage.getItem('wolf-story-seen');
+      return !hasSeen; // Show story if not seen before
+    }
+    return true;
+  });
+
   // Animation stages
   const [stage, setStage] = useState<'initial' | 'icon' | 'title' | 'divider' | 'subtitle' | 'description' | 'buttons' | 'complete'>('initial');
   const [snowVisible, setSnowVisible] = useState(false);
@@ -68,6 +79,14 @@ export function StartMenu() {
       setApiKey(storedApiKey);
     }
   }, [storedApiKey]);
+
+  const handleStoryComplete = () => {
+    // Mark story as seen
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wolf-story-seen', 'true');
+    }
+    setShowStory(false);
+  };
 
   // Orchestrated entry animation sequence
   useEffect(() => {
@@ -183,6 +202,11 @@ export function StartMenu() {
       void executeNextStep();
     }, 100);
   };
+
+  // Show story intro first
+  if (showStory) {
+    return <StoryIntro onComplete={handleStoryComplete} />;
+  }
 
   return (
     <>
