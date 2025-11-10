@@ -14,7 +14,6 @@ import { VotingProgress } from './VotingProgress';
 import { CurrentSpeaker } from './CurrentSpeaker';
 import { StartMenu } from './StartMenu';
 import { GameTransition } from './GameTransition';
-import { StoryIntro } from './StoryIntro';
 import { CluesPanel } from './CluesPanel';
 import { Mountain, Gamepad2, Moon, Sun, Users as UsersIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -77,23 +76,15 @@ export function GameBoard() {
   const [showTransition, setShowTransition] = useState(false);
   const [previousPhase, setPreviousPhase] = useState<string>('setup');
   const [isGameEntering, setIsGameEntering] = useState(false);
-  const [showStoryIntro, setShowStoryIntro] = useState(false);
 
-  // Detect phase change from setup to game - show story first
+  // Detect phase change from setup to game - show transition
   useEffect(() => {
     if (previousPhase === 'setup' && phase !== 'setup' && gameState) {
-      // Show story intro instead of transition
-      setShowStoryIntro(true);
+      setShowTransition(true);
+      setIsGameEntering(true);
     }
     setPreviousPhase(phase);
   }, [phase, previousPhase, gameState]);
-
-  // Handle story completion - then show transition
-  const handleStoryComplete = () => {
-    setShowStoryIntro(false);
-    setShowTransition(true);
-    setIsGameEntering(true);
-  };
 
   // Game entry animation
   useEffect(() => {
@@ -117,9 +108,6 @@ export function GameBoard() {
 
   return (
     <>
-      {/* Story intro dialog */}
-      <StoryIntro open={showStoryIntro} onComplete={handleStoryComplete} />
-
       <div
         className={cn(
           "h-screen w-screen overflow-hidden flex flex-col bg-gradient-to-br transition-all duration-1000 ease-in-out",
