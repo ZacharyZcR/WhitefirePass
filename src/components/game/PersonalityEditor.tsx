@@ -171,18 +171,18 @@ function CharacterBasicInfo({ player }: { player: Player }) {
   ];
 
   return (
-    <div className="border border-amber-900/40 rounded-lg p-4 bg-slate-950/70 backdrop-blur-sm">
-      <h4 className="text-xs font-semibold text-amber-400 mb-3 font-cinzel tracking-wider text-center border-b border-amber-900/30 pb-2">
+    <div className="border border-amber-900/40 rounded-lg p-5 bg-slate-950/70 backdrop-blur-sm">
+      <h4 className="text-sm font-semibold text-amber-400 mb-4 font-cinzel tracking-wider text-center border-b border-amber-900/30 pb-3">
         BASIC PROFILE
       </h4>
-      <div className="space-y-2">
+      <div className="space-y-3">
         {infoItems.map((item) => (
           <div
             key={item.label}
-            className="flex items-center justify-between text-xs group"
+            className="flex items-center justify-between text-sm group py-0.5"
           >
-            <span className="flex items-center gap-1.5 text-slate-400">
-              <span className="text-amber-600/60 text-sm">{item.icon}</span>
+            <span className="flex items-center gap-2 text-slate-400">
+              <span className="text-amber-600/60 text-base">{item.icon}</span>
               {item.label}
             </span>
             <span className="text-slate-200 font-medium">{item.value}</span>
