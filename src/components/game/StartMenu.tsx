@@ -12,7 +12,6 @@ import { useGameStore } from '@/stores/game-store';
 import { testGeminiKey } from '@/lib/gemini';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getInitialClues } from '@/lib/clues-data';
 import {
   Dialog,
   DialogContent,
@@ -61,8 +60,7 @@ export function StartMenu() {
     apiKey: storedApiKey,
     setApiKey: saveApiKey,
     startGame,
-    executeNextStep,
-    addClue
+    executeNextStep
   } = useGameStore();
 
   useEffect(() => {
@@ -179,10 +177,6 @@ export function StartMenu() {
 
     saveApiKey(trimmedKey);
     startGame(DEFAULT_CONFIG);
-
-    // Add initial clues (traveler's testament)
-    const initialClues = getInitialClues();
-    initialClues.forEach((clue) => addClue(clue));
 
     // Automatically start the first day
     setTimeout(() => {

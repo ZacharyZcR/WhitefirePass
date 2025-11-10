@@ -15,6 +15,7 @@ import {
   getPlayerByName,
 } from '@/lib/game-engine';
 import { getAIResponse } from '@/lib/gemini';
+import { getInitialClues } from '@/lib/clues-data';
 
 /**
  * Game store state
@@ -77,7 +78,8 @@ export const useGameStore = create<GameStore>()(
    */
   startGame: (config: GameConfig) => {
     const gameState = createGame(config);
-    set({ gameState, isProcessing: false });
+    const initialClues = getInitialClues();
+    set({ gameState, isProcessing: false, clues: initialClues });
   },
 
   /**
@@ -561,6 +563,7 @@ export const useGameStore = create<GameStore>()(
       partialize: (state) => ({
         gameState: state.gameState,
         apiKey: state.apiKey,
+        clues: state.clues,
       }),
     },
   ),
