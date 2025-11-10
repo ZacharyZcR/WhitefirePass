@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BookOpen, Skull } from 'lucide-react';
+import { BookOpen, Skull, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
@@ -364,21 +364,21 @@ export function StoryIntro({ open, onComplete }: StoryIntroProps) {
     }
   }, [open, currentEntryIndex]);
 
-  // Typewriter effect with slower speed
+  // Typewriter effect with faster speed
   useEffect(() => {
     if (!open) return;
 
-    // Allow skipping after 3 seconds
-    const skipTimer = setTimeout(() => setCanSkip(true), 3000);
+    // Allow skipping after 1.5 seconds
+    const skipTimer = setTimeout(() => setCanSkip(true), 1500);
 
     if (displayedChars < fullText.length) {
-      // Slower speed: spaces fast, punctuation pause, normal chars moderate
+      // Faster speed: spaces fast, punctuation pause, normal chars moderate
       const currentChar = fullText[displayedChars];
-      const delay = currentChar === ' ' ? 30 :
-                    currentChar === '\n' ? 400 :
-                    currentChar.match(/[,。，、！!？?：:]/) ? 500 :
-                    currentChar.match(/["'「」『』【】]/) ? 200 :
-                    80;
+      const delay = currentChar === ' ' ? 15 :
+                    currentChar === '\n' ? 200 :
+                    currentChar.match(/[,。，、！!？?：:]/) ? 250 :
+                    currentChar.match(/["'「」『』【】]/) ? 100 :
+                    40;
 
       const timer = setTimeout(() => {
         setDisplayedChars((prev) => prev + 1);
@@ -443,13 +443,21 @@ export function StoryIntro({ open, onComplete }: StoryIntroProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent
-        className="max-w-4xl bg-amber-50/95 backdrop-blur-xl border-4 border-amber-900/50 shadow-2xl"
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
+    <Dialog open={open} onOpenChange={(newOpen) => !newOpen && onComplete()}>
+      <DialogContent className="max-w-4xl bg-amber-50/95 backdrop-blur-xl border-4 border-amber-900/50 shadow-2xl">
         <div className="relative" onClick={handleSkip}>
+          {/* Close button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onComplete();
+            }}
+            className="absolute top-2 right-2 z-10 p-2 rounded-full hover:bg-amber-900/10 transition-colors group"
+            aria-label="关闭"
+          >
+            <X className="w-5 h-5 text-amber-700 group-hover:text-amber-900" />
+          </button>
+
           {/* Diary header */}
           <div className="flex items-center justify-center gap-3 mb-6 pb-4 border-b-2 border-amber-800/30">
             <BookOpen className="w-8 h-8 text-amber-800" />
