@@ -104,20 +104,24 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
 
   if (!gameState) return null;
 
-  const roleNames: Record<string, string> = {
-    werewolf: '狼人',
-    villager: '村民',
-    seer: '预言家',
-    witch: '女巫',
-    hunter: '猎人',
+  const roleNames: Record<string, { name: string; subtitle: string }> = {
+    marked: { name: '烙印者', subtitle: 'The Marked' },
+    heretic: { name: '背誓者', subtitle: 'The Heretic' },
+    listener: { name: '聆心者', subtitle: 'The Listener' },
+    coroner: { name: '食灰者', subtitle: 'Ash-Walker' },
+    twin: { name: '共誓者', subtitle: 'The Twin' },
+    guard: { name: '设闩者', subtitle: 'Guardian' },
+    innocent: { name: '无知者', subtitle: 'The Innocent' },
   };
 
   const roleColors: Record<string, string> = {
-    werewolf: 'bg-red-600',
-    villager: 'bg-blue-600',
-    seer: 'bg-purple-600',
-    witch: 'bg-green-600',
-    hunter: 'bg-orange-600',
+    marked: 'bg-red-600',
+    heretic: 'bg-slate-700',
+    listener: 'bg-purple-600',
+    coroner: 'bg-cyan-700',
+    twin: 'bg-teal-600',
+    guard: 'bg-amber-600',
+    innocent: 'bg-blue-600',
   };
 
   return (
@@ -150,7 +154,7 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
                       <div className="flex items-center gap-2">
                         <CardTitle className="text-base">{player.name}</CardTitle>
                         <Badge className={cn('text-xs', roleColors[player.role])}>
-                          {roleNames[player.role]}
+                          {roleNames[player.role]?.name}
                         </Badge>
                         {!player.isAlive && (
                           <Badge variant="outline" className="text-xs">已淘汰</Badge>

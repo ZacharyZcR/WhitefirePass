@@ -121,16 +121,16 @@ function renderMessageContent(message: Message) {
 }
 
 /**
- * Role names in Chinese
+ * Role names with English/Latin subtitles
  */
-const roleNames: Record<string, string> = {
-  marked: '烙印者',
-  heretic: '背誓者',
-  listener: '聆心者',
-  coroner: '食灰者',
-  twin: '共誓者',
-  guard: '设闩者',
-  innocent: '无知者',
+const roleNames: Record<string, { name: string; subtitle: string }> = {
+  marked: { name: '烙印者', subtitle: 'The Marked' },
+  heretic: { name: '背誓者', subtitle: 'The Heretic' },
+  listener: { name: '聆心者', subtitle: 'The Listener' },
+  coroner: { name: '食灰者', subtitle: 'Ash-Walker' },
+  twin: { name: '共誓者', subtitle: 'The Twin' },
+  guard: { name: '设闩者', subtitle: 'Guardian' },
+  innocent: { name: '无知者', subtitle: 'The Innocent' },
 };
 
 /**
@@ -150,7 +150,7 @@ function MessageBadges({ message, messageTypeName, playerRole }: {
           </Badge>
           {playerRole && (
             <Badge variant="secondary" className="text-xs">
-              {roleNames[playerRole] || playerRole}
+              {roleNames[playerRole]?.name || playerRole}
             </Badge>
           )}
         </>

@@ -157,7 +157,12 @@ export function GameBoard() {
           {/* Players List - Scrollable */}
           <div className="flex-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border shadow-xl shadow-inner-glow overflow-hidden flex flex-col">
             <div className="flex-shrink-0 px-4 py-3 border-b border-border bg-gradient-to-r from-card via-card/50 to-card">
-              <h2 className="text-lg font-bold text-card-foreground font-cinzel tracking-wide">玩家列表</h2>
+              <h2 className="text-lg font-bold text-card-foreground font-cinzel tracking-wide">
+                玩家列表
+                <span className="block text-[10px] text-muted-foreground font-normal tracking-widest opacity-60 mt-0.5">
+                  TRAVELERS
+                </span>
+              </h2>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {gameState ? (
@@ -211,7 +216,12 @@ export function GameBoard() {
           {/* Game Log with Tabs */}
           <div className="flex-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border shadow-xl shadow-inner-glow overflow-hidden flex flex-col">
             <div className="flex-shrink-0 px-4 py-3 border-b border-border bg-gradient-to-r from-card via-card/50 to-card">
-              <h2 className="text-lg font-bold text-card-foreground font-cinzel tracking-wide">游戏日志</h2>
+              <h2 className="text-lg font-bold text-card-foreground font-cinzel tracking-wide">
+                游戏日志
+                <span className="block text-[10px] text-muted-foreground font-normal tracking-widest opacity-60 mt-0.5">
+                  CHRONICLE
+                </span>
+              </h2>
             </div>
             <div className="flex-1 overflow-hidden">
               {gameState ? (

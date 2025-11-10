@@ -29,14 +29,14 @@ interface CurrentSpeakerProps {
   gameState: GameState;
 }
 
-const roleNames: Record<string, string> = {
-  marked: '烙印者',
-  heretic: '背誓者',
-  listener: '聆心者',
-  coroner: '食灰者',
-  twin: '共誓者',
-  guard: '设闩者',
-  innocent: '无知者',
+const roleNames: Record<string, { name: string; subtitle: string }> = {
+  marked: { name: '烙印者', subtitle: 'The Marked' },
+  heretic: { name: '背誓者', subtitle: 'The Heretic' },
+  listener: { name: '聆心者', subtitle: 'The Listener' },
+  coroner: { name: '食灰者', subtitle: 'Ash-Walker' },
+  twin: { name: '共誓者', subtitle: 'The Twin' },
+  guard: { name: '设闩者', subtitle: 'Guardian' },
+  innocent: { name: '无知者', subtitle: 'The Innocent' },
 };
 
 const roleColors: Record<string, string> = {
@@ -139,9 +139,16 @@ export function CurrentSpeaker({ gameState }: CurrentSpeakerProps) {
   return (
     <Card className="flex flex-col">
       <CardHeader className="flex-shrink-0 pb-2 px-4 py-3 bg-gradient-to-r from-card via-card/50 to-card border-b border-border">
-        <CardTitle className="text-base flex items-center gap-2 font-cinzel tracking-wide">
-          <MessageSquare className="w-4 h-4" />
-          当前发言者
+        <CardTitle className="text-base font-cinzel tracking-wide">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4" />
+            <div>
+              当前发言者
+              <span className="block text-[9px] text-muted-foreground font-normal tracking-widest opacity-60">
+                SPEAKER
+              </span>
+            </div>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-4">
@@ -168,9 +175,14 @@ export function CurrentSpeaker({ gameState }: CurrentSpeakerProps) {
               </div>
               <div>
                 <div className="text-lg font-bold text-foreground">{currentPlayer.name}</div>
-                <Badge className={cn('mt-1 text-xs', roleColors[currentPlayer.role])}>
-                  {roleNames[currentPlayer.role]}
-                </Badge>
+                <div className="space-y-0.5">
+                  <Badge className={cn('text-xs', roleColors[currentPlayer.role])}>
+                    {roleNames[currentPlayer.role]?.name}
+                  </Badge>
+                  <div className="text-[9px] text-muted-foreground font-cinzel tracking-wider opacity-60">
+                    {roleNames[currentPlayer.role]?.subtitle}
+                  </div>
+                </div>
               </div>
               <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
                 <Loader2 className="w-3 h-3 animate-spin" />

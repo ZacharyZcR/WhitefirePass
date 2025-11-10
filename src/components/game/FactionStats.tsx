@@ -32,9 +32,16 @@ export function FactionStats({ gameState }: FactionStatsProps) {
   return (
     <Card className="bg-card/90 backdrop-blur-sm border-slate-700 shadow-inner-glow">
       <CardHeader className="pb-3 bg-gradient-to-r from-card via-card/50 to-card border-b border-border">
-        <CardTitle className="text-sm font-bold flex items-center gap-2 font-cinzel tracking-wide">
-          <Swords className="w-4 h-4" />
-          阵营对抗
+        <CardTitle className="text-sm font-bold font-cinzel tracking-wide">
+          <div className="flex items-center gap-2">
+            <Swords className="w-4 h-4" />
+            <div>
+              阵营对抗
+              <span className="block text-[8px] text-muted-foreground font-normal tracking-widest opacity-60">
+                FACTIONS
+              </span>
+            </div>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

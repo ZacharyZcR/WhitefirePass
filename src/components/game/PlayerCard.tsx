@@ -82,16 +82,16 @@ const roleIconComponents: Record<string, React.ComponentType<{ className?: strin
 };
 
 /**
- * Role names in Chinese
+ * Role names with English/Latin subtitles
  */
-const roleNames: Record<string, string> = {
-  marked: '烙印者',
-  heretic: '背誓者',
-  listener: '聆心者',
-  coroner: '食灰者',
-  twin: '共誓者',
-  guard: '设闩者',
-  innocent: '无知者',
+const roleNames: Record<string, { name: string; subtitle: string }> = {
+  marked: { name: '烙印者', subtitle: 'The Marked' },
+  heretic: { name: '背誓者', subtitle: 'The Heretic' },
+  listener: { name: '聆心者', subtitle: 'The Listener' },
+  coroner: { name: '食灰者', subtitle: 'Ash-Walker' },
+  twin: { name: '共誓者', subtitle: 'The Twin' },
+  guard: { name: '设闩者', subtitle: 'Guardian' },
+  innocent: { name: '无知者', subtitle: 'The Innocent' },
 };
 
 /**
@@ -217,9 +217,14 @@ export function PlayerCard({ player, showRole = false, isCurrent = false }: Play
       </CardHeader>
       <CardContent className="space-y-2">
         {showRole && (
-          <Badge className={cn('w-full justify-center', roleColors[player.role])}>
-            {roleNames[player.role]}
-          </Badge>
+          <div className="space-y-1">
+            <Badge className={cn('w-full justify-center text-xs', roleColors[player.role])}>
+              {roleNames[player.role]?.name}
+            </Badge>
+            <div className="text-[10px] text-center text-muted-foreground font-cinzel tracking-wider opacity-70">
+              {roleNames[player.role]?.subtitle}
+            </div>
+          </div>
         )}
         <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
           {player.isAI ? (

@@ -456,7 +456,12 @@ export function ControlPanel() {
     <>
     <Card className="shadow-inner-glow">
       <CardHeader className="bg-gradient-to-r from-card via-card/50 to-card border-b border-border">
-        <CardTitle className="font-cinzel tracking-wide">游戏控制</CardTitle>
+        <CardTitle className="font-cinzel tracking-wide">
+          游戏控制
+          <span className="block text-[10px] text-muted-foreground font-normal tracking-widest opacity-60 mt-1">
+            GAME CONTROL
+          </span>
+        </CardTitle>
         <CardDescription className="font-serif">
           配置并控制 AI 狼人杀游戏
         </CardDescription>
