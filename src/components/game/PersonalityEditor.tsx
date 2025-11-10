@@ -98,7 +98,7 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden relative">
+        <div className="flex-1 min-h-0 relative">
           {/* Gallery View - responsive grid */}
           <div
             className={`h-full overflow-y-auto overflow-x-hidden py-6 px-4 transition-opacity duration-300 ${
