@@ -14,6 +14,7 @@ import { VotingProgress } from './VotingProgress';
 import { CurrentSpeaker } from './CurrentSpeaker';
 import { StartMenu } from './StartMenu';
 import { CluesPanel } from './CluesPanel';
+import { PhaseTransition } from './PhaseTransition';
 import { Mountain, Gamepad2, Moon, Sun, Users as UsersIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -76,7 +77,18 @@ function getPhaseTheme(phase: string) {
 }
 
 export function GameBoard() {
-  const { gameState, clues, markClueAsRead, executeNextStep, isProcessing, lastError } = useGameStore();
+  const {
+    gameState,
+    clues,
+    markClueAsRead,
+    executeNextStep,
+    isProcessing,
+    lastError,
+    showTransition,
+    transitionPhase,
+    transitionRound,
+    completeTransition,
+  } = useGameStore();
   const phase = gameState?.phase || 'setup';
   const theme = getPhaseTheme(phase);
 
@@ -109,6 +121,15 @@ export function GameBoard() {
 
   return (
     <>
+      {/* Phase transition animation */}
+      {showTransition && transitionPhase && (
+        <PhaseTransition
+          phase={transitionPhase}
+          round={transitionRound}
+          onComplete={completeTransition}
+        />
+      )}
+
       <div
         className={cn(
           "h-screen w-screen overflow-hidden flex flex-col bg-gradient-to-br transition-all duration-1000 ease-in-out",

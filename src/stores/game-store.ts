@@ -28,6 +28,11 @@ interface GameStore {
   retryCount: number;  // Current retry attempt count
   clues: Clue[];  // Collected clues/documents
 
+  // Phase transition animation
+  showTransition: boolean;
+  transitionPhase: GameState['phase'] | null;
+  transitionRound: number;
+
   // Actions
   setApiKey: (key: string) => void;
   startGame: (config: GameConfig) => void;
@@ -47,6 +52,10 @@ interface GameStore {
   deleteGame: (id: string) => void;
   getSavedGames: () => SavedGame[];
 
+  // Transition actions
+  triggerTransition: (phase: GameState['phase'], round: number) => void;
+  completeTransition: () => void;
+
   // Internal actions
   advanceToNextPhase: () => void;
   advanceNightPhase: () => void;
@@ -65,6 +74,11 @@ export const useGameStore = create<GameStore>()(
   lastError: null,
   retryCount: 0,
   clues: [],
+
+  // Phase transition
+  showTransition: false,
+  transitionPhase: null,
+  transitionRound: 0,
 
   /**
    * Set Gemini API key
@@ -133,6 +147,28 @@ export const useGameStore = create<GameStore>()(
       clue.id === clueId ? { ...clue, isRead: true } : clue
     );
     set({ clues: updatedClues });
+  },
+
+  /**
+   * Trigger phase transition animation
+   */
+  triggerTransition: (phase: GameState['phase'], round: number) => {
+    set({
+      showTransition: true,
+      transitionPhase: phase,
+      transitionRound: round,
+    });
+  },
+
+  /**
+   * Complete phase transition (called after animation finishes)
+   */
+  completeTransition: () => {
+    set({
+      showTransition: false,
+      transitionPhase: null,
+      transitionRound: 0,
+    });
   },
 
   /**
@@ -223,30 +259,8 @@ export const useGameStore = create<GameStore>()(
     set({ isProcessing: true });
 
     try {
-      // Handle prologue phase - just show story, no AI action
+      // Handle prologue phase - display all story messages and transition to day
       if (gameState.phase === 'prologue') {
-        get().advanceToNextPhase();
-        set({ gameState: { ...gameState }, isProcessing: false });
-        return;
-      }
-
-      // Handle setup phase - show story messages progressively
-      if (gameState.phase === 'setup') {
-        const progress = gameState.storyProgress || 0;
-
-        // If all 6 story messages have been shown, transition to day phase
-        if (progress >= 6) {
-          gameState.phase = 'day';
-          gameState.round = 1;
-          gameState.currentPlayerIndex = 0;
-          gameState.messages.push(
-            addMessage(gameState, '旁白', '第 1 回合开始。天亮了，请大家发言！', 'system', 'all'),
-          );
-          set({ gameState: { ...gameState }, isProcessing: false });
-          return;
-        }
-
-        // Otherwise, show next story message
         get().advanceToNextPhase();
         set({ gameState: { ...gameState }, isProcessing: false });
         return;
@@ -399,14 +413,8 @@ export const useGameStore = create<GameStore>()(
     if (!gameState) return;
 
     if (gameState.phase === 'prologue') {
-      // Prologue to setup: Initialize story progression
-      gameState.phase = 'setup';
-      gameState.storyProgress = 0;
-    } else if (gameState.phase === 'setup') {
-      // Setup: Add story messages one by one
-      const progress = gameState.storyProgress || 0;
-
-      // Count roles (needed for final message)
+      // Prologue: Display all story messages at once and transition to day
+      // Count roles for the final message
       const roleCounts = gameState.players.reduce(
         (acc, player) => {
           acc[player.role] = (acc[player.role] || 0) + 1;
@@ -415,7 +423,7 @@ export const useGameStore = create<GameStore>()(
         {} as Record<string, number>,
       );
 
-      // Story messages based on progress
+      // Add all story messages at once
       const storyMessages = [
         {
           from: '叙述者',
@@ -499,16 +507,20 @@ export const useGameStore = create<GameStore>()(
         },
       ];
 
-      if (progress < storyMessages.length) {
-        // Add current story message
-        const message = storyMessages[progress];
+      // Add all messages
+      storyMessages.forEach((msg) => {
         gameState.messages.push(
-          addMessage(gameState, message.from, message.content, 'system', 'all')
+          addMessage(gameState, msg.from, msg.content, 'system', 'all')
         );
-        gameState.storyProgress = progress + 1;
-      }
+      });
 
-      // If all story messages shown, stay in setup phase but ready to advance to day
+      // Transition to day phase with animation
+      gameState.phase = 'day';
+      gameState.round = 1;
+      gameState.currentPlayerIndex = 0;
+
+      // Trigger transition animation
+      get().triggerTransition('day', 1);
     } else if (gameState.phase === 'day') {
       // Day phase ended, go to voting
       gameState.phase = 'voting';
@@ -517,6 +529,9 @@ export const useGameStore = create<GameStore>()(
       gameState.messages.push(
         addMessage(gameState, '旁白', '讨论结束。现在开始投票！', 'system', 'all'),
       );
+
+      // Trigger transition animation
+      get().triggerTransition('voting', gameState.round);
     } else if (gameState.phase === 'voting') {
       // Voting phase ended, process votes and check for ties
       const { eliminated, message, isTied, tiedPlayers } = processVoting(gameState);
@@ -531,14 +546,26 @@ export const useGameStore = create<GameStore>()(
         gameState.voteHistory.push(...votesWithRound);
       }
 
+      const phaseBefore = gameState.phase;
       handleDayVotingResult(gameState, eliminated, isTied, tiedPlayers);
+
+      // Trigger transition if entered night phase
+      if (phaseBefore === 'voting' && gameState.phase === 'night') {
+        get().triggerTransition('night', gameState.round);
+      }
     } else if (gameState.phase === 'night') {
       // Night phase ended, process night actions and go to day
       const { killedPlayer, message, isTied } = processNightPhase(gameState);
 
       // Only process kill if not tied (tie is handled in advanceNightPhase)
       if (!isTied) {
+        const phaseBefore = gameState.phase;
         handleNightKillResult(gameState, killedPlayer, message);
+
+        // Trigger transition to day phase
+        if (phaseBefore === 'night' && gameState.phase === 'day') {
+          get().triggerTransition('day', gameState.round);
+        }
       }
     }
 
