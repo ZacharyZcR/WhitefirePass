@@ -1,12 +1,12 @@
 /**
- * Gothic Design Demo Page
- * Using classic medieval manuscript border decorations
+ * Gothic Design Demo - Medieval Manuscript Style
+ * Using CSS decorative borders and classic ornamental patterns
  */
 
 'use client';
 
 import { useState } from 'react';
-import { Mountain, Skull, Flame, Moon, Crown, Sword } from 'lucide-react';
+import { Mountain, Skull, Flame, Moon, Crown, Sword, BookOpen, Scroll } from 'lucide-react';
 
 export default function GothicDemoPage() {
   const [activeButton, setActiveButton] = useState<string | null>(null);
@@ -14,173 +14,207 @@ export default function GothicDemoPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-8">
       <div className="max-w-7xl mx-auto space-y-12">
-        {/* Page Header */}
-        <div className="text-center space-y-4 mb-16">
-          <h1 className="text-5xl font-cinzel text-slate-200 tracking-wider">
-            Gothic Design System
-          </h1>
-          <p className="text-slate-400 font-serif">
-            Classic medieval manuscript border decorations
+        {/* Page Header with illuminated manuscript style */}
+        <div className="text-center space-y-6 mb-16">
+          <div className="inline-block relative">
+            <h1 className="text-6xl font-cinzel text-amber-200 tracking-wider relative z-10">
+              Gothic Design System
+            </h1>
+            {/* Decorative underline */}
+            <div className="absolute -bottom-4 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent opacity-30" />
+            <div className="absolute -bottom-5 left-1/4 right-1/4 h-px bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
+          </div>
+
+          <div className="flex items-center justify-center gap-4">
+            <div className="h-px w-24 bg-gradient-to-r from-transparent to-slate-500" />
+            <BookOpen className="w-5 h-5 text-slate-400" />
+            <div className="h-px w-24 bg-gradient-to-l from-transparent to-slate-500" />
+          </div>
+
+          <p className="text-slate-400 font-serif italic text-lg">
+            Medieval Manuscript Borders & Illuminated Decorations
           </p>
         </div>
 
-        {/* Gothic Buttons Section */}
-        <section className="space-y-6">
-          <h2 className="text-3xl font-cinzel text-slate-300 mb-8">Illuminated Buttons</h2>
+        {/* Gothic Buttons with Medieval Border Style */}
+        <section className="space-y-8">
+          <h2 className="text-3xl font-cinzel text-amber-300 mb-8 text-center border-b-2 border-amber-900/30 pb-4">
+            Illuminated Buttons
+          </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <GothicButton
-              variant="primary"
-              icon={<Flame className="w-5 h-5" />}
-              onClick={() => setActiveButton('primary')}
-              active={activeButton === 'primary'}
-            >
-              Primary Action
-            </GothicButton>
-
-            <GothicButton
-              variant="danger"
-              icon={<Skull className="w-5 h-5" />}
-              onClick={() => setActiveButton('danger')}
-              active={activeButton === 'danger'}
-            >
-              Danger Action
-            </GothicButton>
-
-            <GothicButton
-              variant="royal"
+            <IlluminatedButton
+              variant="gold"
               icon={<Crown className="w-5 h-5" />}
-              onClick={() => setActiveButton('royal')}
-              active={activeButton === 'royal'}
+              onClick={() => setActiveButton('gold')}
+              active={activeButton === 'gold'}
             >
-              Royal Action
-            </GothicButton>
+              Royal Gold
+            </IlluminatedButton>
 
-            <GothicButton
-              variant="shadow"
+            <IlluminatedButton
+              variant="crimson"
+              icon={<Flame className="w-5 h-5" />}
+              onClick={() => setActiveButton('crimson')}
+              active={activeButton === 'crimson'}
+            >
+              Crimson Fire
+            </IlluminatedButton>
+
+            <IlluminatedButton
+              variant="azure"
               icon={<Moon className="w-5 h-5" />}
-              onClick={() => setActiveButton('shadow')}
-              active={activeButton === 'shadow'}
+              onClick={() => setActiveButton('azure')}
+              active={activeButton === 'azure'}
             >
-              Shadow Action
-            </GothicButton>
+              Azure Night
+            </IlluminatedButton>
 
-            <GothicButton
-              variant="battle"
-              icon={<Sword className="w-5 h-5" />}
-              onClick={() => setActiveButton('battle')}
-              active={activeButton === 'battle'}
-            >
-              Battle Action
-            </GothicButton>
-
-            <GothicButton
-              variant="mountain"
+            <IlluminatedButton
+              variant="emerald"
               icon={<Mountain className="w-5 h-5" />}
-              onClick={() => setActiveButton('mountain')}
-              active={activeButton === 'mountain'}
+              onClick={() => setActiveButton('emerald')}
+              active={activeButton === 'emerald'}
             >
-              Mountain Action
-            </GothicButton>
+              Emerald Peak
+            </IlluminatedButton>
+
+            <IlluminatedButton
+              variant="violet"
+              icon={<Skull className="w-5 h-5" />}
+              onClick={() => setActiveButton('violet')}
+              active={activeButton === 'violet'}
+            >
+              Violet Shadow
+            </IlluminatedButton>
+
+            <IlluminatedButton
+              variant="copper"
+              icon={<Sword className="w-5 h-5" />}
+              onClick={() => setActiveButton('copper')}
+              active={activeButton === 'copper'}
+            >
+              Copper Blade
+            </IlluminatedButton>
           </div>
         </section>
 
-        {/* Gothic Containers Section */}
-        <section className="space-y-6">
-          <h2 className="text-3xl font-cinzel text-slate-300 mb-8">Illuminated Panels</h2>
+        {/* Manuscript Panels */}
+        <section className="space-y-8">
+          <h2 className="text-3xl font-cinzel text-amber-300 mb-8 text-center border-b-2 border-amber-900/30 pb-4">
+            Illuminated Manuscripts
+          </h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <GothicContainer variant="ornate">
-              <div className="space-y-4">
-                <h3 className="text-2xl font-cinzel text-amber-300 flex items-center gap-2">
-                  <Crown className="w-6 h-6" />
-                  Ornate Manuscript
-                </h3>
-                <p className="text-slate-300 font-serif leading-relaxed text-sm">
-                  Inspired by the Book of Hours, featuring intricate gold leaf borders,
-                  floral marginalia, and elaborate corner pieces typical of 14th century
-                  illuminated manuscripts.
-                </p>
-              </div>
-            </GothicContainer>
+            <ManuscriptPanel variant="gold" initial="W">
+              <h3 className="text-2xl font-cinzel text-amber-200 mb-4">
+                The Golden Covenant
+              </h3>
+              <p className="text-slate-300 font-serif leading-relaxed text-justify">
+                In the year of our Lord 1913, fifteen souls gathered at the threshold of Whitefire Pass.
+                Each bore secrets darker than the winter night, each carried burdens heavier than the
+                falling snow. The mountain spirits watched, silent and eternal, as fate wove its crimson
+                thread through their desperate lives.
+              </p>
+            </ManuscriptPanel>
 
-            <GothicContainer variant="shadow">
-              <div className="space-y-4">
-                <h3 className="text-2xl font-cinzel text-purple-300 flex items-center gap-2">
-                  <Moon className="w-6 h-6" />
-                  Shadow Codex
-                </h3>
-                <p className="text-slate-300 font-serif leading-relaxed text-sm">
-                  Dark purple borders with silver accents, reminiscent of ecclesiastical
-                  manuscripts from Gothic cathedrals. Features delicate filigree work.
-                </p>
-              </div>
-            </GothicContainer>
+            <ManuscriptPanel variant="crimson" initial="T">
+              <h3 className="text-2xl font-cinzel text-red-200 mb-4">
+                The Blood Compact
+              </h3>
+              <p className="text-slate-300 font-serif leading-relaxed text-justify">
+                Three among them bore the Mark—the cursed brand that hungered for innocent flesh.
+                Twelve stood unknowing, armed only with courage and wit. When the storm sealed
+                the pass and ancient law awakened, a terrible game began. Hunter and prey danced
+                beneath the pale moon's gaze.
+              </p>
+            </ManuscriptPanel>
 
-            <GothicContainer variant="blood">
-              <div className="space-y-4">
-                <h3 className="text-2xl font-cinzel text-red-300 flex items-center gap-2">
-                  <Flame className="w-6 h-6" />
-                  Crimson Testament
-                </h3>
-                <p className="text-slate-300 font-serif leading-relaxed text-sm">
-                  Red and gold borders inspired by royal manuscripts, featuring bold
-                  geometric patterns mixed with organic vine motifs.
-                </p>
-              </div>
-            </GothicContainer>
+            <ManuscriptPanel variant="azure" initial="I">
+              <h3 className="text-2xl font-cinzel text-blue-200 mb-4">
+                The Frozen Testament
+              </h3>
+              <p className="text-slate-300 font-serif leading-relaxed text-justify">
+                In the manor's depths, they found the testament—warnings written in trembling hand
+                by those who came before. The words spoke of sacrifice, of the Harvest and the Lamb,
+                of an ancient covenant that demanded blood. Some laughed. Others wept. All, in time,
+                would believe.
+              </p>
+            </ManuscriptPanel>
 
-            <GothicContainer variant="frost">
-              <div className="space-y-4">
-                <h3 className="text-2xl font-cinzel text-cyan-300 flex items-center gap-2">
-                  <Mountain className="w-6 h-6" />
-                  Frost Psalter
-                </h3>
-                <p className="text-slate-300 font-serif leading-relaxed text-sm">
-                  Cool blue illumination with silver details, evoking northern European
-                  manuscripts with their crystalline precision.
-                </p>
-              </div>
-            </GothicContainer>
+            <ManuscriptPanel variant="emerald" initial="O">
+              <h3 className="text-2xl font-cinzel text-emerald-200 mb-4">
+                The Mountain's Judgement
+              </h3>
+              <p className="text-slate-300 font-serif leading-relaxed text-justify">
+                Only truth would free them. Only sacrifice would appease the storm. Day by day,
+                the cold grew fiercer. Night by night, the shadows deepened. Words became weapons,
+                trust became treasure, and every heartbeat counted toward the final reckoning beneath
+                ash-white peaks.
+              </p>
+            </ManuscriptPanel>
           </div>
         </section>
 
-        {/* Large Feature Container */}
+        {/* Grand Illuminated Charter */}
         <section>
-          <h2 className="text-3xl font-cinzel text-slate-300 mb-8">Featured Illumination</h2>
+          <h2 className="text-3xl font-cinzel text-amber-300 mb-8 text-center border-b-2 border-amber-900/30 pb-4">
+            The Great Charter
+          </h2>
 
-          <GothicContainer variant="ornate" size="large">
+          <ManuscriptPanel variant="gold" initial="H" size="large">
             <div className="space-y-6">
-              <div className="text-center space-y-3">
-                <Crown className="w-16 h-16 mx-auto text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]" />
-                <h3 className="text-4xl font-cinzel text-amber-300 drop-shadow-[0_2px_10px_rgba(251,191,36,0.3)]">
-                  The Whitefire Covenant
+              <div className="text-center space-y-4">
+                <h3 className="text-5xl font-cinzel text-amber-200 leading-tight">
+                  Here Begins the Chronicle
+                  <br />
+                  <span className="text-3xl text-amber-300/80">of Whitefire Pass</span>
                 </h3>
-                <p className="text-sm font-cinzel tracking-widest text-slate-400 uppercase">
-                  A Sacred Contract Written in Snow and Ash
+
+                <div className="flex items-center justify-center gap-6 py-4">
+                  <div className="h-px w-32 bg-gradient-to-r from-transparent to-amber-500/50" />
+                  <Scroll className="w-8 h-8 text-amber-400" />
+                  <div className="h-px w-32 bg-gradient-to-l from-transparent to-amber-500/50" />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6 text-center">
+                <div className="space-y-2">
+                  <Crown className="w-10 h-10 mx-auto text-amber-400" />
+                  <h4 className="text-lg font-cinzel text-amber-200">XV Travelers</h4>
+                  <p className="text-slate-400 font-serif text-sm">
+                    Fifteen souls bound by fate and sealed by storm
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Flame className="w-10 h-10 mx-auto text-red-400" />
+                  <h4 className="text-lg font-cinzel text-red-200">III Marked</h4>
+                  <p className="text-slate-400 font-serif text-sm">
+                    Three hunters bearing the curse of endless hunger
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Moon className="w-10 h-10 mx-auto text-cyan-400" />
+                  <h4 className="text-lg font-cinzel text-cyan-200">XII Innocents</h4>
+                  <p className="text-slate-400 font-serif text-sm">
+                    Twelve lambs seeking truth in shadow's realm
+                  </p>
+                </div>
+              </div>
+
+              <div className="border-t-2 border-amber-900/30 pt-6">
+                <p className="text-slate-300 font-serif leading-relaxed text-center italic">
+                  "When snow seals the pass and darkness falls, let the ancient rite commence.
+                  By day they speak, by night they hunt, until truth alone remains standing."
+                </p>
+                <p className="text-slate-500 font-serif text-sm text-center mt-4">
+                  — From the Testament of the Mountain, Chapter VII
                 </p>
               </div>
-
-              <div className="h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-3 text-center">
-                  <h4 className="text-lg font-cinzel text-amber-200">⚔ The Harvest ⚔</h4>
-                  <p className="text-slate-400 font-serif text-sm leading-relaxed">
-                    Three marked souls, bound by ancient hunger, hunt beneath the pale moon.
-                    Their covenant written in shadow and flame, sealed by blood and darkness.
-                  </p>
-                </div>
-                <div className="space-y-3 text-center">
-                  <h4 className="text-lg font-cinzel text-amber-200">✟ The Lamb ✟</h4>
-                  <p className="text-slate-400 font-serif text-sm leading-relaxed">
-                    Twelve innocent travelers, armed with faith and reason, must pierce
-                    the veil of deception before winter's mercy fades forever.
-                  </p>
-                </div>
-              </div>
             </div>
-          </GothicContainer>
+          </ManuscriptPanel>
         </section>
       </div>
     </div>
@@ -188,242 +222,158 @@ export default function GothicDemoPage() {
 }
 
 /**
- * Medieval Manuscript Ornaments
- * Classic decorative elements from illuminated manuscripts
+ * Illuminated Button - Medieval manuscript style
  */
-
-// Border corner piece - complex geometric and floral pattern
-function CornerOrnament({ className = '', color = 'currentColor' }: { className?: string; color?: string }) {
-  return (
-    <svg width="120" height="120" viewBox="0 0 120 120" className={className}>
-      <defs>
-        <radialGradient id={`corner-gradient-${color}`}>
-          <stop offset="0%" stopColor={color} stopOpacity="0.6" />
-          <stop offset="100%" stopColor={color} stopOpacity="0.2" />
-        </radialGradient>
-      </defs>
-      <g fill={color} opacity="0.4">
-        {/* Outer decorative frame */}
-        <path d="M 10,10 L 10,50 Q 10,10 50,10 L 10,10 Z" stroke={color} strokeWidth="2" fill="none" />
-        <path d="M 5,5 L 5,60 Q 5,5 60,5 L 5,5 Z" stroke={color} strokeWidth="1" fill="none" opacity="0.5" />
-
-        {/* Inner flourish */}
-        <circle cx="30" cy="30" r="20" fill={`url(#corner-gradient-${color})`} />
-        <circle cx="30" cy="30" r="15" fill="none" stroke={color} strokeWidth="1.5" />
-        <circle cx="30" cy="30" r="10" fill="none" stroke={color} strokeWidth="1" />
-
-        {/* Decorative petals */}
-        <path d="M 30,15 Q 35,20 30,25 Q 25,20 30,15 Z" />
-        <path d="M 45,30 Q 40,35 35,30 Q 40,25 45,30 Z" />
-        <path d="M 30,45 Q 25,40 30,35 Q 35,40 30,45 Z" />
-        <path d="M 15,30 Q 20,25 25,30 Q 20,35 15,30 Z" />
-
-        {/* Diagonal decorative lines */}
-        <path d="M 50,10 L 80,10 M 55,15 L 85,15 M 60,20 L 90,20" stroke={color} strokeWidth="1" opacity="0.3" />
-        <path d="M 10,50 L 10,80 M 15,55 L 15,85 M 20,60 L 20,90" stroke={color} strokeWidth="1" opacity="0.3" />
-
-        {/* Corner flourish extensions */}
-        <path d="M 60,5 Q 70,8 80,5 T 100,5" stroke={color} strokeWidth="1.5" fill="none" />
-        <path d="M 5,60 Q 8,70 5,80 T 5,100" stroke={color} strokeWidth="1.5" fill="none" />
-      </g>
-    </svg>
-  );
-}
-
-// Elaborate border decoration - inspired by illuminated manuscript margins
-function BorderDecoration({ className = '', color = 'currentColor', vertical = false }: { className?: string; color?: string; vertical?: boolean }) {
-  return (
-    <svg
-      width={vertical ? "60" : "400"}
-      height={vertical ? "400" : "60"}
-      viewBox={vertical ? "0 0 60 400" : "0 0 400 60"}
-      className={className}
-      preserveAspectRatio="none"
-    >
-      <defs>
-        <pattern id={`border-pattern-${color}-${vertical ? 'v' : 'h'}`} x="0" y="0" width="80" height="60" patternUnits="userSpaceOnUse">
-          {/* Repeating decorative motif */}
-          <circle cx="40" cy="30" r="8" fill={color} opacity="0.3" />
-          <circle cx="40" cy="30" r="12" fill="none" stroke={color} strokeWidth="1" opacity="0.2" />
-          <path d="M 30,30 Q 35,25 40,30 Q 35,35 30,30 Z" fill={color} opacity="0.25" />
-          <path d="M 50,30 Q 45,25 40,30 Q 45,35 50,30 Z" fill={color} opacity="0.25" />
-        </pattern>
-      </defs>
-
-      {vertical ? (
-        <g>
-          <rect width="60" height="400" fill={`url(#border-pattern-${color}-v)`} />
-          <path d="M 30,0 Q 35,50 30,100 T 30,200 Q 25,250 30,300 T 30,400"
-                stroke={color} strokeWidth="2" fill="none" opacity="0.4" />
-          <path d="M 20,20 L 25,25 L 20,30 M 40,20 L 35,25 L 40,30"
-                stroke={color} strokeWidth="1" opacity="0.3" />
-        </g>
-      ) : (
-        <g>
-          <rect width="400" height="60" fill={`url(#border-pattern-${color}-h)`} />
-          <path d="M 0,30 Q 50,35 100,30 T 200,30 Q 250,25 300,30 T 400,30"
-                stroke={color} strokeWidth="2" fill="none" opacity="0.4" />
-          <path d="M 20,20 L 25,25 L 30,20 M 20,40 L 25,35 L 30,40"
-                stroke={color} strokeWidth="1" opacity="0.3" />
-        </g>
-      )}
-    </svg>
-  );
-}
-
-// Central illumination - like a decorated initial letter
-function CentralIllumination({ className = '', color = 'currentColor' }: { className?: string; color?: string }) {
-  return (
-    <svg width="80" height="80" viewBox="0 0 100 100" className={className}>
-      <defs>
-        <radialGradient id={`central-gradient-${color}`}>
-          <stop offset="0%" stopColor={color} stopOpacity="0.8" />
-          <stop offset="70%" stopColor={color} stopOpacity="0.3" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </radialGradient>
-      </defs>
-
-      {/* Central medallion */}
-      <circle cx="50" cy="50" r="40" fill={`url(#central-gradient-${color})`} />
-      <circle cx="50" cy="50" r="35" fill="none" stroke={color} strokeWidth="2" opacity="0.5" />
-      <circle cx="50" cy="50" r="30" fill="none" stroke={color} strokeWidth="1.5" opacity="0.4" />
-      <circle cx="50" cy="50" r="25" fill="none" stroke={color} strokeWidth="1" opacity="0.3" />
-
-      {/* Decorative rays */}
-      <g opacity="0.4">
-        <path d="M 50,10 L 50,20 M 50,80 L 50,90" stroke={color} strokeWidth="2" />
-        <path d="M 10,50 L 20,50 M 80,50 L 90,50" stroke={color} strokeWidth="2" />
-        <path d="M 20,20 L 27,27 M 73,73 L 80,80" stroke={color} strokeWidth="1.5" />
-        <path d="M 80,20 L 73,27 M 27,73 L 20,80" stroke={color} strokeWidth="1.5" />
-      </g>
-
-      {/* Inner flower pattern */}
-      <g fill={color} opacity="0.5">
-        <path d="M 50,35 Q 55,40 50,45 Q 45,40 50,35 Z" />
-        <path d="M 65,50 Q 60,55 55,50 Q 60,45 65,50 Z" />
-        <path d="M 50,65 Q 45,60 50,55 Q 55,60 50,65 Z" />
-        <path d="M 35,50 Q 40,45 45,50 Q 40,55 35,50 Z" />
-      </g>
-    </svg>
-  );
-}
-
-/**
- * Gothic Button Component
- */
-interface GothicButtonProps {
+interface IlluminatedButtonProps {
   children: React.ReactNode;
-  variant: 'primary' | 'danger' | 'royal' | 'shadow' | 'battle' | 'mountain';
+  variant: 'gold' | 'crimson' | 'azure' | 'emerald' | 'violet' | 'copper';
   icon?: React.ReactNode;
   onClick?: () => void;
   active?: boolean;
 }
 
-function GothicButton({ children, variant, icon, onClick, active }: GothicButtonProps) {
-  const variants = {
-    primary: { gradient: 'from-amber-600 to-amber-800', color: 'rgb(251,191,36)', textColor: 'text-amber-200' },
-    danger: { gradient: 'from-red-700 to-red-900', color: 'rgb(248,113,113)', textColor: 'text-red-200' },
-    royal: { gradient: 'from-purple-700 to-purple-900', color: 'rgb(216,180,254)', textColor: 'text-purple-200' },
-    shadow: { gradient: 'from-slate-700 to-slate-900', color: 'rgb(203,213,225)', textColor: 'text-slate-200' },
-    battle: { gradient: 'from-orange-700 to-orange-900', color: 'rgb(251,146,60)', textColor: 'text-orange-200' },
-    mountain: { gradient: 'from-cyan-700 to-cyan-900', color: 'rgb(103,232,249)', textColor: 'text-cyan-200' },
+function IlluminatedButton({ children, variant, icon, onClick, active }: IlluminatedButtonProps) {
+  const styles = {
+    gold: {
+      bg: 'bg-gradient-to-br from-amber-700 via-yellow-600 to-amber-800',
+      border: 'border-amber-400',
+      shadow: 'shadow-lg shadow-amber-500/50',
+      text: 'text-amber-50',
+      decoration: 'bg-amber-400',
+      glow: 'hover:shadow-2xl hover:shadow-amber-500/60',
+    },
+    crimson: {
+      bg: 'bg-gradient-to-br from-red-800 via-rose-700 to-red-900',
+      border: 'border-red-400',
+      shadow: 'shadow-lg shadow-red-500/50',
+      text: 'text-red-50',
+      decoration: 'bg-red-400',
+      glow: 'hover:shadow-2xl hover:shadow-red-500/60',
+    },
+    azure: {
+      bg: 'bg-gradient-to-br from-blue-800 via-cyan-700 to-blue-900',
+      border: 'border-blue-400',
+      shadow: 'shadow-lg shadow-blue-500/50',
+      text: 'text-blue-50',
+      decoration: 'bg-blue-400',
+      glow: 'hover:shadow-2xl hover:shadow-blue-500/60',
+    },
+    emerald: {
+      bg: 'bg-gradient-to-br from-emerald-800 via-green-700 to-emerald-900',
+      border: 'border-emerald-400',
+      shadow: 'shadow-lg shadow-emerald-500/50',
+      text: 'text-emerald-50',
+      decoration: 'bg-emerald-400',
+      glow: 'hover:shadow-2xl hover:shadow-emerald-500/60',
+    },
+    violet: {
+      bg: 'bg-gradient-to-br from-violet-800 via-purple-700 to-violet-900',
+      border: 'border-violet-400',
+      shadow: 'shadow-lg shadow-violet-500/50',
+      text: 'text-violet-50',
+      decoration: 'bg-violet-400',
+      glow: 'hover:shadow-2xl hover:shadow-violet-500/60',
+    },
+    copper: {
+      bg: 'bg-gradient-to-br from-orange-800 via-amber-700 to-orange-900',
+      border: 'border-orange-400',
+      shadow: 'shadow-lg shadow-orange-500/50',
+      text: 'text-orange-50',
+      decoration: 'bg-orange-400',
+      glow: 'hover:shadow-2xl hover:shadow-orange-500/60',
+    },
   };
 
-  const v = variants[variant];
+  const style = styles[variant];
 
   return (
     <button
       onClick={onClick}
       className={`
         relative group
-        px-10 py-5
-        bg-gradient-to-br ${v.gradient}
-        border-4 border-double border-opacity-60
+        px-8 py-4
+        ${style.bg}
+        border-4 ${style.border}
+        ${active ? 'ring-4 ring-white/30' : ''}
         font-cinzel tracking-widest text-sm uppercase
-        text-white
-        transition-all duration-700
-        shadow-2xl
-        hover:shadow-[0_0_30px_rgba(0,0,0,0.5)]
-        hover:scale-[1.03]
-        overflow-visible
-        ${active ? 'ring-4 ring-offset-2 ring-offset-slate-950' : ''}
+        ${style.text}
+        ${style.shadow}
+        ${style.glow}
+        transition-all duration-500
+        hover:scale-105
+        hover:-translate-y-1
       `}
-      style={{ borderColor: v.color }}
     >
-      {/* Corner ornaments */}
-      <CornerOrnament
-        className="absolute -top-8 -left-8 transition-all duration-700 group-hover:scale-110 drop-shadow-2xl"
-        color={v.color}
-      />
-      <CornerOrnament
-        className="absolute -top-8 -right-8 scale-x-[-1] transition-all duration-700 group-hover:scale-110 drop-shadow-2xl"
-        color={v.color}
-      />
-      <CornerOrnament
-        className="absolute -bottom-8 -left-8 scale-y-[-1] transition-all duration-700 group-hover:scale-110 drop-shadow-2xl"
-        color={v.color}
-      />
-      <CornerOrnament
-        className="absolute -bottom-8 -right-8 scale-[-1] transition-all duration-700 group-hover:scale-110 drop-shadow-2xl"
-        color={v.color}
-      />
+      {/* Corner decorations - simple geometric */}
+      <div className={`absolute top-0 left-0 w-3 h-3 ${style.decoration} opacity-60`}
+           style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
+      <div className={`absolute top-0 right-0 w-3 h-3 ${style.decoration} opacity-60`}
+           style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 0)' }} />
+      <div className={`absolute bottom-0 left-0 w-3 h-3 ${style.decoration} opacity-60`}
+           style={{ clipPath: 'polygon(0 0, 0 100%, 100% 100%)' }} />
+      <div className={`absolute bottom-0 right-0 w-3 h-3 ${style.decoration} opacity-60`}
+           style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 100%)' }} />
 
-      {/* Border decorations */}
-      <BorderDecoration
-        className="absolute top-0 left-0 w-full h-full opacity-50 pointer-events-none"
-        color={v.color}
-      />
+      {/* Border pattern */}
+      <div className="absolute inset-0 border-2 border-white/10 pointer-events-none" />
+      <div className="absolute inset-1 border border-white/5 pointer-events-none" />
 
       {/* Content */}
-      <span className={`relative z-10 flex items-center justify-center gap-3 ${v.textColor} drop-shadow-lg`}>
+      <span className="relative z-10 flex items-center justify-center gap-3 font-bold">
         {icon}
         {children}
       </span>
 
       {/* Inner glow */}
-      <div
-        className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-700 pointer-events-none"
-        style={{ background: `radial-gradient(circle at center, ${v.color}, transparent)` }}
-      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
     </button>
   );
 }
 
 /**
- * Gothic Container Component
+ * Manuscript Panel - Illuminated page style with decorative initial
  */
-interface GothicContainerProps {
+interface ManuscriptPanelProps {
   children: React.ReactNode;
-  variant: 'ornate' | 'shadow' | 'blood' | 'frost';
+  variant: 'gold' | 'crimson' | 'azure' | 'emerald';
+  initial: string;
   size?: 'normal' | 'large';
 }
 
-function GothicContainer({ children, variant, size = 'normal' }: GothicContainerProps) {
-  const variants = {
-    ornate: {
-      gradient: 'from-amber-950/80 via-slate-900/95 to-amber-950/80',
-      color: 'rgb(251,191,36)',
-      border: 'border-amber-500/60'
+function ManuscriptPanel({ children, variant, initial, size = 'normal' }: ManuscriptPanelProps) {
+  const styles = {
+    gold: {
+      border: 'border-amber-600/40',
+      initial: 'text-amber-400 from-amber-600 to-amber-800',
+      corner: 'text-amber-500/30',
+      shadow: 'shadow-amber-900/20',
+      accent: 'from-amber-600/20 to-transparent',
     },
-    shadow: {
-      gradient: 'from-purple-950/80 via-slate-900/95 to-purple-950/80',
-      color: 'rgb(216,180,254)',
-      border: 'border-purple-500/60'
+    crimson: {
+      border: 'border-red-600/40',
+      initial: 'text-red-400 from-red-600 to-red-800',
+      corner: 'text-red-500/30',
+      shadow: 'shadow-red-900/20',
+      accent: 'from-red-600/20 to-transparent',
     },
-    blood: {
-      gradient: 'from-red-950/80 via-slate-900/95 to-red-950/80',
-      color: 'rgb(248,113,113)',
-      border: 'border-red-500/60'
+    azure: {
+      border: 'border-blue-600/40',
+      initial: 'text-blue-400 from-blue-600 to-blue-800',
+      corner: 'text-blue-500/30',
+      shadow: 'shadow-blue-900/20',
+      accent: 'from-blue-600/20 to-transparent',
     },
-    frost: {
-      gradient: 'from-cyan-950/80 via-slate-900/95 to-cyan-950/80',
-      color: 'rgb(103,232,249)',
-      border: 'border-cyan-500/60'
+    emerald: {
+      border: 'border-emerald-600/40',
+      initial: 'text-emerald-400 from-emerald-600 to-emerald-800',
+      corner: 'text-emerald-500/30',
+      shadow: 'shadow-emerald-900/20',
+      accent: 'from-emerald-600/20 to-transparent',
     },
   };
 
-  const v = variants[variant];
-  const padding = size === 'large' ? 'p-20' : 'p-12';
+  const style = styles[variant];
+  const padding = size === 'large' ? 'p-12 md:p-16' : 'p-8';
 
   return (
     <div className="relative group">
@@ -431,86 +381,77 @@ function GothicContainer({ children, variant, size = 'normal' }: GothicContainer
         className={`
           relative
           ${padding}
-          bg-gradient-to-br ${v.gradient}
-          border-8 border-double ${v.border}
-          shadow-2xl
-          backdrop-blur-lg
-          transition-all duration-1000
-          hover:shadow-[0_0_50px_rgba(0,0,0,0.7)]
-          overflow-visible
+          bg-gradient-to-br from-slate-950/95 via-slate-900/98 to-slate-950/95
+          border-4 ${style.border}
+          shadow-2xl ${style.shadow}
+          backdrop-blur-sm
+          transition-all duration-700
+          hover:border-opacity-60
         `}
       >
-        {/* Corner ornaments - larger and more elaborate */}
-        <CornerOrnament
-          className="absolute -top-12 -left-12 transition-all duration-1000 group-hover:scale-110 drop-shadow-2xl"
-          color={v.color}
-        />
-        <CornerOrnament
-          className="absolute -top-12 -right-12 scale-x-[-1] transition-all duration-1000 group-hover:scale-110 drop-shadow-2xl"
-          color={v.color}
-        />
-        <CornerOrnament
-          className="absolute -bottom-12 -left-12 scale-y-[-1] transition-all duration-1000 group-hover:scale-110 drop-shadow-2xl"
-          color={v.color}
-        />
-        <CornerOrnament
-          className="absolute -bottom-12 -right-12 scale-[-1] transition-all duration-1000 group-hover:scale-110 drop-shadow-2xl"
-          color={v.color}
-        />
+        {/* Illuminated initial letter */}
+        <div className={`
+          float-left
+          mr-4 mb-2
+          w-20 h-20
+          flex items-center justify-center
+          text-6xl font-cinzel font-bold
+          ${style.initial}
+          bg-gradient-to-br ${style.initial.split(' ')[1]} ${style.initial.split(' ')[2]}
+          border-4 ${style.border}
+          shadow-lg
+          relative
+        `}>
+          <span className="relative z-10 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            {initial}
+          </span>
+          {/* Gold leaf effect */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/20 pointer-events-none" />
+        </div>
 
-        {/* Side center illuminations */}
-        <CentralIllumination
-          className="absolute top-1/2 -left-10 -translate-y-1/2 transition-all duration-1000 group-hover:scale-110 drop-shadow-2xl"
-          color={v.color}
-        />
-        <CentralIllumination
-          className="absolute top-1/2 -right-10 -translate-y-1/2 transition-all duration-1000 group-hover:scale-110 drop-shadow-2xl"
-          color={v.color}
-        />
-        <CentralIllumination
-          className="absolute -top-10 left-1/2 -translate-x-1/2 transition-all duration-1000 group-hover:scale-110 drop-shadow-2xl"
-          color={v.color}
-        />
-        <CentralIllumination
-          className="absolute -bottom-10 left-1/2 -translate-x-1/2 transition-all duration-1000 group-hover:scale-110 drop-shadow-2xl"
-          color={v.color}
-        />
+        {/* Corner decorative elements */}
+        <svg className={`absolute top-0 left-0 w-24 h-24 ${style.corner} opacity-40`} viewBox="0 0 100 100">
+          <path d="M 0,0 L 0,40 Q 0,20 20,20 L 40,20 Q 20,20 20,0 Z" fill="currentColor" />
+          <path d="M 10,10 L 10,30 Q 10,20 20,20 L 30,20 Q 20,20 20,10 Z" fill="currentColor" opacity="0.5" />
+        </svg>
+        <svg className={`absolute top-0 right-0 w-24 h-24 ${style.corner} opacity-40 scale-x-[-1]`} viewBox="0 0 100 100">
+          <path d="M 0,0 L 0,40 Q 0,20 20,20 L 40,20 Q 20,20 20,0 Z" fill="currentColor" />
+          <path d="M 10,10 L 10,30 Q 10,20 20,20 L 30,20 Q 20,20 20,10 Z" fill="currentColor" opacity="0.5" />
+        </svg>
+        <svg className={`absolute bottom-0 left-0 w-24 h-24 ${style.corner} opacity-40 scale-y-[-1]`} viewBox="0 0 100 100">
+          <path d="M 0,0 L 0,40 Q 0,20 20,20 L 40,20 Q 20,20 20,0 Z" fill="currentColor" />
+          <path d="M 10,10 L 10,30 Q 10,20 20,20 L 30,20 Q 20,20 20,10 Z" fill="currentColor" opacity="0.5" />
+        </svg>
+        <svg className={`absolute bottom-0 right-0 w-24 h-24 ${style.corner} opacity-40 scale-[-1]`} viewBox="0 0 100 100">
+          <path d="M 0,0 L 0,40 Q 0,20 20,20 L 40,20 Q 20,20 20,0 Z" fill="currentColor" />
+          <path d="M 10,10 L 10,30 Q 10,20 20,20 L 30,20 Q 20,20 20,10 Z" fill="currentColor" opacity="0.5" />
+        </svg>
 
-        {/* Border decorations */}
-        <BorderDecoration
-          className="absolute top-0 left-0 w-full opacity-40 pointer-events-none"
-          color={v.color}
-        />
-        <BorderDecoration
-          className="absolute bottom-0 left-0 w-full opacity-40 pointer-events-none scale-y-[-1]"
-          color={v.color}
-        />
-        <BorderDecoration
-          className="absolute left-0 top-0 h-full opacity-40 pointer-events-none"
-          color={v.color}
-          vertical
-        />
-        <BorderDecoration
-          className="absolute right-0 top-0 h-full opacity-40 pointer-events-none scale-x-[-1]"
-          color={v.color}
-          vertical
-        />
+        {/* Border accents */}
+        <div className={`absolute top-0 left-1/4 right-1/4 h-1 bg-gradient-to-r ${style.accent}`} />
+        <div className={`absolute bottom-0 left-1/4 right-1/4 h-1 bg-gradient-to-r ${style.accent}`} />
+        <div className={`absolute left-0 top-1/4 bottom-1/4 w-1 bg-gradient-to-b ${style.accent}`} />
+        <div className={`absolute right-0 top-1/4 bottom-1/4 w-1 bg-gradient-to-b ${style.accent}`} />
 
-        {/* Multiple inner borders for manuscript effect */}
-        <div className="absolute inset-6 border-4 border-double border-white/10 pointer-events-none" />
-        <div className="absolute inset-10 border-2 border-white/5 pointer-events-none" />
-        <div className="absolute inset-12 border border-white/5 pointer-events-none" />
+        {/* Inner border */}
+        <div className="absolute inset-4 border-2 border-white/5 pointer-events-none" />
+        <div className="absolute inset-6 border border-white/3 pointer-events-none" />
 
         {/* Content */}
         <div className="relative z-10">
           {children}
         </div>
 
-        {/* Hover glow overlay */}
+        {/* Parchment texture overlay */}
         <div
-          className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-1000 pointer-events-none"
-          style={{ background: `radial-gradient(circle at center, ${v.color}, transparent 70%)` }}
+          className="absolute inset-0 opacity-[0.015] pointer-events-none mix-blend-overlay"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E")`,
+          }}
         />
+
+        {/* Hover glow */}
+        <div className="absolute inset-0 bg-gradient-radial from-white/0 via-white/0 to-transparent opacity-0 group-hover:opacity-5 transition-opacity duration-700 pointer-events-none" />
       </div>
     </div>
   );
