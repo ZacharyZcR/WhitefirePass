@@ -110,7 +110,7 @@ export function CurrentSpeaker({ gameState }: CurrentSpeakerProps) {
       voting: '献祭投票',
       night: '夜晚',
       prologue: '序章',
-      setup: '故事叙述',
+      setup: '序章',
       end: '游戏结束',
     };
     return phaseNames[phase] || phase;

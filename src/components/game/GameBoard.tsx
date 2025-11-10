@@ -59,10 +59,10 @@ function getPhaseTheme(phase: string) {
       };
     case 'setup':
       return {
-        gradient: 'from-slate-950 via-purple-950/50 to-slate-950',
-        border: 'border-purple-400/40',
-        icon: <Gamepad2 className="w-8 h-8 text-purple-300" />,
-        label: '准备中',
+        gradient: 'from-slate-950 via-slate-900 to-slate-950',
+        border: 'border-slate-400/40',
+        icon: <Mountain className="w-8 h-8 text-slate-300" />,
+        label: '序章',
       };
     default:
       return {
