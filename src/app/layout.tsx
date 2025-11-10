@@ -21,7 +21,7 @@ const notoSerifSC = Noto_Serif_SC({
 
 export const metadata: Metadata = {
   title: '白烬山口 - Whitefire Pass',
-  description: '15名旅人被困于寂静山庄，在山灵的契约下展开生死博弈',
+  description: '1913年深冬，15名旅人被困于寂静山庄，山灵的契约已成，收割与羔羊的生死博弈正式开始',
 };
 
 /**

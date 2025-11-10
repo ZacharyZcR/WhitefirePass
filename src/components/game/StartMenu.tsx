@@ -290,7 +290,7 @@ export function StartMenu() {
               }
             `}
           >
-            十五名旅人困于暴雪山庄，白蜡篝火见证生死博弈
+            1913年深冬，十五名旅人被困于寂静山庄，山灵的契约已成
           </p>
 
           {/* Action Buttons - Slide up from bottom */}

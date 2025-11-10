@@ -55,26 +55,22 @@ export function GameGuide({ open, onOpenChange }: GameGuideProps) {
               </h3>
               <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
                 <p>
-                  <strong className="text-foreground">白烬山口，寂静山庄。</strong>
+                  <strong className="text-foreground">1913年，深冬。白烬山口，寂静山庄。</strong>
                 </p>
                 <p>
-                  一场非自然的暴风雪，将 15 名旅人驱赶至此古老的山庄。大门轰然关闭，外面的风暴在咆哮。篝火发出刺骨的白光，但毫无温度。
-                </p>
-                <p>
-                  山灵的声音回荡在大厅：<em className="text-amber-400">"契约已成。盛宴开始。"</em>
-                </p>
-                <p>
-                  <em className="text-amber-400">"在你们之中，我播撒了'饥饿'。"</em>
-                </p>
-                <p>
-                  <em className="text-amber-400">"现在，用你们的猜疑和恐惧，来取悦我。"</em>
-                </p>
-                <p className="text-foreground pt-2">
-                  在这 15 人中，有 4 人被山灵选中为"收割者"——他们的血液渴望同类的温度。每晚，他们将用利爪撕裂一个人的喉咙。
-                  那些被杀死的人，不会醒来。不会复活。永远消失。
+                  一份神秘的委托书将15名陌生人召集至此。他们来自伦敦、爱丁堡、曼彻斯特——有人为了钱，有人为了逃避，有人为了寻找，有人为了赎罪。委托人承诺每人500英镑，足以改变命运的金额。
                 </p>
                 <p className="text-foreground">
-                  而白天，所有人必须投票献祭一人于白蜡篝火。被献祭者同样真实地死去。
+                  第一天，他们在山庄集合。第二天，委托人未出现。第三天，一场诡异的暴风雪封锁了下山的所有道路。他们在地窖里发现了旧主人留下的遗书：
+                </p>
+                <p className="pl-4 border-l-2 border-amber-500/50 italic">
+                  "山灵警告：你们之中混入了三个非人者。它们会在夜晚猎杀真正的人类。你们必须在白昼找出这三个非人者并献祭，否则所有人都会死。"
+                </p>
+                <p className="text-foreground pt-2">
+                  第七天，在绝望与恐惧的驱使下，他们决定按照遗书的指示举行献祭仪式。无论真假，他们已别无选择。
+                </p>
+                <p className="text-amber-400 font-semibold">
+                  山灵的契约已成。收割与羔羊的博弈，正式开始。
                 </p>
                 <p className="text-red-400 font-semibold">
                   这不是游戏。这是真实的生死存亡。

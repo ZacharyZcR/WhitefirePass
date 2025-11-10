@@ -146,7 +146,7 @@ export function GameBoard() {
                 白烬山口
               </h1>
               <p className="text-xs text-muted-foreground font-serif">
-                15名旅人被困于寂静山庄，在山灵的契约下展开生死博弈
+                1913年深冬 · 寂静山庄 · 收割与羔羊的生死博弈
               </p>
             </div>
           </div>
