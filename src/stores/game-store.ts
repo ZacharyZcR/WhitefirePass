@@ -375,7 +375,141 @@ export const useGameStore = create<GameStore>()(
     const { gameState } = get();
     if (!gameState) return;
 
-    if (gameState.phase === 'day') {
+    if (gameState.phase === 'prologue') {
+      // Prologue to setup: Add opening story
+      gameState.phase = 'setup';
+
+      // Count roles
+      const roleCounts = gameState.players.reduce(
+        (acc, player) => {
+          acc[player.role] = (acc[player.role] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
+
+      // Find twin pair
+      const twins = gameState.players.filter((p) => p.role === 'twin');
+      const twinPair = twins.length === 2 ? { twin1: twins[0].name, twin2: twins[1].name } : undefined;
+
+      // Add opening story messages
+      gameState.messages.push(
+        addMessage(
+          gameState,
+          '叙述者',
+          `一份神秘的委托书，将十五个陌生人聚集在一起。
+
+有人为了钱，有人为了逃避，有人为了寻找，有人为了赎罪。他们从伦敦、爱丁堡、曼彻斯特等地出发，在1913年深冬的暴雪前夕，抵达了白烬山口。
+
+委托人承诺：完成任务，每人可得五百英镑——足以改变命运的金额。`,
+          'system',
+          'all'
+        )
+      );
+
+      gameState.messages.push(
+        addMessage(
+          gameState,
+          '叙述者',
+          `第一天，他们在山口的寂静山庄集合。
+
+第二天，委托人没有出现。取而代之的是，暴风雪如约而至——一场诡异的、不合时节的暴雪，封死了下山的所有道路。
+
+第三天，他们在山庄的地窖里发现了一封遗书。`,
+          'system',
+          'all'
+        )
+      );
+
+      gameState.messages.push(
+        addMessage(
+          gameState,
+          '叙述者',
+          `遗书是旧主人留下的，字迹潦草，像是在极度恐惧中写成：
+
+"山灵警告：你们之中混入了三个非人者。它们会在夜晚猎杀真正的人类。你们必须在白昼找出这三个非人者并献祭，否则所有人都会死。"
+
+"在收割与羔羊的对抗结束之前，暴风雪永远不会停止。"`,
+          'system',
+          'all'
+        )
+      );
+
+      gameState.messages.push(
+        addMessage(
+          gameState,
+          '叙述者',
+          `一开始，没有人相信。
+
+有人说这是恶作剧，有人说委托人在戏弄他们。但暴风雪始终没有停止。
+
+第四天、第五天、第六天……食物越来越少，寒冷越来越深。有人开始发烧，有人开始绝望。
+
+这样下去，所有人都会饿死，或冻死。`,
+          'system',
+          'all'
+        )
+      );
+
+      gameState.messages.push(
+        addMessage(
+          gameState,
+          '叙述者',
+          `今天，是第七天。
+
+在绝望与恐惧的驱使下，他们决定：按照遗书的指示，举行献祭仪式。
+
+无论这是真是假，他们已经没有别的选择。
+
+夜幕降临。游戏，正式开始。`,
+          'system',
+          'all'
+        )
+      );
+
+      // Add role information
+      gameState.messages.push(
+        addMessage(
+          gameState,
+          '旁白',
+          `【身份已被烙印】
+
+收割阵营：${roleCounts['marked'] || 0}名烙印者
+羔羊阵营：${roleCounts['listener'] || 0}名聆心者、${roleCounts['coroner'] || 0}名食灰者、${roleCounts['twin'] || 0}名共誓者、${roleCounts['guard'] || 0}名设闩者、${roleCounts['innocent'] || 0}名无知者
+
+【角色说明】
+
+▸ 烙印者（收割阵营）
+  - 每晚集体投票杀死一名玩家
+  - 白天必须伪装成羔羊
+  - 目标：消灭所有羔羊
+
+▸ 聆心者（羔羊阵营）
+  - 每晚可查验一名玩家是"清白"还是"污秽"
+  - 掌握关键信息，但容易成为目标
+
+▸ 食灰者（羔羊阵营）
+  - 每次白天献祭后，当晚会得知被献祭者是"清白"还是"污秽"
+
+▸ 共誓者（羔羊阵营）
+  - 两名共誓者互相知晓身份
+  - 是彼此唯一的绝对信任
+
+▸ 设闩者（羔羊阵营）
+  - 每晚可守护一名玩家（不能是自己）
+  - 被守护者当晚不会被杀
+  - 不能连续两晚守护同一人
+
+▸ 无知者（羔羊阵营）
+  - 没有特殊能力
+  - 依靠观察和推理找出收割者
+
+夜幕即将降临。第一个夜晚开始...`,
+          'system',
+          'all'
+        )
+      );
+    } else if (gameState.phase === 'day') {
       // Day phase ended, go to voting
       gameState.phase = 'voting';
       gameState.currentPlayerIndex = 0;

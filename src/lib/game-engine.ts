@@ -36,78 +36,22 @@ export function createGame(config: GameConfig): GameState {
   );
 
   return {
-    phase: 'setup',
+    phase: 'prologue',
     round: 0,
     players,
     messages: [
       {
         id: generateId(),
         type: 'system',
-        from: '山灵',
-        content: `白烬山口，寂静山庄。
+        from: '叙述者',
+        content: `1913年，深冬。
 
-一场非自然的暴风雪，将 ${config.roles.length} 名旅人驱赶至此。
+十五位旅者即将踏入命运的牢笼。
 
-大门轰然关闭。篝火散发着无温度的冰冷白光。`,
+点击「下一步」，故事将会开始……`,
         timestamp: Date.now(),
         round: 0,
-        phase: 'setup',
-        visibility: 'all',
-      },
-      {
-        id: generateId(),
-        type: 'system',
-        from: '山灵',
-        content: `"契约已成。盛宴开始。"
-
-"在你们之中，我播撒了'饥饿'。"
-
-"现在，用你们的猜疑和恐惧，来取悦我。"`,
-        timestamp: Date.now() + 1,
-        round: 0,
-        phase: 'setup',
-        visibility: 'all',
-      },
-      {
-        id: generateId(),
-        type: 'system',
-        from: '旁白',
-        content: `【身份已被烙印】
-
-收割阵营：${roleCounts['marked'] || 0}名烙印者
-羔羊阵营：${roleCounts['listener'] || 0}名聆心者、${roleCounts['coroner'] || 0}名食灰者、${roleCounts['twin'] || 0}名共誓者、${roleCounts['guard'] || 0}名设闩者、${roleCounts['innocent'] || 0}名无知者
-
-【角色说明】
-
-▸ 烙印者（收割阵营）
-  - 每晚集体投票杀死一名玩家
-  - 白天必须伪装成羔羊
-  - 目标：消灭所有羔羊
-
-▸ 聆心者（羔羊阵营）
-  - 每晚可查验一名玩家是"清白"还是"污秽"
-  - 掌握关键信息，但容易成为目标
-
-▸ 食灰者（羔羊阵营）
-  - 每次白天献祭后，当晚会得知被献祭者是"清白"还是"污秽"
-
-▸ 共誓者（羔羊阵营）
-  - 两名共誓者互相知晓身份
-  - 是彼此唯一的绝对信任
-
-▸ 设闩者（羔羊阵营）
-  - 每晚可守护一名玩家（不能是自己）
-  - 被守护者当晚不会被杀
-  - 不能连续两晚守护同一人
-
-▸ 无知者（羔羊阵营）
-  - 没有特殊能力
-  - 依靠观察和推理找出收割者
-
-夜幕即将降临。第一个夜晚开始...`,
-        timestamp: Date.now() + 2,
-        round: 0,
-        phase: 'setup',
+        phase: 'prologue',
         visibility: 'all',
       },
     ],
@@ -354,14 +298,18 @@ function createPlayers(roles: Role[]): Player[] {
  * Advance to next game phase
  */
 export function advancePhase(state: GameState): GamePhase {
-  const phaseOrder: GamePhase[] = ['setup', 'night', 'day', 'voting', 'end'];
+  const phaseOrder: GamePhase[] = ['prologue', 'setup', 'night', 'day', 'voting', 'end'];
   const currentIndex = phaseOrder.indexOf(state.phase);
+
+  if (state.phase === 'prologue') {
+    return 'setup';
+  }
 
   if (state.phase === 'voting') {
     return checkWinCondition(state) ? 'end' : 'night';
   }
 
-  if (currentIndex === 0) {
+  if (state.phase === 'setup') {
     return 'night';
   }
 

@@ -19,7 +19,7 @@ export type Role =
 /**
  * Game phases
  */
-export type GamePhase = 'setup' | 'night' | 'day' | 'voting' | 'end';
+export type GamePhase = 'prologue' | 'setup' | 'night' | 'day' | 'voting' | 'end';
 
 /**
  * Night sub-phases
