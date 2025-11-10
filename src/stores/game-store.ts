@@ -220,7 +220,7 @@ export const useGameStore = create<GameStore>()(
       // Handle prologue phase - just show story, no AI action
       if (gameState.phase === 'prologue') {
         get().advanceToNextPhase();
-        set({ isProcessing: false });
+        set({ gameState: { ...gameState }, isProcessing: false });
         return;
       }
 
@@ -242,7 +242,7 @@ export const useGameStore = create<GameStore>()(
 
         // Otherwise, show next story message
         get().advanceToNextPhase();
-        set({ isProcessing: false });
+        set({ gameState: { ...gameState }, isProcessing: false });
         return;
       }
 
