@@ -66,9 +66,9 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden">
-          {/* Gallery View - show all cards in 3x5 grid */}
+          {/* Gallery View - responsive grid */}
           <div className="h-full overflow-y-auto overflow-x-hidden py-6 px-4">
-            <div className="grid grid-cols-3 gap-4 max-w-[550px] mx-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-3xl mx-auto">
               {gameState.players.map((player) => (
                 <div
                   key={player.id}
@@ -89,8 +89,8 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
           {/* Detail Panel - slides in from right as overlay */}
           {selectedPlayer && (
             <div className="absolute inset-0 flex items-center justify-end animate-in slide-in-from-right duration-500">
-              <div className="h-full w-[600px] bg-gradient-to-l from-slate-950 via-slate-900 to-slate-950/95 backdrop-blur-md border-l border-amber-900/30 shadow-2xl overflow-y-auto">
-                <div className="p-8 space-y-6">
+              <div className="h-full w-full sm:w-[500px] lg:w-[600px] bg-gradient-to-l from-slate-950 via-slate-900 to-slate-950/95 backdrop-blur-md border-l border-amber-900/30 shadow-2xl overflow-y-auto">
+                <div className="p-6 sm:p-8 space-y-6">
                   {/* Card at top */}
                   <div className="flex justify-center perspective-1000">
                     <TarotCard
