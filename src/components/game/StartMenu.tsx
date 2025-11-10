@@ -69,20 +69,20 @@ export function StartMenu() {
     }
   }, [storedApiKey]);
 
-  // Orchestrated entry animation sequence
+  // Orchestrated entry animation sequence - Slower, more deliberate
   useEffect(() => {
     const timers: NodeJS.Timeout[] = [];
 
-    // Sequence timing (in milliseconds)
-    timers.push(setTimeout(() => setBackgroundVisible(true), 100));  // Background fades in from black
-    timers.push(setTimeout(() => setStage('icon'), 600));            // Mountain icon appears
-    timers.push(setTimeout(() => setStage('title'), 1300));          // Title fades in
-    timers.push(setTimeout(() => setStage('divider'), 1900));        // Divider draws
-    timers.push(setTimeout(() => setStage('subtitle'), 2300));       // English subtitle
-    timers.push(setTimeout(() => setStage('description'), 2800));    // Description
-    timers.push(setTimeout(() => setStage('buttons'), 3300));        // Buttons appear
-    timers.push(setTimeout(() => setStage('complete'), 3800));       // Complete
-    timers.push(setTimeout(() => setSnowVisible(true), 2300));       // Snow starts falling
+    // Sequence timing (in milliseconds) - Slowed down for gravitas
+    timers.push(setTimeout(() => setBackgroundVisible(true), 200));  // Background fades in from black
+    timers.push(setTimeout(() => setStage('icon'), 1200));           // Mountain icon appears
+    timers.push(setTimeout(() => setStage('title'), 2400));          // Title fades in (1.2s later)
+    timers.push(setTimeout(() => setStage('divider'), 3800));        // Divider draws (1.4s later)
+    timers.push(setTimeout(() => setStage('subtitle'), 4800));       // English subtitle (1s later)
+    timers.push(setTimeout(() => setStage('description'), 5800));    // Description (1s later)
+    timers.push(setTimeout(() => setStage('buttons'), 6800));        // Buttons appear (1s later)
+    timers.push(setTimeout(() => setStage('complete'), 7500));       // Complete
+    timers.push(setTimeout(() => setSnowVisible(true), 3500));       // Snow starts falling
 
     return () => timers.forEach(clearTimeout);
   }, []);
@@ -235,12 +235,63 @@ export function StartMenu() {
             />
           </div>
 
-          {/* Game Title - Fades in with slight upward movement */}
-          <div className="space-y-6">
+          {/* Game Title with Gothic Decorations - Fades in with slight upward movement */}
+          <div className="space-y-6 relative">
+            {/* Gothic corner decorations */}
+            <div className={`
+              absolute -inset-16 pointer-events-none
+              transition-all duration-1500 ease-out delay-200
+              ${['initial', 'icon'].includes(stage)
+                ? 'opacity-0 scale-95'
+                : 'opacity-30 scale-100'
+              }
+            `}>
+              {/* Top-left ornament */}
+              <div className="absolute top-0 left-0 text-slate-500">
+                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" stroke="currentColor" strokeWidth="1">
+                  <path d="M0,30 Q15,15 30,0" />
+                  <path d="M0,30 Q0,15 0,0" />
+                  <circle cx="5" cy="5" r="2" fill="currentColor" />
+                  <circle cx="15" cy="15" r="1.5" fill="currentColor" />
+                  <path d="M10,0 L10,10 M0,10 L10,10" strokeWidth="0.5" />
+                </svg>
+              </div>
+              {/* Top-right ornament */}
+              <div className="absolute top-0 right-0 text-slate-500 scale-x-[-1]">
+                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" stroke="currentColor" strokeWidth="1">
+                  <path d="M0,30 Q15,15 30,0" />
+                  <path d="M0,30 Q0,15 0,0" />
+                  <circle cx="5" cy="5" r="2" fill="currentColor" />
+                  <circle cx="15" cy="15" r="1.5" fill="currentColor" />
+                  <path d="M10,0 L10,10 M0,10 L10,10" strokeWidth="0.5" />
+                </svg>
+              </div>
+              {/* Bottom-left ornament */}
+              <div className="absolute bottom-0 left-0 text-slate-500 scale-y-[-1]">
+                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" stroke="currentColor" strokeWidth="1">
+                  <path d="M0,30 Q15,15 30,0" />
+                  <path d="M0,30 Q0,15 0,0" />
+                  <circle cx="5" cy="5" r="2" fill="currentColor" />
+                  <circle cx="15" cy="15" r="1.5" fill="currentColor" />
+                  <path d="M10,0 L10,10 M0,10 L10,10" strokeWidth="0.5" />
+                </svg>
+              </div>
+              {/* Bottom-right ornament */}
+              <div className="absolute bottom-0 right-0 text-slate-500 scale-[-1]">
+                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" stroke="currentColor" strokeWidth="1">
+                  <path d="M0,30 Q15,15 30,0" />
+                  <path d="M0,30 Q0,15 0,0" />
+                  <circle cx="5" cy="5" r="2" fill="currentColor" />
+                  <circle cx="15" cy="15" r="1.5" fill="currentColor" />
+                  <path d="M10,0 L10,10 M0,10 L10,10" strokeWidth="0.5" />
+                </svg>
+              </div>
+            </div>
+
             <h1
               className={`
-                text-8xl font-bold font-cinzel tracking-[0.2em] text-slate-700 drop-shadow-sm
-                transition-all duration-1000 ease-out
+                text-8xl font-bold font-cinzel tracking-[0.2em] text-slate-700 drop-shadow-sm relative z-10
+                transition-all duration-1500 ease-out
                 ${['initial', 'icon'].includes(stage)
                   ? 'opacity-0 translate-y-4'
                   : 'opacity-100 translate-y-0'
@@ -250,25 +301,35 @@ export function StartMenu() {
               白烬山口
             </h1>
 
-            {/* Divider - Draws from center */}
-            <div className="relative h-px w-48 mx-auto overflow-hidden">
+            {/* Gothic Divider - More ornate */}
+            <div className="relative h-8 w-80 mx-auto flex items-center justify-center">
               <div
                 className={`
-                  absolute inset-0 bg-gradient-to-r from-transparent via-slate-400 to-transparent
-                  transition-all duration-800 ease-out
+                  absolute inset-0 flex items-center justify-center
+                  transition-all duration-1200 ease-out
                   ${['initial', 'icon', 'title'].includes(stage)
-                    ? 'scale-x-0'
-                    : 'scale-x-100'
+                    ? 'opacity-0 scale-x-0'
+                    : 'opacity-100 scale-x-100'
                   }
                 `}
-              />
+              >
+                {/* Ornate divider line with center decoration */}
+                <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-400 to-transparent" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <svg width="40" height="20" viewBox="0 0 40 20" className="text-slate-500" fill="currentColor">
+                    <path d="M20,10 L15,5 L15,8 L5,8 L5,12 L15,12 L15,15 Z" />
+                    <path d="M20,10 L25,5 L25,8 L35,8 L35,12 L25,12 L25,15 Z" />
+                    <circle cx="20" cy="10" r="2.5" />
+                  </svg>
+                </div>
+              </div>
             </div>
 
             {/* English subtitle - Fades in */}
             <p
               className={`
                 text-xl font-cinzel tracking-[0.3em] text-slate-500 uppercase
-                transition-all duration-800 ease-out
+                transition-all duration-1000 ease-out
                 ${['initial', 'icon', 'title', 'divider'].includes(stage)
                   ? 'opacity-0'
                   : 'opacity-100'
@@ -283,7 +344,7 @@ export function StartMenu() {
           <p
             className={`
               text-base font-serif text-slate-600 tracking-wide max-w-xl mx-auto leading-relaxed
-              transition-all duration-800 ease-out
+              transition-all duration-1200 ease-out
               ${['initial', 'icon', 'title', 'divider', 'subtitle'].includes(stage)
                 ? 'opacity-0 translate-y-2'
                 : 'opacity-100 translate-y-0'
@@ -297,7 +358,7 @@ export function StartMenu() {
           <div
             className={`
               flex gap-6 justify-center pt-8
-              transition-all duration-800 ease-out
+              transition-all duration-1200 ease-out
               ${['initial', 'icon', 'title', 'divider', 'subtitle', 'description'].includes(stage)
                 ? 'opacity-0 translate-y-8'
                 : 'opacity-100 translate-y-0'
