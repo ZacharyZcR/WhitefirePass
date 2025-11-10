@@ -272,15 +272,15 @@ function getKeywordClasses(type: string): string {
     redacted: 'bg-slate-900 text-slate-900 select-none px-1 rounded',
 
     // Places
-    white: 'text-cyan-300 font-bold animate-pulse drop-shadow-[0_0_8px_rgba(165,243,252,0.8)]',
+    white: 'text-cyan-300 font-bold drop-shadow-[0_0_8px_rgba(165,243,252,0.8)]',
     lodge: 'text-amber-200 font-semibold tracking-wider',
     place: 'text-amber-200 font-semibold',
 
     // Evil/Danger
     evil: 'text-red-500 font-bold drop-shadow-[0_0_10px_rgba(239,68,68,1)]',
-    hunger: 'text-red-500 font-bold animate-pulse drop-shadow-[0_0_10px_rgba(239,68,68,1)]',
+    hunger: 'text-red-500 font-bold drop-shadow-[0_0_10px_rgba(239,68,68,1)]',
     marked: 'text-red-500 font-bold underline decoration-wavy',
-    mark: 'text-red-400 font-bold animate-pulse drop-shadow-[0_0_10px_rgba(248,113,113,1)]',
+    mark: 'text-red-400 font-bold drop-shadow-[0_0_10px_rgba(248,113,113,1)]',
     dark: 'text-red-600 font-bold italic',
     eyes: 'text-red-400 font-semibold',
     frame: 'text-red-400 font-semibold italic',
@@ -318,7 +318,7 @@ function getKeywordClasses(type: string): string {
 
     // Fear/Terror/Despair
     fear: 'text-slate-400 font-semibold italic',
-    terror: 'text-slate-300 font-bold animate-pulse',
+    terror: 'text-slate-300 font-bold',
     panic: 'text-slate-400 font-bold italic',
     despair: 'text-slate-500 font-bold italic',
     freeze: 'text-cyan-400 italic',
@@ -349,7 +349,7 @@ function getKeywordClasses(type: string): string {
 
     // Cold/Ice
     cold: 'text-cyan-300 font-semibold drop-shadow-[0_0_6px_rgba(165,243,252,0.6)]',
-    ice: 'text-cyan-400 font-bold animate-pulse drop-shadow-[0_0_8px_rgba(165,243,252,0.8)]',
+    ice: 'text-cyan-400 font-bold drop-shadow-[0_0_8px_rgba(165,243,252,0.8)]',
     fire: 'text-cyan-300 font-semibold drop-shadow-[0_0_6px_rgba(165,243,252,0.5)]',
     burning: 'text-cyan-300 italic',
 
@@ -397,7 +397,7 @@ function getKeywordClasses(type: string): string {
     cult: 'text-purple-400 font-semibold italic',
 
     // Pain
-    pain: 'text-red-500 font-bold animate-pulse',
+    pain: 'text-red-500 font-bold',
     burn: 'text-red-500 font-bold',
   };
   return classes[type] || '';
@@ -551,7 +551,7 @@ export function StoryIntro({ open, onComplete }: StoryIntroProps) {
 
           {/* Blood stain effect on last entry */}
           {currentEntryIndex === DIARY_ENTRIES.length - 1 && isEntryComplete && (
-            <div className="absolute top-4 right-4 w-16 h-16 bg-red-900/20 rounded-full blur-xl animate-pulse" />
+            <div className="absolute top-4 right-4 w-16 h-16 bg-red-900/20 rounded-full blur-xl" />
           )}
 
           {/* Controls */}
