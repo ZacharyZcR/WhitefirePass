@@ -222,8 +222,8 @@ export function GameBoard() {
                 <Tabs defaultValue="game" className="h-full flex flex-col">
                   <TabsList className="flex-shrink-0 w-full justify-start rounded-none border-b bg-background/50">
                     <TabsTrigger value="game">游戏记录</TabsTrigger>
-                    <TabsTrigger value="thinking">AI思考</TabsTrigger>
-                    <TabsTrigger value="prompt">AI提示词</TabsTrigger>
+                    <TabsTrigger value="thinking">内心独白</TabsTrigger>
+                    <TabsTrigger value="prompt">神谕指引</TabsTrigger>
                   </TabsList>
                   <TabsContent value="game" className="flex-1 overflow-hidden m-0">
                     <MessageFlow

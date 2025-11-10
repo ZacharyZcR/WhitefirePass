@@ -130,10 +130,10 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5" />
-            AI 人设编辑器
+            旅者详情
           </DialogTitle>
           <DialogDescription>
-            为每个 AI 玩家设置独特的性格特征和行为风格
+            查看和设置每位旅者的性格特征与行为风格
           </DialogDescription>
         </DialogHeader>
 

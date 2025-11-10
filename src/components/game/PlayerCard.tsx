@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import {
   User,
-  Bot,
   Skull,
   Flame,
   Ghost,
@@ -172,17 +171,8 @@ export function PlayerCard({ player, showRole = false, isCurrent = false }: Play
           </div>
         )}
         <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-          {player.isAI ? (
-            <>
-              <Bot className="w-3 h-3" />
-              AI 玩家
-            </>
-          ) : (
-            <>
-              <User className="w-3 h-3" />
-              人类玩家
-            </>
-          )}
+          <User className="w-3 h-3" />
+          旅者
         </div>
       </CardContent>
     </Card>

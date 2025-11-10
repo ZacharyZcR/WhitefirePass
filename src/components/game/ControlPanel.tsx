@@ -216,7 +216,7 @@ function ControlTabContent({
           className="w-full flex items-center gap-2"
         >
           <Sparkles className="w-4 h-4" />
-          编辑 AI 人设
+          旅者详情
         </Button>
       )}
 
@@ -463,7 +463,7 @@ export function ControlPanel() {
           </span>
         </CardTitle>
         <CardDescription className="font-serif">
-          配置并控制 AI 狼人杀游戏
+          配置并控制狼人杀游戏
         </CardDescription>
       </CardHeader>
       <CardContent>
