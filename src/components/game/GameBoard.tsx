@@ -10,7 +10,6 @@ import { PlayerCard } from './PlayerCard';
 import { MessageFlow } from './MessageFlow';
 import { ControlPanel } from './ControlPanel';
 import { VoteTracker } from './VoteTracker';
-import { FactionStats } from './FactionStats';
 import { VotingProgress } from './VotingProgress';
 import { CurrentSpeaker } from './CurrentSpeaker';
 import { StartMenu } from './StartMenu';
@@ -26,44 +25,44 @@ function getPhaseTheme(phase: string) {
   switch (phase) {
     case 'night':
       return {
-        gradient: 'from-stone-950 via-stone-900 to-stone-950',
-        border: 'border-blue-500/30',
-        icon: <Moon className="w-8 h-8 text-blue-400" />,
+        gradient: 'from-slate-950 via-blue-950/50 to-slate-950',
+        border: 'border-blue-400/40',
+        icon: <Moon className="w-8 h-8 text-blue-300" />,
         label: '夜晚',
       };
     case 'day':
       return {
-        gradient: 'from-stone-800 via-stone-700 to-stone-800',
-        border: 'border-amber-500/30',
-        icon: <Sun className="w-8 h-8 text-amber-400" />,
+        gradient: 'from-slate-900 via-slate-800 to-slate-900',
+        border: 'border-amber-400/40',
+        icon: <Sun className="w-8 h-8 text-amber-300" />,
         label: '白天',
       };
     case 'voting':
       return {
-        gradient: 'from-stone-900 via-orange-950 to-stone-900',
-        border: 'border-orange-500/30',
-        icon: <UsersIcon className="w-8 h-8 text-orange-400" />,
+        gradient: 'from-slate-950 via-orange-950/60 to-slate-950',
+        border: 'border-orange-400/40',
+        icon: <UsersIcon className="w-8 h-8 text-orange-300" />,
         label: '投票阶段',
       };
     case 'end':
       return {
-        gradient: 'from-stone-900 via-emerald-950 to-stone-900',
-        border: 'border-emerald-500/30',
-        icon: <Mountain className="w-8 h-8 text-emerald-400" />,
+        gradient: 'from-slate-950 via-cyan-950/40 to-slate-950',
+        border: 'border-cyan-400/40',
+        icon: <Mountain className="w-8 h-8 text-cyan-300" />,
         label: '游戏结束',
       };
     case 'setup':
       return {
-        gradient: 'from-stone-900 via-purple-950 to-stone-900',
-        border: 'border-purple-500/30',
-        icon: <Gamepad2 className="w-8 h-8 text-purple-400" />,
+        gradient: 'from-slate-950 via-purple-950/50 to-slate-950',
+        border: 'border-purple-400/40',
+        icon: <Gamepad2 className="w-8 h-8 text-purple-300" />,
         label: '准备中',
       };
     default:
       return {
-        gradient: 'from-stone-900 via-purple-950 to-stone-900',
-        border: 'border-purple-500/30',
-        icon: <Gamepad2 className="w-8 h-8 text-purple-400" />,
+        gradient: 'from-slate-950 via-purple-950/50 to-slate-950',
+        border: 'border-purple-400/40',
+        icon: <Gamepad2 className="w-8 h-8 text-purple-300" />,
         label: '准备中',
       };
   }
@@ -190,13 +189,6 @@ export function GameBoard() {
               )}
             </div>
           </div>
-
-          {/* Faction Stats */}
-          {gameState && gameState.phase !== 'setup' && (
-            <div className="flex-shrink-0">
-              <FactionStats gameState={gameState} />
-            </div>
-          )}
 
           {/* Voting Progress */}
           {gameState && (

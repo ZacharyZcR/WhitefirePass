@@ -30,29 +30,29 @@ interface PlayerCardProps {
 }
 
 /**
- * Role color mapping for badges
+ * Role color mapping for badges - Whitefire Pass theme
  */
 const roleColors: Record<string, string> = {
-  marked: 'bg-red-600 hover:bg-red-700',
-  heretic: 'bg-slate-700 hover:bg-slate-800',
-  listener: 'bg-purple-600 hover:bg-purple-700',
+  marked: 'bg-red-700 hover:bg-red-800',
+  heretic: 'bg-slate-600 hover:bg-slate-700',
+  listener: 'bg-purple-700 hover:bg-purple-800',
   coroner: 'bg-cyan-700 hover:bg-cyan-800',
-  twin: 'bg-teal-600 hover:bg-teal-700',
-  guard: 'bg-amber-600 hover:bg-amber-700',
-  innocent: 'bg-blue-600 hover:bg-blue-700',
+  twin: 'bg-teal-700 hover:bg-teal-800',
+  guard: 'bg-amber-700 hover:bg-amber-800',
+  innocent: 'bg-blue-700 hover:bg-blue-800',
 };
 
 /**
- * Role border colors for cards
+ * Role border colors for cards - Whitefire Pass theme
  */
 const roleBorderColors: Record<string, string> = {
-  marked: 'border-red-500/50',
-  heretic: 'border-slate-500/50',
-  listener: 'border-purple-500/50',
-  coroner: 'border-cyan-500/50',
-  twin: 'border-teal-500/50',
-  guard: 'border-amber-500/50',
-  innocent: 'border-blue-500/50',
+  marked: 'border-red-400/40',
+  heretic: 'border-slate-400/40',
+  listener: 'border-purple-400/40',
+  coroner: 'border-cyan-400/40',
+  twin: 'border-teal-400/40',
+  guard: 'border-amber-400/40',
+  innocent: 'border-blue-400/40',
 };
 
 /**

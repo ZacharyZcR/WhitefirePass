@@ -33,26 +33,26 @@
   }
 
   .dark {
-    /* Whitefire Pass theme - Dark mode with fire and ash tones */
-    --background: 20 14.3% 4.1%; /* Deep charcoal */
-    --foreground: 30 15% 92%; /* Warm ash white */
-    --card: 25 12% 8%; /* Darker stone with warm undertone */
-    --card-foreground: 30 15% 92%; /* Warm ash white */
-    --popover: 25 12% 8%;
-    --popover-foreground: 30 15% 92%;
-    --primary: 28 80% 52%; /* Amber fire glow */
-    --primary-foreground: 20 14.3% 4.1%;
-    --secondary: 15 8% 18%; /* Warm dark stone */
-    --secondary-foreground: 30 15% 92%;
-    --muted: 15 8% 18%; /* Warm dark stone */
-    --muted-foreground: 30 10% 65%; /* Warm gray */
-    --accent: 15 8% 18%;
-    --accent-foreground: 30 15% 92%;
-    --destructive: 0 72% 51%; /* Blood red */
-    --destructive-foreground: 30 15% 92%;
-    --border: 20 8% 20%; /* Darker warm border */
-    --input: 20 8% 20%;
-    --ring: 28 80% 52%; /* Amber glow */
+    /* Whitefire Pass theme - Ice, fire and ash */
+    --background: 210 20% 8%; /* Cold dark blue-gray */
+    --foreground: 210 15% 95%; /* Icy white */
+    --card: 215 25% 12%; /* Deep cold slate */
+    --card-foreground: 210 15% 95%; /* Icy white */
+    --popover: 215 25% 12%;
+    --popover-foreground: 210 15% 95%;
+    --primary: 28 90% 55%; /* Bright fire amber */
+    --primary-foreground: 210 20% 8%;
+    --secondary: 215 20% 18%; /* Cold dark slate */
+    --secondary-foreground: 210 15% 95%;
+    --muted: 215 20% 18%; /* Cold dark slate */
+    --muted-foreground: 210 15% 70%; /* Cold gray */
+    --accent: 200 80% 45%; /* Icy blue accent */
+    --accent-foreground: 210 15% 95%;
+    --destructive: 0 75% 55%; /* Crimson blood */
+    --destructive-foreground: 210 15% 95%;
+    --border: 215 25% 20%; /* Cold border */
+    --input: 215 25% 20%;
+    --ring: 28 90% 55%; /* Fire amber ring */
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;

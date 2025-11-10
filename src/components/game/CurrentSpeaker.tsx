@@ -40,13 +40,13 @@ const roleNames: Record<string, { name: string; subtitle: string }> = {
 };
 
 const roleColors: Record<string, string> = {
-  marked: 'bg-red-600',
-  heretic: 'bg-slate-700',
-  listener: 'bg-purple-600',
+  marked: 'bg-red-700',
+  heretic: 'bg-slate-600',
+  listener: 'bg-purple-700',
   coroner: 'bg-cyan-700',
-  twin: 'bg-teal-600',
-  guard: 'bg-amber-600',
-  innocent: 'bg-blue-600',
+  twin: 'bg-teal-700',
+  guard: 'bg-amber-700',
+  innocent: 'bg-blue-700',
 };
 
 const roleGradients: Record<string, string> = {
