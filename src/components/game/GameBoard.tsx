@@ -92,58 +92,146 @@ export function GameBoard() {
           theme.gradient
         )}
       >
-      {/* Gothic Corner Decorations - Subtle and elegant */}
-      <div className="absolute inset-0 pointer-events-none z-0 opacity-8">
-        {/* Top-left corner */}
-        <div className="absolute top-0 left-0 text-foreground/30">
-          <svg width="120" height="120" viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="0.5">
-            <path d="M0,60 Q15,35 30,20 Q45,5 60,0" opacity="0.6" />
-            <path d="M0,60 Q10,45 20,30 Q30,15 40,10" opacity="0.4" />
-            <path d="M0,60 Q5,40 10,20 Q15,10 20,5" opacity="0.3" />
-            <path d="M0,60 Q0,30 0,0" opacity="0.5" />
-            <circle cx="12" cy="12" r="1.5" fill="currentColor" opacity="0.3" />
-            <circle cx="24" cy="24" r="1.2" fill="currentColor" opacity="0.25" />
-            <circle cx="36" cy="36" r="1" fill="currentColor" opacity="0.2" />
-            <circle cx="48" cy="48" r="0.8" fill="currentColor" opacity="0.15" />
+      {/* Victorian Gothic Corner Decorations - Intricate vine and floral carvings */}
+      <div className="absolute inset-0 pointer-events-none z-0 opacity-12">
+        {/* Top-left corner - Elaborate vine pattern */}
+        <div className="absolute top-0 left-0 text-foreground/25">
+          <svg width="180" height="180" viewBox="0 0 180 180" fill="none" stroke="currentColor" strokeWidth="0.6">
+            {/* Main vine stems - flowing curves */}
+            <path d="M0,80 Q20,60 40,45 Q60,30 80,20 Q100,10 120,5" opacity="0.7" strokeLinecap="round" />
+            <path d="M0,80 Q15,65 30,52 Q45,38 60,28" opacity="0.6" strokeLinecap="round" />
+            <path d="M0,90 Q10,75 20,60 Q30,45 40,35" opacity="0.5" strokeLinecap="round" />
+            <path d="M0,100 Q8,88 16,75 Q24,62 32,52" opacity="0.4" strokeLinecap="round" />
+
+            {/* Vertical main stem */}
+            <path d="M80,0 Q70,20 60,40 Q50,60 45,80" opacity="0.7" strokeLinecap="round" />
+            <path d="M90,0 Q82,18 74,36 Q66,54 60,70" opacity="0.5" strokeLinecap="round" />
+
+            {/* Decorative leaves - small curved shapes */}
+            <path d="M25,55 Q20,50 18,45 Q20,48 25,50" fill="currentColor" opacity="0.3" />
+            <path d="M40,40 Q35,35 33,30 Q35,33 40,35" fill="currentColor" opacity="0.3" />
+            <path d="M55,28 Q50,23 48,18 Q50,21 55,23" fill="currentColor" opacity="0.3" />
+            <path d="M70,18 Q65,13 63,8 Q65,11 70,13" fill="currentColor" opacity="0.3" />
+            <path d="M35,65 Q30,60 28,55 Q30,58 35,60" fill="currentColor" opacity="0.25" />
+            <path d="M50,48 Q45,43 43,38 Q45,41 50,43" fill="currentColor" opacity="0.25" />
+
+            {/* Leaves on vertical stem */}
+            <path d="M75,15 Q80,12 85,10 Q80,12 75,15" fill="currentColor" opacity="0.3" />
+            <path d="M65,30 Q70,27 75,25 Q70,27 65,30" fill="currentColor" opacity="0.3" />
+            <path d="M55,45 Q60,42 65,40 Q60,42 55,45" fill="currentColor" opacity="0.25" />
+
+            {/* Delicate tendrils - spiral curves */}
+            <path d="M45,52 Q48,48 50,46 Q52,44 54,43" opacity="0.4" strokeWidth="0.4" />
+            <path d="M60,35 Q63,31 65,29 Q67,27 69,26" opacity="0.4" strokeWidth="0.4" />
+            <path d="M75,20 Q78,16 80,14 Q82,12 84,11" opacity="0.4" strokeWidth="0.4" />
+
+            {/* Small flowers/buds */}
+            <circle cx="28" cy="58" r="1.5" fill="currentColor" opacity="0.3" />
+            <circle cx="43" cy="42" r="1.3" fill="currentColor" opacity="0.3" />
+            <circle cx="58" cy="30" r="1.2" fill="currentColor" opacity="0.3" />
+            <circle cx="73" cy="16" r="1" fill="currentColor" opacity="0.3" />
+            <circle cx="70" cy="25" r="0.8" fill="currentColor" opacity="0.25" />
+            <circle cx="55" cy="40" r="0.8" fill="currentColor" opacity="0.25" />
+
+            {/* Decorative border frame */}
+            <path d="M0,110 Q5,108 10,105" opacity="0.3" strokeWidth="0.5" />
+            <path d="M110,0 Q108,5 105,10" opacity="0.3" strokeWidth="0.5" />
           </svg>
         </div>
+
         {/* Top-right corner */}
-        <div className="absolute top-0 right-0 text-foreground/30 scale-x-[-1]">
-          <svg width="120" height="120" viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="0.5">
-            <path d="M0,60 Q15,35 30,20 Q45,5 60,0" opacity="0.6" />
-            <path d="M0,60 Q10,45 20,30 Q30,15 40,10" opacity="0.4" />
-            <path d="M0,60 Q5,40 10,20 Q15,10 20,5" opacity="0.3" />
-            <path d="M0,60 Q0,30 0,0" opacity="0.5" />
-            <circle cx="12" cy="12" r="1.5" fill="currentColor" opacity="0.3" />
-            <circle cx="24" cy="24" r="1.2" fill="currentColor" opacity="0.25" />
-            <circle cx="36" cy="36" r="1" fill="currentColor" opacity="0.2" />
-            <circle cx="48" cy="48" r="0.8" fill="currentColor" opacity="0.15" />
+        <div className="absolute top-0 right-0 text-foreground/25 scale-x-[-1]">
+          <svg width="180" height="180" viewBox="0 0 180 180" fill="none" stroke="currentColor" strokeWidth="0.6">
+            <path d="M0,80 Q20,60 40,45 Q60,30 80,20 Q100,10 120,5" opacity="0.7" strokeLinecap="round" />
+            <path d="M0,80 Q15,65 30,52 Q45,38 60,28" opacity="0.6" strokeLinecap="round" />
+            <path d="M0,90 Q10,75 20,60 Q30,45 40,35" opacity="0.5" strokeLinecap="round" />
+            <path d="M0,100 Q8,88 16,75 Q24,62 32,52" opacity="0.4" strokeLinecap="round" />
+            <path d="M80,0 Q70,20 60,40 Q50,60 45,80" opacity="0.7" strokeLinecap="round" />
+            <path d="M90,0 Q82,18 74,36 Q66,54 60,70" opacity="0.5" strokeLinecap="round" />
+            <path d="M25,55 Q20,50 18,45 Q20,48 25,50" fill="currentColor" opacity="0.3" />
+            <path d="M40,40 Q35,35 33,30 Q35,33 40,35" fill="currentColor" opacity="0.3" />
+            <path d="M55,28 Q50,23 48,18 Q50,21 55,23" fill="currentColor" opacity="0.3" />
+            <path d="M70,18 Q65,13 63,8 Q65,11 70,13" fill="currentColor" opacity="0.3" />
+            <path d="M35,65 Q30,60 28,55 Q30,58 35,60" fill="currentColor" opacity="0.25" />
+            <path d="M50,48 Q45,43 43,38 Q45,41 50,43" fill="currentColor" opacity="0.25" />
+            <path d="M75,15 Q80,12 85,10 Q80,12 75,15" fill="currentColor" opacity="0.3" />
+            <path d="M65,30 Q70,27 75,25 Q70,27 65,30" fill="currentColor" opacity="0.3" />
+            <path d="M55,45 Q60,42 65,40 Q60,42 55,45" fill="currentColor" opacity="0.25" />
+            <path d="M45,52 Q48,48 50,46 Q52,44 54,43" opacity="0.4" strokeWidth="0.4" />
+            <path d="M60,35 Q63,31 65,29 Q67,27 69,26" opacity="0.4" strokeWidth="0.4" />
+            <path d="M75,20 Q78,16 80,14 Q82,12 84,11" opacity="0.4" strokeWidth="0.4" />
+            <circle cx="28" cy="58" r="1.5" fill="currentColor" opacity="0.3" />
+            <circle cx="43" cy="42" r="1.3" fill="currentColor" opacity="0.3" />
+            <circle cx="58" cy="30" r="1.2" fill="currentColor" opacity="0.3" />
+            <circle cx="73" cy="16" r="1" fill="currentColor" opacity="0.3" />
+            <circle cx="70" cy="25" r="0.8" fill="currentColor" opacity="0.25" />
+            <circle cx="55" cy="40" r="0.8" fill="currentColor" opacity="0.25" />
+            <path d="M0,110 Q5,108 10,105" opacity="0.3" strokeWidth="0.5" />
+            <path d="M110,0 Q108,5 105,10" opacity="0.3" strokeWidth="0.5" />
           </svg>
         </div>
+
         {/* Bottom-left corner */}
-        <div className="absolute bottom-0 left-0 text-foreground/30 scale-y-[-1]">
-          <svg width="120" height="120" viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="0.5">
-            <path d="M0,60 Q15,35 30,20 Q45,5 60,0" opacity="0.6" />
-            <path d="M0,60 Q10,45 20,30 Q30,15 40,10" opacity="0.4" />
-            <path d="M0,60 Q5,40 10,20 Q15,10 20,5" opacity="0.3" />
-            <path d="M0,60 Q0,30 0,0" opacity="0.5" />
-            <circle cx="12" cy="12" r="1.5" fill="currentColor" opacity="0.3" />
-            <circle cx="24" cy="24" r="1.2" fill="currentColor" opacity="0.25" />
-            <circle cx="36" cy="36" r="1" fill="currentColor" opacity="0.2" />
-            <circle cx="48" cy="48" r="0.8" fill="currentColor" opacity="0.15" />
+        <div className="absolute bottom-0 left-0 text-foreground/25 scale-y-[-1]">
+          <svg width="180" height="180" viewBox="0 0 180 180" fill="none" stroke="currentColor" strokeWidth="0.6">
+            <path d="M0,80 Q20,60 40,45 Q60,30 80,20 Q100,10 120,5" opacity="0.7" strokeLinecap="round" />
+            <path d="M0,80 Q15,65 30,52 Q45,38 60,28" opacity="0.6" strokeLinecap="round" />
+            <path d="M0,90 Q10,75 20,60 Q30,45 40,35" opacity="0.5" strokeLinecap="round" />
+            <path d="M0,100 Q8,88 16,75 Q24,62 32,52" opacity="0.4" strokeLinecap="round" />
+            <path d="M80,0 Q70,20 60,40 Q50,60 45,80" opacity="0.7" strokeLinecap="round" />
+            <path d="M90,0 Q82,18 74,36 Q66,54 60,70" opacity="0.5" strokeLinecap="round" />
+            <path d="M25,55 Q20,50 18,45 Q20,48 25,50" fill="currentColor" opacity="0.3" />
+            <path d="M40,40 Q35,35 33,30 Q35,33 40,35" fill="currentColor" opacity="0.3" />
+            <path d="M55,28 Q50,23 48,18 Q50,21 55,23" fill="currentColor" opacity="0.3" />
+            <path d="M70,18 Q65,13 63,8 Q65,11 70,13" fill="currentColor" opacity="0.3" />
+            <path d="M35,65 Q30,60 28,55 Q30,58 35,60" fill="currentColor" opacity="0.25" />
+            <path d="M50,48 Q45,43 43,38 Q45,41 50,43" fill="currentColor" opacity="0.25" />
+            <path d="M75,15 Q80,12 85,10 Q80,12 75,15" fill="currentColor" opacity="0.3" />
+            <path d="M65,30 Q70,27 75,25 Q70,27 65,30" fill="currentColor" opacity="0.3" />
+            <path d="M55,45 Q60,42 65,40 Q60,42 55,45" fill="currentColor" opacity="0.25" />
+            <path d="M45,52 Q48,48 50,46 Q52,44 54,43" opacity="0.4" strokeWidth="0.4" />
+            <path d="M60,35 Q63,31 65,29 Q67,27 69,26" opacity="0.4" strokeWidth="0.4" />
+            <path d="M75,20 Q78,16 80,14 Q82,12 84,11" opacity="0.4" strokeWidth="0.4" />
+            <circle cx="28" cy="58" r="1.5" fill="currentColor" opacity="0.3" />
+            <circle cx="43" cy="42" r="1.3" fill="currentColor" opacity="0.3" />
+            <circle cx="58" cy="30" r="1.2" fill="currentColor" opacity="0.3" />
+            <circle cx="73" cy="16" r="1" fill="currentColor" opacity="0.3" />
+            <circle cx="70" cy="25" r="0.8" fill="currentColor" opacity="0.25" />
+            <circle cx="55" cy="40" r="0.8" fill="currentColor" opacity="0.25" />
+            <path d="M0,110 Q5,108 10,105" opacity="0.3" strokeWidth="0.5" />
+            <path d="M110,0 Q108,5 105,10" opacity="0.3" strokeWidth="0.5" />
           </svg>
         </div>
+
         {/* Bottom-right corner */}
-        <div className="absolute bottom-0 right-0 text-foreground/30 scale-[-1]">
-          <svg width="120" height="120" viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="0.5">
-            <path d="M0,60 Q15,35 30,20 Q45,5 60,0" opacity="0.6" />
-            <path d="M0,60 Q10,45 20,30 Q30,15 40,10" opacity="0.4" />
-            <path d="M0,60 Q5,40 10,20 Q15,10 20,5" opacity="0.3" />
-            <path d="M0,60 Q0,30 0,0" opacity="0.5" />
-            <circle cx="12" cy="12" r="1.5" fill="currentColor" opacity="0.3" />
-            <circle cx="24" cy="24" r="1.2" fill="currentColor" opacity="0.25" />
-            <circle cx="36" cy="36" r="1" fill="currentColor" opacity="0.2" />
-            <circle cx="48" cy="48" r="0.8" fill="currentColor" opacity="0.15" />
+        <div className="absolute bottom-0 right-0 text-foreground/25 scale-[-1]">
+          <svg width="180" height="180" viewBox="0 0 180 180" fill="none" stroke="currentColor" strokeWidth="0.6">
+            <path d="M0,80 Q20,60 40,45 Q60,30 80,20 Q100,10 120,5" opacity="0.7" strokeLinecap="round" />
+            <path d="M0,80 Q15,65 30,52 Q45,38 60,28" opacity="0.6" strokeLinecap="round" />
+            <path d="M0,90 Q10,75 20,60 Q30,45 40,35" opacity="0.5" strokeLinecap="round" />
+            <path d="M0,100 Q8,88 16,75 Q24,62 32,52" opacity="0.4" strokeLinecap="round" />
+            <path d="M80,0 Q70,20 60,40 Q50,60 45,80" opacity="0.7" strokeLinecap="round" />
+            <path d="M90,0 Q82,18 74,36 Q66,54 60,70" opacity="0.5" strokeLinecap="round" />
+            <path d="M25,55 Q20,50 18,45 Q20,48 25,50" fill="currentColor" opacity="0.3" />
+            <path d="M40,40 Q35,35 33,30 Q35,33 40,35" fill="currentColor" opacity="0.3" />
+            <path d="M55,28 Q50,23 48,18 Q50,21 55,23" fill="currentColor" opacity="0.3" />
+            <path d="M70,18 Q65,13 63,8 Q65,11 70,13" fill="currentColor" opacity="0.3" />
+            <path d="M35,65 Q30,60 28,55 Q30,58 35,60" fill="currentColor" opacity="0.25" />
+            <path d="M50,48 Q45,43 43,38 Q45,41 50,43" fill="currentColor" opacity="0.25" />
+            <path d="M75,15 Q80,12 85,10 Q80,12 75,15" fill="currentColor" opacity="0.3" />
+            <path d="M65,30 Q70,27 75,25 Q70,27 65,30" fill="currentColor" opacity="0.3" />
+            <path d="M55,45 Q60,42 65,40 Q60,42 55,45" fill="currentColor" opacity="0.25" />
+            <path d="M45,52 Q48,48 50,46 Q52,44 54,43" opacity="0.4" strokeWidth="0.4" />
+            <path d="M60,35 Q63,31 65,29 Q67,27 69,26" opacity="0.4" strokeWidth="0.4" />
+            <path d="M75,20 Q78,16 80,14 Q82,12 84,11" opacity="0.4" strokeWidth="0.4" />
+            <circle cx="28" cy="58" r="1.5" fill="currentColor" opacity="0.3" />
+            <circle cx="43" cy="42" r="1.3" fill="currentColor" opacity="0.3" />
+            <circle cx="58" cy="30" r="1.2" fill="currentColor" opacity="0.3" />
+            <circle cx="73" cy="16" r="1" fill="currentColor" opacity="0.3" />
+            <circle cx="70" cy="25" r="0.8" fill="currentColor" opacity="0.25" />
+            <circle cx="55" cy="40" r="0.8" fill="currentColor" opacity="0.25" />
+            <path d="M0,110 Q5,108 10,105" opacity="0.3" strokeWidth="0.5" />
+            <path d="M110,0 Q108,5 105,10" opacity="0.3" strokeWidth="0.5" />
           </svg>
         </div>
       </div>
