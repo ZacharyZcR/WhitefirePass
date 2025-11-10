@@ -26,17 +26,31 @@ interface PersonalityEditorProps {
 export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps) {
   const { gameState } = useGameStore();
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [flippingCardId, setFlippingCardId] = useState<string | null>(null);
+  const [showDetail, setShowDetail] = useState(false);
 
   if (!gameState) {
     return null;
   }
 
   const handleCardClick = (playerId: string) => {
+    // Start flip animation
+    setFlippingCardId(playerId);
     setSelectedPlayerId(playerId);
+
+    // After flip animation completes, show detail panel
+    setTimeout(() => {
+      setShowDetail(true);
+    }, 600); // Flip animation duration
   };
 
   const handleClose = () => {
-    setSelectedPlayerId(null);
+    setShowDetail(false);
+    setFlippingCardId(null);
+    // Delay clearing selection to allow animation
+    setTimeout(() => {
+      setSelectedPlayerId(null);
+    }, 300);
   };
 
   const selectedPlayer = selectedPlayerId
@@ -45,7 +59,9 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
 
   const handleDialogChange = (newOpen: boolean) => {
     if (!newOpen) {
-      // If closing dialog, reset selection first
+      // If closing dialog, reset all states
+      setShowDetail(false);
+      setFlippingCardId(null);
       setSelectedPlayerId(null);
     }
     onOpenChange(newOpen);
@@ -57,7 +73,7 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
         className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950"
         onInteractOutside={(e) => {
           // If detail panel is open, close it instead of the dialog
-          if (selectedPlayer) {
+          if (showDetail) {
             e.preventDefault();
             handleClose();
           }
@@ -84,7 +100,11 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
 
         <div className="flex-1 overflow-hidden relative">
           {/* Gallery View - responsive grid */}
-          <div className={`h-full overflow-y-auto overflow-x-hidden py-6 px-4 ${selectedPlayer ? 'pointer-events-none' : ''}`}>
+          <div
+            className={`h-full overflow-y-auto overflow-x-hidden py-6 px-4 transition-opacity duration-300 ${
+              showDetail ? 'opacity-0 pointer-events-none' : 'opacity-100'
+            } ${flippingCardId ? 'pointer-events-none' : ''}`}
+          >
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-2xl mx-auto">
               {gameState.players.map((player) => (
                 <div
@@ -94,7 +114,7 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
                 >
                   <TarotCard
                     player={player}
-                    isFlipped={false}
+                    isFlipped={flippingCardId === player.id}
                     size="small"
                     className="hover:scale-105 transition-transform duration-300"
                   />
@@ -104,7 +124,7 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
           </div>
 
           {/* Detail Panel - slides in from right as overlay */}
-          {selectedPlayer && (
+          {showDetail && selectedPlayer && (
             <div className="absolute inset-0 flex items-center justify-end animate-in slide-in-from-right duration-500">
               <div className="h-full w-full sm:w-[450px] lg:w-[550px] bg-gradient-to-l from-slate-950 via-slate-900 to-slate-950/95 backdrop-blur-md border-l border-amber-900/30 shadow-2xl overflow-y-auto">
                 <div className="p-6 sm:p-8 space-y-6">
