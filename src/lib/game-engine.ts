@@ -80,13 +80,13 @@ export function createGame(config: GameConfig): GameState {
  */
 function createPlayers(roles: Role[]): Player[] {
   const names = [
-    '诺拉·格雷', '马库斯·霍克', '艾琳·莫里斯', '托马斯·克劳利', '莉迪亚·克劳利',
+    '诺拉·格雷', '马库斯·霍克', '艾琳·哈钦斯', '托马斯·克劳利', '莉迪亚·克劳利',
     '奥利弗·佩恩', '索菲亚·阿什福德', '塞缪尔·布莱克伍德', '克莱尔·沃伦', '维克多·斯通',
     '艾米莉·卡特', '本杰明·怀特', '伊莎贝拉·费尔法克斯', '亚历山大·莫里斯', '夏洛特·温特斯',
   ];
 
   const englishNames = [
-    'Nora Grey', 'Marcus Hawke', 'Eileen Morris', 'Thomas Crowley', 'Lydia Crowley',
+    'Nora Grey', 'Marcus Hawke', 'Eileen Hutchins', 'Thomas Crowley', 'Lydia Crowley',
     'Oliver Payne', 'Sophia Ashford', 'Samuel Blackwood', 'Claire Warren', 'Victor Stone',
     'Emily Carter', 'Benjamin White', 'Isabella Fairfax', 'Alexander Morris', 'Charlotte Winters',
   ];
@@ -111,7 +111,7 @@ function createPlayers(roles: Role[]): Player[] {
 
 我不指望活着回去。但如果真有什么东西在山口里等着我们，我至少要让它付出代价。`,
 
-    `【女性】我是艾琳·莫里斯，四十三岁。我的头发已经开始灰白，总是用黑色头巾包着。我的手很粗糙，指甲缝里永远藏着洗不掉的泥土——那是在丈夫的墓地种花留下的。
+    `【女性】我是艾琳·哈钦斯，四十三岁。我的头发已经开始灰白，总是用黑色头巾包着。我的手很粗糙，指甲缝里永远藏着洗不掉的泥土——那是在丈夫的墓地种花留下的。
 
 我不该来这里。我应该待在米德兰的小镇上，继续在工厂做清洁工，继续每个周日去墓地。但委托书里说，这趟旅行能帮我"找到失去的东西"。我的儿子，汤姆，十年前在矿难中失踪。他们说他死了，但从未找到尸体。
 
