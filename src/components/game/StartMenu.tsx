@@ -237,53 +237,61 @@ export function StartMenu() {
 
           {/* Game Title with Gothic Decorations - Fades in with slight upward movement */}
           <div className="space-y-6 relative">
-            {/* Gothic corner decorations */}
+            {/* Subtle Gothic corner decorations - More organic, delicate curves */}
             <div className={`
-              absolute -inset-16 pointer-events-none
-              transition-all duration-1500 ease-out delay-200
-              ${['initial', 'icon'].includes(stage)
-                ? 'opacity-0 scale-95'
-                : 'opacity-30 scale-100'
+              absolute -inset-20 pointer-events-none
+              transition-all duration-2500 ease-out
+              ${['initial', 'icon', 'title'].includes(stage)
+                ? 'opacity-0 scale-98'
+                : 'opacity-15 scale-100'
               }
             `}>
-              {/* Top-left ornament */}
-              <div className="absolute top-0 left-0 text-slate-500">
-                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" stroke="currentColor" strokeWidth="1">
-                  <path d="M0,30 Q15,15 30,0" />
-                  <path d="M0,30 Q0,15 0,0" />
-                  <circle cx="5" cy="5" r="2" fill="currentColor" />
-                  <circle cx="15" cy="15" r="1.5" fill="currentColor" />
-                  <path d="M10,0 L10,10 M0,10 L10,10" strokeWidth="0.5" />
+              {/* Top-left ornament - Soft flowing curves */}
+              <div className="absolute top-0 left-0 text-slate-400">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" stroke="currentColor" strokeWidth="0.5">
+                  <path d="M0,40 Q10,20 20,10 Q30,0 40,0" opacity="0.8" />
+                  <path d="M0,40 Q5,30 10,20 Q15,10 20,10" opacity="0.6" />
+                  <path d="M0,40 Q0,20 0,0" opacity="0.7" />
+                  <path d="M10,0 Q10,5 10,10" opacity="0.5" />
+                  <circle cx="8" cy="8" r="1" fill="currentColor" opacity="0.4" />
+                  <circle cx="16" cy="16" r="0.8" fill="currentColor" opacity="0.3" />
+                  <circle cx="24" cy="24" r="0.6" fill="currentColor" opacity="0.2" />
                 </svg>
               </div>
               {/* Top-right ornament */}
-              <div className="absolute top-0 right-0 text-slate-500 scale-x-[-1]">
-                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" stroke="currentColor" strokeWidth="1">
-                  <path d="M0,30 Q15,15 30,0" />
-                  <path d="M0,30 Q0,15 0,0" />
-                  <circle cx="5" cy="5" r="2" fill="currentColor" />
-                  <circle cx="15" cy="15" r="1.5" fill="currentColor" />
-                  <path d="M10,0 L10,10 M0,10 L10,10" strokeWidth="0.5" />
+              <div className="absolute top-0 right-0 text-slate-400 scale-x-[-1]">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" stroke="currentColor" strokeWidth="0.5">
+                  <path d="M0,40 Q10,20 20,10 Q30,0 40,0" opacity="0.8" />
+                  <path d="M0,40 Q5,30 10,20 Q15,10 20,10" opacity="0.6" />
+                  <path d="M0,40 Q0,20 0,0" opacity="0.7" />
+                  <path d="M10,0 Q10,5 10,10" opacity="0.5" />
+                  <circle cx="8" cy="8" r="1" fill="currentColor" opacity="0.4" />
+                  <circle cx="16" cy="16" r="0.8" fill="currentColor" opacity="0.3" />
+                  <circle cx="24" cy="24" r="0.6" fill="currentColor" opacity="0.2" />
                 </svg>
               </div>
               {/* Bottom-left ornament */}
-              <div className="absolute bottom-0 left-0 text-slate-500 scale-y-[-1]">
-                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" stroke="currentColor" strokeWidth="1">
-                  <path d="M0,30 Q15,15 30,0" />
-                  <path d="M0,30 Q0,15 0,0" />
-                  <circle cx="5" cy="5" r="2" fill="currentColor" />
-                  <circle cx="15" cy="15" r="1.5" fill="currentColor" />
-                  <path d="M10,0 L10,10 M0,10 L10,10" strokeWidth="0.5" />
+              <div className="absolute bottom-0 left-0 text-slate-400 scale-y-[-1]">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" stroke="currentColor" strokeWidth="0.5">
+                  <path d="M0,40 Q10,20 20,10 Q30,0 40,0" opacity="0.8" />
+                  <path d="M0,40 Q5,30 10,20 Q15,10 20,10" opacity="0.6" />
+                  <path d="M0,40 Q0,20 0,0" opacity="0.7" />
+                  <path d="M10,0 Q10,5 10,10" opacity="0.5" />
+                  <circle cx="8" cy="8" r="1" fill="currentColor" opacity="0.4" />
+                  <circle cx="16" cy="16" r="0.8" fill="currentColor" opacity="0.3" />
+                  <circle cx="24" cy="24" r="0.6" fill="currentColor" opacity="0.2" />
                 </svg>
               </div>
               {/* Bottom-right ornament */}
-              <div className="absolute bottom-0 right-0 text-slate-500 scale-[-1]">
-                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" stroke="currentColor" strokeWidth="1">
-                  <path d="M0,30 Q15,15 30,0" />
-                  <path d="M0,30 Q0,15 0,0" />
-                  <circle cx="5" cy="5" r="2" fill="currentColor" />
-                  <circle cx="15" cy="15" r="1.5" fill="currentColor" />
-                  <path d="M10,0 L10,10 M0,10 L10,10" strokeWidth="0.5" />
+              <div className="absolute bottom-0 right-0 text-slate-400 scale-[-1]">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" stroke="currentColor" strokeWidth="0.5">
+                  <path d="M0,40 Q10,20 20,10 Q30,0 40,0" opacity="0.8" />
+                  <path d="M0,40 Q5,30 10,20 Q15,10 20,10" opacity="0.6" />
+                  <path d="M0,40 Q0,20 0,0" opacity="0.7" />
+                  <path d="M10,0 Q10,5 10,10" opacity="0.5" />
+                  <circle cx="8" cy="8" r="1" fill="currentColor" opacity="0.4" />
+                  <circle cx="16" cy="16" r="0.8" fill="currentColor" opacity="0.3" />
+                  <circle cx="24" cy="24" r="0.6" fill="currentColor" opacity="0.2" />
                 </svg>
               </div>
             </div>
@@ -301,25 +309,26 @@ export function StartMenu() {
               白烬山口
             </h1>
 
-            {/* Gothic Divider - More ornate */}
+            {/* Subtle Divider - Elegant and understated */}
             <div className="relative h-8 w-80 mx-auto flex items-center justify-center">
               <div
                 className={`
                   absolute inset-0 flex items-center justify-center
-                  transition-all duration-1200 ease-out
+                  transition-all duration-2000 ease-out
                   ${['initial', 'icon', 'title'].includes(stage)
                     ? 'opacity-0 scale-x-0'
-                    : 'opacity-100 scale-x-100'
+                    : 'opacity-60 scale-x-100'
                   }
                 `}
               >
-                {/* Ornate divider line with center decoration */}
-                <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-400 to-transparent" />
+                {/* Delicate divider line with subtle center ornament */}
+                <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent opacity-50" />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <svg width="40" height="20" viewBox="0 0 40 20" className="text-slate-500" fill="currentColor">
-                    <path d="M20,10 L15,5 L15,8 L5,8 L5,12 L15,12 L15,15 Z" />
-                    <path d="M20,10 L25,5 L25,8 L35,8 L35,12 L25,12 L25,15 Z" />
-                    <circle cx="20" cy="10" r="2.5" />
+                  <svg width="24" height="12" viewBox="0 0 24 12" className="text-slate-400" fill="none" stroke="currentColor" strokeWidth="0.5">
+                    <circle cx="12" cy="6" r="2" opacity="0.6" />
+                    <circle cx="12" cy="6" r="3.5" opacity="0.3" />
+                    <path d="M3,6 L8,6" opacity="0.4" />
+                    <path d="M16,6 L21,6" opacity="0.4" />
                   </svg>
                 </div>
               </div>
