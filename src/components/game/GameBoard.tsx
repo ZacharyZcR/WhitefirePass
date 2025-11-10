@@ -11,6 +11,7 @@ import { ControlPanel } from './ControlPanel';
 import { VoteTracker } from './VoteTracker';
 import { FactionStats } from './FactionStats';
 import { VotingProgress } from './VotingProgress';
+import { CurrentSpeaker } from './CurrentSpeaker';
 import { Dog, Gamepad2, Moon, Sun, Users as UsersIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -81,9 +82,9 @@ export function GameBoard() {
           <div className="flex items-center gap-3">
             <Dog className="w-8 h-8 text-stone-300" />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">AI 狼人杀</h1>
+              <h1 className="text-2xl font-bold text-foreground">白烬山口</h1>
               <p className="text-xs text-muted-foreground">
-                观看 AI 玩家在经典社交推理游戏中辩论、欺骗和推理
+                15名旅人被困于寂静山庄，在山灵的契约下展开生死博弈
               </p>
             </div>
           </div>
@@ -159,7 +160,7 @@ export function GameBoard() {
           </div>
         </div>
 
-        {/* Right Main Area - Game Log & Vote Tracker */}
+        {/* Right Main Area - Game Log & Sidebar */}
         <div className="flex-1 flex gap-4 overflow-hidden">
           {/* Game Log with Tabs */}
           <div className="flex-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border shadow-xl overflow-hidden flex flex-col">
@@ -177,18 +178,21 @@ export function GameBoard() {
                   <TabsContent value="game" className="flex-1 overflow-hidden m-0">
                     <MessageFlow
                       messages={gameState.messages}
+                      players={gameState.players}
                       filterTypes={['system', 'speech', 'vote', 'death', 'action']}
                     />
                   </TabsContent>
                   <TabsContent value="thinking" className="flex-1 overflow-hidden m-0">
                     <MessageFlow
                       messages={gameState.messages}
+                      players={gameState.players}
                       filterTypes={['thinking']}
                     />
                   </TabsContent>
                   <TabsContent value="prompt" className="flex-1 overflow-hidden m-0">
                     <MessageFlow
                       messages={gameState.messages}
+                      players={gameState.players}
                       filterTypes={['prompt']}
                     />
                   </TabsContent>
@@ -207,10 +211,18 @@ export function GameBoard() {
             </div>
           </div>
 
-          {/* Vote Tracker */}
+          {/* Right Sidebar - Current Speaker & Vote Tracker */}
           {gameState && (
-            <div className="w-80 rounded-lg bg-card/90 backdrop-blur-sm border border-border shadow-xl overflow-hidden">
-              <VoteTracker gameState={gameState} />
+            <div className="w-80 flex flex-col gap-4 overflow-hidden">
+              {/* Current Speaker - Upper section */}
+              <div className="flex-shrink-0 rounded-lg bg-card/90 backdrop-blur-sm border border-border shadow-xl">
+                <CurrentSpeaker gameState={gameState} />
+              </div>
+
+              {/* Vote Tracker - Lower section (scrollable) */}
+              <div className="flex-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border shadow-xl overflow-hidden">
+                <VoteTracker gameState={gameState} />
+              </div>
             </div>
           )}
         </div>

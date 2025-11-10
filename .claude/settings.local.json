@@ -12,7 +12,9 @@
       "Bash(git commit -m \"$(cat <<''EOF''\n实现 AI 狼人杀游戏\n\n- 使用 Gemini 2.5 Pro API 驱动 AI 玩家\n- 支持手动单步执行，观察每个 AI 玩家的思考过程\n- 显示完整的 AI prompt 和响应内容\n- 通过代理 (127.0.0.1:7897) 连接 Gemini API\n- 使用 Zustand 进行游戏状态管理\n- 纯函数式游戏引擎设计\n- 完整的类型定义和 UI 组件\nEOF\n)\")",
       "Bash(git commit:*)",
       "WebFetch(domain:ui.shadcn.com)",
-      "Bash(npx shadcn@latest add:*)"
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(find:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

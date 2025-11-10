@@ -8,7 +8,7 @@ import type { GameState } from '@/types/game';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Eye, Moon, Users, ArrowRight } from 'lucide-react';
+import { Eye, Moon, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface VoteTrackerProps {
@@ -16,7 +16,7 @@ interface VoteTrackerProps {
 }
 
 export function VoteTracker({ gameState }: VoteTrackerProps) {
-  const { voteHistory = [], nightVoteHistory = [], seerChecks = [] } = gameState;
+  const { voteHistory = [], nightVoteHistory = [], listenerChecks = [] } = gameState;
 
   // Group votes by round from history
   const votesByRound = new Map<number, typeof voteHistory>();
@@ -51,44 +51,42 @@ export function VoteTracker({ gameState }: VoteTrackerProps) {
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader className="flex-shrink-0 pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Users className="w-5 h-5" />
-          投票与查验记录
+      <CardHeader className="flex-shrink-0 pb-2 px-3 py-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Users className="w-4 h-4" />
+          投票记录
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 overflow-hidden p-0">
-        <ScrollArea className="h-full px-4 pb-4">
-          <div className="space-y-4">
-            {/* Seer Checks */}
-            {seerChecks.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-semibold text-purple-400">
-                  <Eye className="w-4 h-4" />
-                  预言家查验记录
+        <ScrollArea className="h-full px-3 pb-3">
+          <div className="space-y-3">
+            {/* Listener Checks */}
+            {listenerChecks.length > 0 && (
+              <div className="space-y-1">
+                <div className="flex items-center gap-1 text-xs font-semibold text-purple-400">
+                  <Eye className="w-3 h-3" />
+                  查验
                 </div>
-                <div className="space-y-2">
-                  {seerChecks.map((check, idx) => (
+                <div className="space-y-1">
+                  {listenerChecks.slice(-3).map((check, idx) => (
                     <div
                       key={idx}
-                      className="rounded-lg bg-purple-950/30 border border-purple-500/30 p-3"
+                      className="rounded bg-purple-950/30 border border-purple-500/30 p-2"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            第 {check.round} 回合
-                          </Badge>
-                          <span className="text-sm text-foreground">{check.target}</span>
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-1">
+                          <span className="text-muted-foreground">R{check.round}</span>
+                          <span className="text-foreground">{check.target}</span>
                         </div>
                         <Badge
                           className={cn(
-                            'text-xs',
-                            !check.isGood
-                              ? 'bg-red-600 hover:bg-red-700'
-                              : 'bg-blue-600 hover:bg-blue-700',
+                            'text-xs h-4 px-1',
+                            !check.isClean
+                              ? 'bg-red-600'
+                              : 'bg-sky-600',
                           )}
                         >
-                          {check.isGood ? '好人' : '狼人'}
+                          {check.isClean ? '清白' : '污秽'}
                         </Badge>
                       </div>
                     </div>
@@ -100,64 +98,36 @@ export function VoteTracker({ gameState }: VoteTrackerProps) {
             {/* Night Votes (Werewolf) */}
             {Array.from(nightVotesByRound.entries())
               .sort((a, b) => b[0] - a[0])
+              .slice(0, 2)
               .map(([voteRound, roundVotes]) => {
                 const voteCounts = calculateVoteCounts(roundVotes);
                 return (
-                  <div key={`night-${voteRound}`} className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-red-400">
-                      <Moon className="w-4 h-4" />
-                      第 {voteRound} 回合 - 狼人击杀投票
+                  <div key={`night-${voteRound}`} className="space-y-1">
+                    <div className="flex items-center gap-1 text-xs font-semibold text-red-400">
+                      <Moon className="w-3 h-3" />
+                      R{voteRound} 夜
                     </div>
-                    <div className="space-y-2">
-                      {/* Vote counts with bar chart */}
+                    <div className="space-y-1">
+                      {/* Vote counts */}
                       {voteCounts.length > 0 && (
-                        <div className="rounded-lg bg-red-950/30 border border-red-500/30 p-3">
-                          <div className="text-xs text-muted-foreground mb-3">票数统计</div>
-                          <div className="space-y-2">
+                        <div className="rounded bg-red-950/30 border border-red-500/30 p-2">
+                          <div className="space-y-1">
                             {voteCounts.map(({ target, count }) => {
                               const maxVotes = voteCounts[0].count;
-                              const percentage = (count / maxVotes) * 100;
                               const isLeader = count === maxVotes;
 
                               return (
-                                <div key={target} className="space-y-1">
-                                  <div className="flex items-center justify-between text-sm">
-                                    <span className="text-foreground font-medium">{target}</span>
-                                    <Badge variant="destructive" className="text-xs">
-                                      {count} 票
-                                    </Badge>
-                                  </div>
-                                  {/* Progress bar */}
-                                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                                    <div
-                                      className={cn(
-                                        "h-full transition-all duration-500 rounded-full",
-                                        isLeader
-                                          ? "bg-gradient-to-r from-red-600 to-red-400"
-                                          : "bg-gradient-to-r from-stone-600 to-stone-500"
-                                      )}
-                                      style={{ width: `${percentage}%` }}
-                                    />
-                                  </div>
+                                <div key={target} className="flex items-center justify-between text-xs">
+                                  <span className="text-foreground">{target}</span>
+                                  <Badge variant="destructive" className={cn("text-xs h-4 px-1", isLeader && "bg-red-600")}>
+                                    {count}票
+                                  </Badge>
                                 </div>
                               );
                             })}
                           </div>
                         </div>
                       )}
-                      {/* Individual votes */}
-                      <div className="space-y-1">
-                        {roundVotes.map((vote, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center gap-2 text-xs text-muted-foreground"
-                          >
-                            <span>{vote.from}</span>
-                            <ArrowRight className="w-3 h-3" />
-                            <span>{vote.target}</span>
-                          </div>
-                        ))}
-                      </div>
                     </div>
                   </div>
                 );
@@ -166,81 +136,52 @@ export function VoteTracker({ gameState }: VoteTrackerProps) {
             {/* Day Votes */}
             {Array.from(votesByRound.entries())
               .sort((a, b) => b[0] - a[0])
+              .slice(0, 2)
               .map(([voteRound, roundVotes]) => {
                 const voteCounts = calculateVoteCounts(roundVotes);
                 return (
-                  <div key={`day-${voteRound}`} className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-amber-400">
-                      <Users className="w-4 h-4" />
-                      第 {voteRound} 回合 - 白天投票
+                  <div key={`day-${voteRound}`} className="space-y-1">
+                    <div className="flex items-center gap-1 text-xs font-semibold text-amber-400">
+                      <Users className="w-3 h-3" />
+                      R{voteRound} 献祭
                     </div>
-                    <div className="space-y-2">
-                      {/* Vote counts with bar chart */}
+                    <div className="space-y-1">
+                      {/* Vote counts */}
                       {voteCounts.length > 0 && (
-                        <div className="rounded-lg bg-amber-950/30 border border-amber-500/30 p-3">
-                          <div className="text-xs text-muted-foreground mb-3">票数统计</div>
-                          <div className="space-y-2">
+                        <div className="rounded bg-amber-950/30 border border-amber-500/30 p-2">
+                          <div className="space-y-1">
                             {voteCounts.map(({ target, count }) => {
                               const maxVotes = voteCounts[0].count;
-                              const percentage = (count / maxVotes) * 100;
                               const isLeader = count === maxVotes;
 
                               return (
-                                <div key={target} className="space-y-1">
-                                  <div className="flex items-center justify-between text-sm">
-                                    <span className="text-foreground font-medium">{target}</span>
-                                    <Badge
-                                      className={cn(
-                                        'text-xs',
-                                        isLeader
-                                          ? 'bg-orange-600 hover:bg-orange-700'
-                                          : 'bg-stone-600 hover:bg-stone-700',
-                                      )}
-                                    >
-                                      {count} 票
-                                    </Badge>
-                                  </div>
-                                  {/* Progress bar */}
-                                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                                    <div
-                                      className={cn(
-                                        "h-full transition-all duration-500 rounded-full",
-                                        isLeader
-                                          ? "bg-gradient-to-r from-orange-600 to-orange-400"
-                                          : "bg-gradient-to-r from-stone-600 to-stone-500"
-                                      )}
-                                      style={{ width: `${percentage}%` }}
-                                    />
-                                  </div>
+                                <div key={target} className="flex items-center justify-between text-xs">
+                                  <span className="text-foreground">{target}</span>
+                                  <Badge
+                                    className={cn(
+                                      'text-xs h-4 px-1',
+                                      isLeader
+                                        ? 'bg-orange-600'
+                                        : 'bg-stone-600',
+                                    )}
+                                  >
+                                    {count}票
+                                  </Badge>
                                 </div>
                               );
                             })}
                           </div>
                         </div>
                       )}
-                      {/* Individual votes */}
-                      <div className="space-y-1">
-                        {roundVotes.map((vote, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center gap-2 text-xs text-muted-foreground"
-                          >
-                            <span>{vote.from}</span>
-                            <ArrowRight className="w-3 h-3" />
-                            <span>{vote.target}</span>
-                          </div>
-                        ))}
-                      </div>
                     </div>
                   </div>
                 );
               })}
 
             {/* Empty state */}
-            {voteHistory.length === 0 && nightVoteHistory.length === 0 && seerChecks.length === 0 && (
-              <div className="text-center text-muted-foreground py-8">
-                <p className="text-sm">暂无投票或查验记录</p>
-                <p className="text-xs mt-1">游戏进行后会显示在这里</p>
+            {voteHistory.length === 0 && nightVoteHistory.length === 0 && listenerChecks.length === 0 && (
+              <div className="text-center text-muted-foreground py-4">
+                <p className="text-xs">暂无记录</p>
               </div>
             )}
           </div>

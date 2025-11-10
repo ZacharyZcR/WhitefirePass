@@ -24,6 +24,7 @@ interface GameStore {
   isProcessing: boolean;
   apiKey: string;
   lastError: string | null;
+  retryCount: number;  // Current retry attempt count
 
   // Actions
   setApiKey: (key: string) => void;
@@ -56,6 +57,7 @@ export const useGameStore = create<GameStore>()(
   isProcessing: false,
   apiKey: '',
   lastError: null,
+  retryCount: 0,
 
   /**
    * Set Gemini API key
@@ -163,10 +165,17 @@ export const useGameStore = create<GameStore>()(
   },
 
   /**
-   * Retry current step after error
+   * Retry current step after error (called manually by user or automatically)
    */
   retryCurrentStep: async () => {
-    set({ lastError: null });
+    const { gameState, retryCount } = get();
+    if (!gameState) return;
+
+    // Clean up failed attempt
+    cleanupFailedAttempt(gameState);
+
+    // Reset retry count when manually retrying
+    set({ gameState: { ...gameState }, lastError: null, retryCount: 0 });
     await get().executeCurrentPlayerAction();
   },
 
@@ -202,7 +211,7 @@ export const useGameStore = create<GameStore>()(
           addMessage(
             gameState,
             'system',
-            `游戏结束！${winner === 'werewolf' ? '狼人阵营' : '村民阵营'}获胜！`,
+            `游戏结束！${winner === 'marked' ? '收割阵营' : '羔羊阵营'}获胜！`,
             'system',
           ),
         );
@@ -220,25 +229,26 @@ export const useGameStore = create<GameStore>()(
   /**
    * Advance to next night sub-phase
    */
+  // eslint-disable-next-line complexity
   advanceNightPhase: () => {
     const { gameState } = get();
     if (!gameState || gameState.phase !== 'night') return;
 
-    if (gameState.nightPhase === 'seer') {
-      // Seer phase ended, go to werewolf discuss
-      gameState.nightPhase = 'werewolf-discuss';
+    if (gameState.nightPhase === 'listener') {
+      // Listener phase ended, go to marked discuss
+      gameState.nightPhase = 'marked-discuss';
       gameState.currentPlayerIndex = 0;
       gameState.messages.push(
-        addMessage(gameState, '旁白', '狼人请开始讨论今晚的目标', 'system', 'werewolf'),
+        addMessage(gameState, '旁白', '饥饿的呼唤开始了...', 'system', 'marked'),
       );
-    } else if (gameState.nightPhase === 'werewolf-discuss') {
-      // Werewolf discuss ended, go to werewolf vote
-      gameState.nightPhase = 'werewolf-vote';
+    } else if (gameState.nightPhase === 'marked-discuss') {
+      // Marked discuss ended, go to marked vote
+      gameState.nightPhase = 'marked-vote';
       gameState.currentPlayerIndex = 0;
       gameState.messages.push(
-        addMessage(gameState, '旁白', '狼人请投票选择击杀目标', 'system', 'werewolf'),
+        addMessage(gameState, '旁白', '烙印者请投票选择今晚的猎物', 'system', 'marked'),
       );
-    } else if (gameState.nightPhase === 'werewolf-vote') {
+    } else if (gameState.nightPhase === 'marked-vote') {
       // Check werewolf votes for ties
       const { isTied, tiedPlayers } = processNightPhase(gameState);
 
@@ -254,16 +264,16 @@ export const useGameStore = create<GameStore>()(
 
         // Tie - go back to discussion
         gameState.revoteRound += 1;
-        gameState.nightPhase = 'werewolf-discuss';
+        gameState.nightPhase = 'marked-discuss';
         gameState.currentPlayerIndex = 0;
         gameState.nightVotes = [];  // Clear votes for new round
         gameState.messages.push(
           addMessage(
             gameState,
             '旁白',
-            `第 ${gameState.revoteRound} 次平票（${tiedPlayers.join('、')}）！狼人必须重新讨论并达成一致。`,
+            `第 ${gameState.revoteRound} 次平票（${tiedPlayers.join('、')}）！烙印者必须重新讨论并达成一致。`,
             'system',
-            'werewolf',
+            'marked',
           ),
         );
       } else {
@@ -276,11 +286,55 @@ export const useGameStore = create<GameStore>()(
           gameState.nightVoteHistory.push(...nightVotesWithRound);
         }
 
-        // No tie - proceed to day
+        // No tie - proceed to guard phase
         gameState.revoteRound = 0;
-        get().advanceToNextPhase();
-        return;
+        const guard = gameState.players.find((p) => p.role === 'guard' && p.isAlive);
+        if (guard) {
+          gameState.nightPhase = 'guard';
+          gameState.currentPlayerIndex = 0;
+          gameState.messages.push(
+            addMessage(gameState, '旁白', '设闩者，选择今晚要守护的人...', 'system', 'all'),
+          );
+        } else {
+          // No guard, proceed to coroner phase
+          gameState.nightPhase = 'coroner';
+          gameState.currentPlayerIndex = 0;
+          get().advanceNightPhase(); // Auto-advance coroner phase
+          return;
+        }
       }
+    } else if (gameState.nightPhase === 'guard') {
+      // Guard phase ended, go to coroner phase (passive ability)
+      gameState.nightPhase = 'coroner';
+      gameState.currentPlayerIndex = 0;
+
+      // Coroner is passive - auto-process and move to day
+      const coroner = gameState.players.find((p) => p.role === 'coroner' && p.isAlive);
+      if (coroner && gameState.lastSacrificedPlayer) {
+        // Add coroner report
+        const sacrificedPlayer = gameState.players.find((p) => p.name === gameState.lastSacrificedPlayer);
+        if (sacrificedPlayer) {
+          const isClean = sacrificedPlayer.role !== 'marked' && sacrificedPlayer.role !== 'heretic';
+          gameState.coronerReports.push({
+            round: gameState.round,
+            target: sacrificedPlayer.name,
+            isClean,
+          });
+          gameState.messages.push(
+            addMessage(
+              gameState,
+              '旁白',
+              `食灰者在梦中品尝了 ${sacrificedPlayer.name} 的灵魂...`,
+              'system',
+              'coroner',
+            ),
+          );
+        }
+      }
+
+      // Proceed to day phase
+      get().advanceToNextPhase();
+      return;
     }
 
     set({ gameState: { ...gameState } });
@@ -343,12 +397,15 @@ export const useGameStore = create<GameStore>()(
 
     // Filter players based on night sub-phase
     if (gameState.phase === 'night' && gameState.nightPhase) {
-      if (gameState.nightPhase === 'seer') {
-        // Only seer acts
-        alivePlayers = alivePlayers.filter((p) => p.role === 'seer');
-      } else if (gameState.nightPhase === 'werewolf-discuss' || gameState.nightPhase === 'werewolf-vote') {
-        // Only werewolves act
-        alivePlayers = alivePlayers.filter((p) => p.role === 'werewolf');
+      if (gameState.nightPhase === 'listener') {
+        // Only listener acts
+        alivePlayers = alivePlayers.filter((p) => p.role === 'listener');
+      } else if (gameState.nightPhase === 'marked-discuss' || gameState.nightPhase === 'marked-vote') {
+        // Only marked act
+        alivePlayers = alivePlayers.filter((p) => p.role === 'marked');
+      } else if (gameState.nightPhase === 'guard') {
+        // Only guard acts
+        alivePlayers = alivePlayers.filter((p) => p.role === 'guard');
       }
     }
 
@@ -374,10 +431,10 @@ export const useGameStore = create<GameStore>()(
       // Determine message visibility based on phase and role
       let visibility: Message['visibility'] = 'all';
       if (gameState.phase === 'night') {
-        if (gameState.nightPhase === 'seer' && currentPlayer.role === 'seer') {
-          visibility = 'seer';  // Only seer can see their check
-        } else if (currentPlayer.role === 'werewolf') {
-          visibility = 'werewolf'; // Only werewolves can see night discussion
+        if (gameState.nightPhase === 'listener' && currentPlayer.role === 'listener') {
+          visibility = 'listener';  // Only listener can see their check
+        } else if (currentPlayer.role === 'marked') {
+          visibility = 'marked'; // Only marked can see night discussion
         }
       }
 
@@ -429,15 +486,45 @@ export const useGameStore = create<GameStore>()(
       // Move to next player only on success
       gameState.currentPlayerIndex += 1;
 
-      set({ gameState: { ...gameState }, isProcessing: false, lastError: null });
+      set({ gameState: { ...gameState }, isProcessing: false, lastError: null, retryCount: 0 });
     } catch (error) {
       console.error(`Error executing action for ${currentPlayer.name}:`, error);
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
-      set({
-        isProcessing: false,
-        lastError: `${currentPlayer.name} 的 AI 请求失败: ${errorMessage}`,
-      });
+
+      const { retryCount } = get();
+      const maxRetries = 10;
+
+      // Auto retry with exponential backoff (max 10 times)
+      if (retryCount < maxRetries) {
+        const nextRetryCount = retryCount + 1;
+        // Exponential backoff: 1s, 2s, 4s, 8s, 16s, 32s...
+        const delayMs = Math.min(1000 * Math.pow(2, retryCount), 32000);
+
+        console.log(`Auto-retrying (${nextRetryCount}/${maxRetries}) after ${delayMs}ms...`);
+
+        // Clean up failed attempt
+        cleanupFailedAttempt(gameState);
+
+        set({
+          gameState: { ...gameState },
+          isProcessing: true,
+          lastError: `${currentPlayer.name} 请求失败，${(delayMs / 1000).toFixed(0)}秒后自动重试 (${nextRetryCount}/${maxRetries})...`,
+          retryCount: nextRetryCount,
+        });
+
+        // Retry after delay
+        setTimeout(() => {
+          void get().executeCurrentPlayerAction();
+        }, delayMs);
+      } else {
+        // Max retries reached, show error to user
+        set({
+          isProcessing: false,
+          lastError: `${currentPlayer.name} 的 AI 请求失败 (已重试${maxRetries}次): ${errorMessage}`,
+          retryCount: 0,
+        });
+      }
     }
   },
 }),
@@ -462,11 +549,18 @@ function getPromptForDisplay(
   const { phase, round, messages, players } = gameState;
   const alivePlayers = getAlivePlayers(gameState);
 
-  // Filter messages based on visibility
+  // Heretics don't know they are heretics until Day 2
+  const effectiveRole = (player.role === 'heretic' && round === 1) ? 'innocent' : player.role;
+
+  // Filter messages based on visibility (use actual role for message filtering)
+  // eslint-disable-next-line complexity
   const visibleMessages = messages.filter((m) => {
     if (m.visibility === 'all') return true;
-    if (m.visibility === 'werewolf' && player.role === 'werewolf') return true;
-    if (m.visibility === 'seer' && player.role === 'seer') return true;
+    if (m.visibility === 'marked' && player.role === 'marked') return true;
+    if (m.visibility === 'listener' && player.role === 'listener') return true;
+    if (m.visibility === 'coroner' && player.role === 'coroner') return true;
+    if (m.visibility === 'guard' && player.role === 'guard') return true;
+    if (m.visibility === 'twins' && player.role === 'twin') return true;
     if (typeof m.visibility === 'object' && m.visibility.player === player.name) return true;
     // AI can see its own thinking
     if (m.type === 'thinking' && m.from === player.name) return true;
@@ -475,14 +569,16 @@ function getPromptForDisplay(
 
   const recentMessages = visibleMessages
     .filter((m) => m.type !== 'prompt')  // Exclude prompt messages
-    .slice(-50);
+    .slice(-20);  // 保留最近20条对话
 
   const roleNames: Record<string, string> = {
-    werewolf: '狼人',
-    villager: '村民',
-    seer: '预言家',
-    witch: '女巫',
-    hunter: '猎人',
+    marked: '烙印者',
+    heretic: '背誓者',
+    listener: '聆心者',
+    coroner: '食灰者',
+    twin: '共誓者',
+    guard: '设闩者',
+    innocent: '无知者',
   };
 
   const phaseNames: Record<string, string> = {
@@ -493,38 +589,41 @@ function getPromptForDisplay(
     end: '结束',
   };
 
-  // Get teammate information for werewolves
-  const werewolfTeammates = player.role === 'werewolf'
-    ? players.filter((p) => p.role === 'werewolf' && p.name !== player.name)
+  // Get teammate information for marked (use actual role)
+  const markedTeammates = player.role === 'marked'
+    ? players.filter((p) => p.role === 'marked' && p.name !== player.name)
     : [];
 
-  const roleInstructions = getRoleInstructionsForDisplay(player.role, phase, gameState.nightPhase);
+  // Use effective role for display (heretics see innocent info on day 1)
+  const roleInstructions = getRoleInstructionsForDisplay(effectiveRole, phase, gameState.nightPhase);
 
   // Get phase display name
   let phaseDisplay = phaseNames[phase];
   if (phase === 'night' && gameState.nightPhase) {
     const nightPhaseNames: Record<string, string> = {
-      'seer': '夜晚-预言家查验',
-      'werewolf-discuss': '夜晚-狼人讨论',
-      'werewolf-vote': '夜晚-狼人投票',
+      'listener': '夜晚-聆心者查验',
+      'marked-discuss': '夜晚-烙印者讨论',
+      'marked-vote': '夜晚-烙印者投票',
+      'guard': '夜晚-设闩者守护',
+      'coroner': '夜晚-食灰者验尸',
     };
     phaseDisplay = nightPhaseNames[gameState.nightPhase] || phaseDisplay;
   }
 
   return `【AI Prompt】
 玩家：${player.name}
-身份：${roleNames[player.role]}
+身份：${roleNames[effectiveRole]}
 阶段：${phaseDisplay}
 回合：${round}
 存活玩家：${alivePlayers.map((p) => p.name).join('、')}
-${werewolfTeammates.length > 0 ? `狼人队友：${werewolfTeammates.map((p) => p.name).join('、')}` : ''}
+${markedTeammates.length > 0 ? `烙印者队友：${markedTeammates.map((p) => p.name).join('、')}` : ''}
 
 ${roleInstructions}
 
 最近的对话：
 ${recentMessages.map((m) => `${m.from}: ${m.content}`).join('\n')}
 
-${getActionPrompt(phase, gameState.nightPhase, player.role)}`;
+${getActionPrompt(phase, gameState.nightPhase, effectiveRole)}`;
 }
 
 /**
@@ -584,104 +683,163 @@ function recordNightAction(
   targetName: string,
   targetPlayer: Player | undefined,
 ): void {
-  if (gameState.nightPhase === 'seer' && currentPlayer.role === 'seer') {
-    recordSeerCheck(gameState, targetName, targetPlayer);
-  } else if (gameState.nightPhase === 'werewolf-vote' && currentPlayer.role === 'werewolf') {
-    recordWerewolfVote(gameState, currentPlayer, targetName, targetPlayer);
+  if (gameState.nightPhase === 'listener' && currentPlayer.role === 'listener') {
+    recordListenerCheck(gameState, targetName, targetPlayer);
+  } else if (gameState.nightPhase === 'marked-vote' && currentPlayer.role === 'marked') {
+    recordMarkedVote(gameState, currentPlayer, targetName, targetPlayer);
+  } else if (gameState.nightPhase === 'guard' && currentPlayer.role === 'guard') {
+    recordGuardAction(gameState, targetName, targetPlayer);
   }
 }
 
 /**
- * Record seer check
+ * Record listener check
  */
-function recordSeerCheck(
+function recordListenerCheck(
   gameState: GameState,
   targetName: string,
   targetPlayer: Player | undefined,
 ): void {
   if (!targetPlayer?.isAlive) return;
 
-  // Check if target is good (not werewolf)
-  const isGood = targetPlayer.role !== 'werewolf';
+  // Check if target is clean (not marked or heretic)
+  const isClean = targetPlayer.role !== 'marked' && targetPlayer.role !== 'heretic';
 
-  gameState.seerChecks.push({
+  gameState.listenerChecks.push({
     round: gameState.round,
     target: targetName,
-    isGood,
+    isClean,
   });
 
-  const factionName = isGood ? '好人' : '狼人';
+  const factionName = isClean ? '清白' : '污秽';
 
   gameState.messages.push(
     addMessage(
       gameState,
       '旁白',
-      `查验结果：${targetName} 是 ${factionName}`,
+      `倾听结果：${targetName} 的灵魂是 ${factionName} 的`,
       'system',
-      'seer',
+      'listener',
     ),
   );
 }
 
 /**
- * Record werewolf vote
+ * Record marked vote
  */
-function recordWerewolfVote(
+function recordMarkedVote(
   gameState: GameState,
   currentPlayer: Player,
   targetName: string,
   targetPlayer: Player | undefined,
 ): void {
-  if (targetPlayer?.isAlive && targetPlayer.role !== 'werewolf') {
+  if (targetPlayer?.isAlive && targetPlayer.role !== 'marked') {
     gameState.nightVotes.push({ from: currentPlayer.name, target: targetName });
   }
 }
 
 /**
+ * Record guard action
+ */
+function recordGuardAction(
+  gameState: GameState,
+  targetName: string,
+  targetPlayer: Player | undefined,
+): void {
+  if (!targetPlayer?.isAlive) return;
+
+  // Check if guard can protect this player (not the same as last night)
+  if (gameState.lastGuardedPlayer === targetName) {
+    gameState.messages.push(
+      addMessage(
+        gameState,
+        '旁白',
+        `你不能连续两晚守护同一个人！守护失败。`,
+        'system',
+        'guard',
+      ),
+    );
+    return;
+  }
+
+  // Record guard action
+  gameState.guardRecords.push({
+    round: gameState.round,
+    target: targetName,
+  });
+
+  // Update last guarded player
+  gameState.lastGuardedPlayer = targetName;
+
+  gameState.messages.push(
+    addMessage(
+      gameState,
+      '旁白',
+      `你守护了 ${targetName}。门闩已经从外面锁好。`,
+      'system',
+      'guard',
+    ),
+  );
+}
+
+/**
  * Get role instructions for display in prompt
  */
+// eslint-disable-next-line complexity
 function getRoleInstructionsForDisplay(role: string, phase: string, nightPhase?: string): string {
-  if (role === 'werewolf') {
+  if (role === 'marked') {
     if (phase === 'night') {
-      if (nightPhase === 'werewolf-discuss') {
-        return `【狼人身份 - 讨论阶段】
-你是狼人。现在是夜晚，只有狼人能看到这些对话。
-【当前阶段】讨论今晚的击杀目标
-- 和其他狼人交流你的想法
-- 分析哪个玩家威胁最大
+      if (nightPhase === 'marked-discuss') {
+        return `【烙印者身份 - 讨论阶段】
+你是烙印者。饥饿驱使着你。现在只有烙印者能看到这些对话。
+【当前阶段】讨论今晚的猎物
+- 和其他烙印者交流你的想法
+- 分析哪个羔羊威胁最大
 - 可以提出建议但不要做最终决定
 - 保持 1-2 句话即可`;
-      } else if (nightPhase === 'werewolf-vote') {
-        return `【狼人身份 - 投票阶段】
-你是狼人。现在需要投票决定击杀目标。
+      } else if (nightPhase === 'marked-vote') {
+        return `【烙印者身份 - 投票阶段】
+你是烙印者。现在需要投票决定猎杀目标。
 【重要】投票选择今晚要杀的人
 - 根据刚才的讨论做出决定
-- 只回复要杀的玩家名字（如：Alice）
+- 只回复要杀的玩家名字（如：诺拉）
 - 不要解释原因，不要说其他内容`;
       }
     }
-    return `【狼人身份 - ${phase === 'day' ? '白天' : '投票'}阶段】
-你是狼人，但必须伪装成村民。
+    return `【烙印者身份 - ${phase === 'day' ? '白天' : '投票'}阶段】
+你是烙印者，但必须伪装成羔羊。
 【重要规则】
-- 绝不暴露自己是狼人
-- 绝不暴露其他狼人的身份
-- 像村民一样说话和投票
-- 可以指控真正的村民，转移注意力`;
+- 绝不暴露自己的烙印
+- 绝不暴露其他烙印者的身份
+- 像羔羊一样恐惧、怀疑、指控
+- 把怀疑引向真正的羔羊`;
   }
-  if (role === 'seer') {
-    if (phase === 'night' && nightPhase === 'seer') {
-      return `【预言家身份 - 查验阶段】
-你是预言家。现在是夜晚查验时间。
-【重要】选择一个玩家查验身份
+  if (role === 'listener') {
+    if (phase === 'night' && nightPhase === 'listener') {
+      return `【聆心者身份 - 查验阶段】
+你是聆心者。现在是倾听时间。
+【重要】选择一个玩家倾听其灵魂
 - 根据白天的讨论选择最可疑的人
-- 只回复要查验的玩家名字（如：Alice）
+- 只回复要查验的玩家名字（如：诺拉）
 - 不要解释原因，不要说其他内容
 - 查验结果只有你能看到`;
     }
-    return '你是预言家。每晚可以查验一名玩家的身份。谨慎使用你的知识，避免过早暴露。';
+    return '你是聆心者。每晚可以倾听一名玩家的灵魂，判断其清白或污秽。谨慎使用你的知识，避免过早暴露。';
   }
-  if (role === 'villager') {
-    return '你是村民。通过讨论和投票找出狼人。仔细观察每个人的发言和行为。';
+  if (role === 'innocent') {
+    return '你是无知者。通过讨论和投票找出烙印者。仔细观察每个人的发言和行为。';
+  }
+  if (role === 'heretic') {
+    return '你是背誓者。你的灵魂与烙印者一样污秽，但你没有任何特殊能力。制造混乱，帮助烙印者获胜。';
+  }
+  if (role === 'twin') {
+    return '你是共誓者。你知道另一个共誓者是谁，你们彼此信任。';
+  }
+  if (role === 'guard') {
+    return '你是设闩者。每晚可以锁死一个人的房门，保护其免受烙印者的袭击。';
+  }
+  if (role === 'coroner') {
+    return '你是食灰者。每晚可以检查被献祭者的真实身份。';
   }
   return '';
 }
@@ -701,6 +859,8 @@ function handleDayVotingResult(
       gameState.messages.push(
         addMessage(gameState, '旁白', '再次平票！本回合不淘汰任何人。', 'system', 'all'),
       );
+      // Clear last sacrificed player since no one was eliminated
+      gameState.lastSacrificedPlayer = undefined;
       enterNightPhase(gameState);
     } else {
       // First tie - enter revote discussion phase
@@ -725,7 +885,12 @@ function handleDayVotingResult(
       const player = gameState.players.find((p) => p.id === eliminated.id);
       if (player) {
         player.isAlive = false;
+        // Record sacrificed player for coroner
+        gameState.lastSacrificedPlayer = player.name;
       }
+    } else {
+      // No one eliminated - clear last sacrificed
+      gameState.lastSacrificedPlayer = undefined;
     }
     enterNightPhase(gameState);
   }
@@ -754,6 +919,78 @@ function handleNightKillResult(
   gameState.messages.push(
     addMessage(gameState, '旁白', `第 ${gameState.round} 回合。天亮了！`, 'system', 'all'),
   );
+
+  // On Day 2, reveal heretic existence to marked players and awaken the heretic
+  if (gameState.round === 2) {
+    const hereticPlayer = gameState.players.find((p) => p.role === 'heretic' && p.isAlive);
+    if (hereticPlayer) {
+      // Send awakening message to heretic only
+      gameState.messages.push(
+        addMessage(
+          gameState,
+          '山灵',
+          `【灵魂的堕落】
+
+昨夜，黑暗侵蚀了你的意识。
+
+你感到某种邪恶的力量在你体内苏醒。
+你的思想开始扭曲。你的欲望开始改变。
+
+你不再是"人"。
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【你堕落成了背誓者】
+
+你的灵魂现在和那些"收割者"一样污秽。
+你渴望羔羊的失败。你渴望收割阵营的胜利。
+
+但你不知道收割者是谁。
+他们今天会知道"有背誓者存在"，但他们不知道是你。
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【你现在的目标】
+
+- 制造混乱，误导羔羊们
+- 保护那些收割者（虽然你不知道他们是谁）
+- 用你的投票把羔羊引向错误的方向
+- 绝不暴露自己
+
+如果被聆心者查验，你会显示为"污秽"。
+如果被发现，你会被献祭。那是真正的死亡。
+
+你是孤独的。你是脆弱的。
+活下去。帮助收割阵营获胜。`,
+          'system',
+          { player: hereticPlayer.name },
+        ),
+      );
+
+      // Send existence notification to marked players
+      gameState.messages.push(
+        addMessage(
+          gameState,
+          '山灵',
+          `【暗语】
+
+昨夜，你们感受到了某种异样的气息。
+
+有人背叛了"人"。有人的灵魂已经污秽。
+
+但那个人不是你们选中的。那个人是自愿堕落的。
+
+【背誓者】已经出现。TA 的灵魂和你们一样污秽，但 TA 不知道你们是谁，你们也不知道 TA 是谁。
+
+TA 无法参与你们的夜晚狩猎，但 TA 会在白天帮助你们。
+
+寻找 TA。或者利用 TA。`,
+          'system',
+          'marked',
+        ),
+      );
+    }
+  }
 }
 
 /**
@@ -761,21 +998,21 @@ function handleNightKillResult(
  */
 function enterNightPhase(gameState: GameState): void {
   gameState.phase = 'night';
-  gameState.nightPhase = 'seer';
+  gameState.nightPhase = 'listener';
   gameState.currentPlayerIndex = 0;
   gameState.nightVotes = [];
   gameState.isRevote = false;
   gameState.tiedPlayers = [];
 
-  const seer = gameState.players.find((p) => p.role === 'seer' && p.isAlive);
-  if (seer) {
+  const listener = gameState.players.find((p) => p.role === 'listener' && p.isAlive);
+  if (listener) {
     gameState.messages.push(
-      addMessage(gameState, '旁白', '夜幕降临... 预言家请睁眼', 'system', 'all'),
+      addMessage(gameState, '旁白', '夜幕降临... 寂静山庄陷入黑暗。', 'system', 'all'),
     );
   } else {
-    gameState.nightPhase = 'werewolf-discuss';
+    gameState.nightPhase = 'marked-discuss';
     gameState.messages.push(
-      addMessage(gameState, '旁白', '夜幕降临... 狼人请睁眼', 'system', 'all'),
+      addMessage(gameState, '旁白', '夜幕降临... 饥饿者的时刻到了。', 'system', 'all'),
     );
   }
 }
@@ -791,17 +1028,91 @@ function getActionPrompt(phase: string, nightPhase: string | undefined, role: st
     return '请投票选择一个玩家（只回复名字）';
   }
   if (phase === 'night') {
-    if (nightPhase === 'seer' && role === 'seer') {
-      return '请选择要查验的玩家（只回复名字）';
+    if (nightPhase === 'listener' && role === 'listener') {
+      return '请选择要倾听的玩家（只回复名字）';
     }
-    if (nightPhase === 'werewolf-discuss' && role === 'werewolf') {
+    if (nightPhase === 'marked-discuss' && role === 'marked') {
       return '请和队友讨论今晚的目标';
     }
-    if (nightPhase === 'werewolf-vote' && role === 'werewolf') {
+    if (nightPhase === 'marked-vote' && role === 'marked') {
       return '请投票选择今晚要杀的玩家（只回复名字）';
     }
   }
   return '';
+}
+
+/**
+ * Clean up messages and actions from a failed AI attempt
+ */
+function cleanupFailedAttempt(gameState: GameState): void {
+  // Get current player
+  let alivePlayers = getAlivePlayers(gameState);
+  if (gameState.phase === 'night' && gameState.nightPhase) {
+    if (gameState.nightPhase === 'listener') {
+      alivePlayers = alivePlayers.filter((p) => p.role === 'listener');
+    } else if (gameState.nightPhase === 'marked-discuss' || gameState.nightPhase === 'marked-vote') {
+      alivePlayers = alivePlayers.filter((p) => p.role === 'marked');
+    } else if (gameState.nightPhase === 'guard') {
+      alivePlayers = alivePlayers.filter((p) => p.role === 'guard');
+    }
+  }
+  if (gameState.phase === 'day' && gameState.isRevote && gameState.tiedPlayers.length > 0) {
+    alivePlayers = alivePlayers.filter((p) => !gameState.tiedPlayers.includes(p.name));
+  }
+
+  const currentPlayer = alivePlayers[gameState.currentPlayerIndex];
+  if (!currentPlayer) return;
+
+  // Remove all messages from this player in current round/phase
+  // Use filter to avoid index shifting issues with splice
+  gameState.messages = gameState.messages.filter(msg => {
+    // Keep messages that are NOT from current player in current round/phase
+    if (msg.from === currentPlayer.name &&
+        msg.round === gameState.round &&
+        msg.phase === gameState.phase &&
+        (msg.type === 'prompt' || msg.type === 'thinking' ||
+         msg.type === 'speech' || msg.type === 'vote')) {
+      // This message should be removed
+      return false;
+    }
+    // Keep all other messages
+    return true;
+  });
+
+  // Also clean up any votes/actions that might have been recorded
+  // Remove day votes from this player
+  const dayVoteIndex = gameState.votes.findIndex((v) => v.from === currentPlayer.name);
+  if (dayVoteIndex !== -1) {
+    gameState.votes.splice(dayVoteIndex, 1);
+  }
+
+  // Remove night votes from this player
+  const nightVoteIndex = gameState.nightVotes.findIndex((v) => v.from === currentPlayer.name);
+  if (nightVoteIndex !== -1) {
+    gameState.nightVotes.splice(nightVoteIndex, 1);
+  }
+
+  // Remove listener check from this round if this player is listener
+  if (currentPlayer.role === 'listener') {
+    const listenerCheckIndex = gameState.listenerChecks.findLastIndex(
+      (c) => c.round === gameState.round
+    );
+    if (listenerCheckIndex !== -1) {
+      gameState.listenerChecks.splice(listenerCheckIndex, 1);
+    }
+  }
+
+  // Remove guard record from this round if this player is guard
+  if (currentPlayer.role === 'guard') {
+    const guardRecordIndex = gameState.guardRecords.findLastIndex(
+      (r) => r.round === gameState.round
+    );
+    if (guardRecordIndex !== -1) {
+      gameState.guardRecords.splice(guardRecordIndex, 1);
+      // Also reset lastGuardedPlayer if we're removing the record
+      gameState.lastGuardedPlayer = gameState.guardRecords[gameState.guardRecords.length - 1]?.target;
+    }
+  }
 }
 
 /**

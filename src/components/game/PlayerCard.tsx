@@ -12,13 +12,15 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useGameStore } from '@/stores/game-store';
 import {
-  Dog,
   User,
-  Eye,
-  Sparkles,
-  Target,
   Bot,
   Skull,
+  Flame,
+  Ghost,
+  Ear,
+  Search,
+  Users,
+  Shield,
 } from 'lucide-react';
 
 interface PlayerCardProps {
@@ -31,55 +33,65 @@ interface PlayerCardProps {
  * Role color mapping for badges
  */
 const roleColors: Record<string, string> = {
-  werewolf: 'bg-red-600 hover:bg-red-700',
-  villager: 'bg-blue-600 hover:bg-blue-700',
-  seer: 'bg-purple-600 hover:bg-purple-700',
-  witch: 'bg-green-600 hover:bg-green-700',
-  hunter: 'bg-orange-600 hover:bg-orange-700',
+  marked: 'bg-red-600 hover:bg-red-700',
+  heretic: 'bg-slate-700 hover:bg-slate-800',
+  listener: 'bg-purple-600 hover:bg-purple-700',
+  coroner: 'bg-cyan-700 hover:bg-cyan-800',
+  twin: 'bg-teal-600 hover:bg-teal-700',
+  guard: 'bg-amber-600 hover:bg-amber-700',
+  innocent: 'bg-blue-600 hover:bg-blue-700',
 };
 
 /**
  * Role border colors for cards
  */
 const roleBorderColors: Record<string, string> = {
-  werewolf: 'border-red-500/50',
-  villager: 'border-blue-500/50',
-  seer: 'border-purple-500/50',
-  witch: 'border-green-500/50',
-  hunter: 'border-orange-500/50',
+  marked: 'border-red-500/50',
+  heretic: 'border-slate-500/50',
+  listener: 'border-purple-500/50',
+  coroner: 'border-cyan-500/50',
+  twin: 'border-teal-500/50',
+  guard: 'border-amber-500/50',
+  innocent: 'border-blue-500/50',
 };
 
 /**
  * Role gradient colors for avatars
  */
 const roleGradients: Record<string, string> = {
-  werewolf: 'from-red-600 to-red-800',
-  villager: 'from-blue-600 to-blue-800',
-  seer: 'from-purple-600 to-purple-800',
-  witch: 'from-green-600 to-green-800',
-  hunter: 'from-orange-600 to-orange-800',
+  marked: 'from-red-600 to-red-900',
+  heretic: 'from-slate-600 to-slate-900',
+  listener: 'from-purple-600 to-purple-900',
+  coroner: 'from-cyan-700 to-cyan-900',
+  twin: 'from-teal-600 to-teal-900',
+  guard: 'from-amber-600 to-amber-900',
+  innocent: 'from-blue-600 to-blue-900',
 };
 
 /**
  * Role icon components
  */
 const roleIconComponents: Record<string, React.ComponentType<{ className?: string }>> = {
-  werewolf: Dog,
-  villager: User,
-  seer: Eye,
-  witch: Sparkles,
-  hunter: Target,
+  marked: Flame,
+  heretic: Ghost,
+  listener: Ear,
+  coroner: Search,
+  twin: Users,
+  guard: Shield,
+  innocent: User,
 };
 
 /**
  * Role names in Chinese
  */
 const roleNames: Record<string, string> = {
-  werewolf: '狼人',
-  villager: '村民',
-  seer: '预言家',
-  witch: '女巫',
-  hunter: '猎人',
+  marked: '烙印者',
+  heretic: '背誓者',
+  listener: '聆心者',
+  coroner: '食灰者',
+  twin: '共誓者',
+  guard: '设闩者',
+  innocent: '无知者',
 };
 
 /**

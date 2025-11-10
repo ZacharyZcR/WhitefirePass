@@ -21,7 +21,6 @@ import {
   Pause,
   Dog,
   Users,
-  Eye,
   AlertTriangle,
   CheckCircle2,
   ArrowRight,
@@ -31,8 +30,18 @@ import {
 } from 'lucide-react';
 
 const DEFAULT_CONFIG: GameConfig = {
-  playerCount: 6,
-  roles: ['werewolf', 'werewolf', 'villager', 'villager', 'villager', 'seer'],
+  playerCount: 15,
+  roles: [
+    // 收割阵营 (4人)
+    'marked', 'marked', 'marked',  // 烙印者 x3
+    'heretic',  // 背誓者 x1
+    // 羔羊阵营 (11人)
+    'listener',  // 聆心者 x1
+    'coroner',   // 食灰者 x1
+    'twin', 'twin',  // 共誓者 x2
+    'guard',  // 设闩者 x1
+    'innocent', 'innocent', 'innocent', 'innocent', 'innocent', 'innocent',  // 无知者 x6
+  ],
   enableWitch: false,
   enableHunter: false,
 };
@@ -107,18 +116,18 @@ function ErrorDisplay({
 function DefaultConfigInfo() {
   return (
     <div className="rounded-lg bg-muted p-3 space-y-2">
-      <p className="text-sm font-medium">默认配置：</p>
-      <ul className="text-xs space-y-1 text-muted-foreground">
-        <li>• 6 名玩家（全部为 AI）</li>
-        <li className="flex items-center gap-1">
-          • 2 名狼人 <Dog className="w-3 h-3" />
-        </li>
-        <li className="flex items-center gap-1">
-          • 3 名村民 <Users className="w-3 h-3" />
-        </li>
-        <li className="flex items-center gap-1">
-          • 1 名预言家 <Eye className="w-3 h-3" />
-        </li>
+      <p className="text-sm font-medium">白烬山口 - 寂静山庄</p>
+      <p className="text-xs text-muted-foreground">15 名旅人被暴风雪困于山庄，山灵的契约已成...</p>
+      <ul className="text-xs space-y-1 text-muted-foreground mt-2">
+        <li className="font-semibold">收割阵营 (4人):</li>
+        <li className="pl-2">• 3 名烙印者 (The Marked)</li>
+        <li className="pl-2">• 1 名背誓者 (The Heretic)</li>
+        <li className="font-semibold mt-2">羔羊阵营 (11人):</li>
+        <li className="pl-2">• 1 名聆心者 (The Heart-Listener)</li>
+        <li className="pl-2">• 1 名食灰者 (The Ash-Walker)</li>
+        <li className="pl-2">• 2 名共誓者 (The Co-Sworn)</li>
+        <li className="pl-2">• 1 名设闩者 (The Bar-Setter)</li>
+        <li className="pl-2">• 6 名无知者 (The Unknowing)</li>
       </ul>
     </div>
   );
@@ -215,13 +224,13 @@ function ControlTabContent({
 function CurrentPlayerDisplay({ gameState }: { gameState: GameState }) {
   const alivePlayers = gameState.players
     .filter((p) => p.isAlive)
-    .filter((p) => gameState.phase !== 'night' || p.role === 'werewolf');
+    .filter((p) => gameState.phase !== 'night' || p.role === 'marked');
   const currentPlayer = alivePlayers[gameState.currentPlayerIndex];
 
   return (
     <div className="rounded-lg bg-blue-50 p-3">
       <p className="text-sm font-medium text-blue-900">
-        当前操作玩家：{currentPlayer ? currentPlayer.name : '阶段结束'}
+        当前操作：{currentPlayer ? currentPlayer.name : '等待下一阶段'}
       </p>
     </div>
   );

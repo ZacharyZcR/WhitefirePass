@@ -5,7 +5,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import type { Message } from '@/types/game';
+import type { Message, Player } from '@/types/game';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import {
@@ -16,12 +16,11 @@ import {
   Activity,
   FileText,
   AlertCircle,
-  Star,
-  Zap
 } from 'lucide-react';
 
 interface MessageFlowProps {
   messages: Message[];
+  players?: Player[];  // Optional players list to show roles
   filterTypes?: string[];  // Optional filter for message types
 }
 
@@ -98,25 +97,6 @@ function getMessageIcon(type: string) {
 }
 
 /**
- * Check if message is a critical event
- */
-function isCriticalEvent(message: Message): boolean {
-  const content = message.content.toLowerCase();
-  return (
-    message.type === 'death' ||
-    message.type === 'action' ||
-    content.includes('被') ||
-    content.includes('杀') ||
-    content.includes('死亡') ||
-    content.includes('淘汰') ||
-    content.includes('查验') ||
-    content.includes('平票') ||
-    content.includes('获胜') ||
-    content.includes('结束')
-  );
-}
-
-/**
  * Render message content based on type
  */
 function renderMessageContent(message: Message) {
@@ -141,24 +121,39 @@ function renderMessageContent(message: Message) {
 }
 
 /**
+ * Role names in Chinese
+ */
+const roleNames: Record<string, string> = {
+  marked: '烙印者',
+  heretic: '背誓者',
+  listener: '聆心者',
+  coroner: '食灰者',
+  twin: '共誓者',
+  guard: '设闩者',
+  innocent: '无知者',
+};
+
+/**
  * Render message badges
  */
-function MessageBadges({ message, isCritical, messageTypeName }: {
+function MessageBadges({ message, messageTypeName, playerRole }: {
   message: Message;
-  isCritical: boolean;
   messageTypeName: string;
+  playerRole?: string;
 }) {
   return (
     <>
       {message.type !== 'system' && (
-        <Badge variant="outline" className="text-xs flex items-center gap-1">
-          {messageTypeName}
-        </Badge>
-      )}
-      {isCritical && (
-        <Badge className="text-xs bg-yellow-600 hover:bg-yellow-700">
-          关键事件
-        </Badge>
+        <>
+          <Badge variant="outline" className="text-xs flex items-center gap-1">
+            {messageTypeName}
+          </Badge>
+          {playerRole && (
+            <Badge variant="secondary" className="text-xs">
+              {roleNames[playerRole] || playerRole}
+            </Badge>
+          )}
+        </>
       )}
     </>
   );
@@ -167,39 +162,35 @@ function MessageBadges({ message, isCritical, messageTypeName }: {
 /**
  * Individual message item component
  */
-function MessageItem({ message, index }: { message: Message; index: number }) {
-  const isCritical = isCriticalEvent(message);
+function MessageItem({ message, index, players }: {
+  message: Message;
+  index: number;
+  players?: Player[];
+}) {
   const messageStyle = messageStyles[message.type] ?? 'bg-card';
   const messageTypeName = messageTypeNames[message.type] ?? message.type;
   const phaseName = message.phase ? (phaseNames[message.phase] ?? message.phase) : '';
   const contentColor = message.type === 'thinking' ? 'text-emerald-400' : 'text-foreground';
   const showPhaseInfo = Boolean(message.phase && message.round);
 
+  // Find player role (for user to see, doesn't affect game logic)
+  const playerRole = players?.find(p => p.name === message.from)?.role;
+
   return (
     <div
       className={cn(
-        'rounded-lg p-3 shadow-md animate-in fade-in slide-in-from-bottom-4 duration-500 relative',
+        'rounded-lg p-3 shadow-md animate-in fade-in slide-in-from-bottom-4 duration-500',
         messageStyle,
-        isCritical && 'ring-2 ring-yellow-500/40 shadow-yellow-500/10',
       )}
       style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
     >
-      {isCritical && (
-        <div className="absolute -top-2 -right-2">
-          <div className="relative">
-            <Star className="w-5 h-5 text-yellow-500 fill-yellow-500 animate-pulse" />
-            <Zap className="w-3 h-3 text-yellow-300 absolute top-1 left-1" />
-          </div>
-        </div>
-      )}
-
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {getMessageIcon(message.type)}
           <span className="font-bold text-sm text-foreground">
             {message.from}
           </span>
-          <MessageBadges message={message} isCritical={isCritical} messageTypeName={messageTypeName} />
+          <MessageBadges message={message} messageTypeName={messageTypeName} playerRole={playerRole} />
         </div>
         <span className="text-xs text-muted-foreground">
           {formatTime(message.timestamp)}
@@ -219,7 +210,7 @@ function MessageItem({ message, index }: { message: Message; index: number }) {
   );
 }
 
-export function MessageFlow({ messages, filterTypes }: MessageFlowProps) {
+export function MessageFlow({ messages, players, filterTypes }: MessageFlowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Filter messages if filterTypes is provided
@@ -241,7 +232,7 @@ export function MessageFlow({ messages, filterTypes }: MessageFlowProps) {
         </div>
       ) : (
         filteredMessages.map((message, idx) => (
-          <MessageItem key={message.id} message={message} index={idx} />
+          <MessageItem key={message.id} message={message} index={idx} players={players} />
         ))
       )}
     </div>

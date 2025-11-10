@@ -3,8 +3,8 @@ import './globals.css';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'React Template',
-  description: 'A highly engineered React + Next.js template',
+  title: '白烬山口 - Whitefire Pass',
+  description: '15名旅人被困于寂静山庄，在山灵的契约下展开生死博弈',
 };
 
 /**

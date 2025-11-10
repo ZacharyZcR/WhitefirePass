@@ -1,5 +1,6 @@
 /**
  * Core game engine - pure functions for game logic
+ * 白烬山口 (Whitefire Pass) - 寂静山庄 (Silent Lodge)
  */
 
 import type {
@@ -9,6 +10,7 @@ import type {
   GamePhase,
   Role,
   GameConfig,
+  TwinPair,
 } from '@/types/game';
 
 /**
@@ -16,6 +18,13 @@ import type {
  */
 export function createGame(config: GameConfig): GameState {
   const players = createPlayers(config.roles);
+
+  // Find twins and create twin pair
+  const twins = players.filter((p) => p.role === 'twin');
+  const twinPair: TwinPair | undefined =
+    twins.length === 2
+      ? { twin1: twins[0].name, twin2: twins[1].name }
+      : undefined;
 
   // Count roles
   const roleCounts = config.roles.reduce(
@@ -26,19 +35,6 @@ export function createGame(config: GameConfig): GameState {
     {} as Record<string, number>,
   );
 
-  const roleNames: Record<string, string> = {
-    werewolf: '狼人',
-    villager: '村民',
-    seer: '预言家',
-    witch: '女巫',
-    hunter: '猎人',
-  };
-
-  // Build role description
-  const roleDescription = Object.entries(roleCounts)
-    .map(([role, count]) => `${roleNames[role]}${count}人`)
-    .join('、');
-
   return {
     phase: 'setup',
     round: 0,
@@ -47,8 +43,12 @@ export function createGame(config: GameConfig): GameState {
       {
         id: generateId(),
         type: 'system',
-        from: '旁白',
-        content: '游戏开始！正在分配角色...',
+        from: '山灵',
+        content: `白烬山口，寂静山庄。
+
+一场非自然的暴风雪，将 ${config.roles.length} 名旅人驱赶至此。
+
+大门轰然关闭。篝火散发着无温度的冰冷白光。`,
         timestamp: Date.now(),
         round: 0,
         phase: 'setup',
@@ -57,8 +57,12 @@ export function createGame(config: GameConfig): GameState {
       {
         id: generateId(),
         type: 'system',
-        from: '旁白',
-        content: `本局共${config.roles.length}人参与游戏。角色配置：${roleDescription}。`,
+        from: '山灵',
+        content: `"契约已成。盛宴开始。"
+
+"在你们之中，我播撒了'饥饿'。"
+
+"现在，用你们的猜疑和恐惧，来取悦我。"`,
         timestamp: Date.now() + 1,
         round: 0,
         phase: 'setup',
@@ -68,24 +72,39 @@ export function createGame(config: GameConfig): GameState {
         id: generateId(),
         type: 'system',
         from: '旁白',
-        content: `【游戏流程说明】
-游戏从第1回合的白天开始，每个回合包含以下阶段：
+        content: `【身份已被烙印】
 
-1. 白天讨论阶段：所有存活玩家依次发言，分享信息和推理
-2. 投票阶段：所有存活玩家投票选择要淘汰的玩家
-3. 夜晚阶段：
-   - 预言家查验一名玩家的身份（如果预言家存活）
-   - 狼人讨论并投票选择击杀目标
+收割阵营：${roleCounts['marked'] || 0}名烙印者
+羔羊阵营：${roleCounts['listener'] || 0}名聆心者、${roleCounts['coroner'] || 0}名食灰者、${roleCounts['twin'] || 0}名共誓者、${roleCounts['guard'] || 0}名设闩者、${roleCounts['innocent'] || 0}名无知者
 
-重要规则：
-• 游戏没有第0晚，第1回合白天时预言家还没有查验信息
-• 预言家的第一次查验发生在第1回合夜晚，结果在第2回合白天才能使用
-• 狼人之间可以看到彼此的身份，但其他玩家不知道谁是狼人
-• 预言家的查验结果只有预言家自己能看到
-• 好人阵营（村民+预言家）需要找出并投票淘汰所有狼人
-• 狼人阵营需要通过夜晚击杀和白天误导，让狼人数量≥好人数量
+【角色说明】
 
-现在，第1回合白天开始！`,
+▸ 烙印者（收割阵营）
+  - 每晚集体投票杀死一名玩家
+  - 白天必须伪装成羔羊
+  - 目标：消灭所有羔羊
+
+▸ 聆心者（羔羊阵营）
+  - 每晚可查验一名玩家是"清白"还是"污秽"
+  - 掌握关键信息，但容易成为目标
+
+▸ 食灰者（羔羊阵营）
+  - 每次白天献祭后，当晚会得知被献祭者是"清白"还是"污秽"
+
+▸ 共誓者（羔羊阵营）
+  - 两名共誓者互相知晓身份
+  - 是彼此唯一的绝对信任
+
+▸ 设闩者（羔羊阵营）
+  - 每晚可守护一名玩家（不能是自己）
+  - 被守护者当晚不会被杀
+  - 不能连续两晚守护同一人
+
+▸ 无知者（羔羊阵营）
+  - 没有特殊能力
+  - 依靠观察和推理找出收割者
+
+夜幕即将降临。第一个夜晚开始...`,
         timestamp: Date.now() + 2,
         round: 0,
         phase: 'setup',
@@ -95,7 +114,10 @@ export function createGame(config: GameConfig): GameState {
     votes: [],
     nightVotes: [],
     nightActions: [],
-    seerChecks: [],
+    listenerChecks: [],
+    coronerReports: [],
+    guardRecords: [],
+    twinPair,
     createdAt: Date.now(),
     lastUpdated: Date.now(),
     currentPlayerIndex: 0,
@@ -113,25 +135,27 @@ export function createGame(config: GameConfig): GameState {
  */
 function createPlayers(roles: Role[]): Player[] {
   const names = [
-    'Alice',
-    'Bob',
-    'Carol',
-    'Dave',
-    'Eve',
-    'Frank',
-    'Grace',
-    'Henry',
+    '诺拉', '马库斯', '艾琳', '托马斯', '莉迪亚',
+    '奥利弗', '索菲亚', '塞缪尔', '克莱尔', '维克多',
+    '艾米莉', '本杰明', '伊莎贝拉', '亚历山大', '夏洛特',
   ];
 
   const personalities = [
-    '你是一个逻辑严密的分析型高手，擅长通过细节推理找出矛盾和破绽。你习惯建立完整的推理链条，从发言时机、用词选择、投票行为等多维度交叉验证。你的发言通常逻辑清晰、条理分明，善于用演绎推理说服他人。',
-    '你是一个直觉敏锐的心理分析专家，擅长通过微表情、语气变化、情绪波动来判断真伪。你有极强的共情能力和洞察力，能快速识别他人的紧张、撒谎或隐藏信息。你相信第一直觉，但也会用理性分析验证直觉。',
-    '你是一个深藏不露的战略大师，擅长长线布局和信息收集。你很少在前期暴露观点，而是默默观察所有人的行为模式，在关键时刻用积累的信息一击制胜。你的发言往往一针见血，切中要害。',
-    '你是一个强势的指挥官型玩家，擅长整合信息、组织讨论、推动节奏。你有很强的领导力和说服力，敢于在混乱局面中提出明确方向。你习惯主导投票，建立逻辑框架引导其他玩家思考。',
-    '你是一个善于伪装的高级玩家，外表轻松幽默，实则心思缜密。你用风趣的方式降低他人警惕，同时暗中观察每个人的反应。你的分析藏在玩笑中，往往在不经意间透露关键信息或引导节奏。',
-    '你是一个冷静的数据分析专家，擅长用概率论、博弈论和统计思维分析局势。你会记录每个人的发言次数、投票倾向、行为模式，用量化数据支撑判断。你的推理基于客观事实，很少受情绪影响。',
-    '你是一个经验丰富的老手，擅长多层博弈和心理战。你深知常规套路，因此总是能预判他人的想法并反向操作。你喜欢设置陷阱、试探反应，用反常识的视角发现隐藏的真相。',
-    '你是一个全局视野的战术家，擅长从整体态势推演局势走向。你会综合分析阵营平衡、关键角色存活情况、信息透明度等因素，制定最优化的战术方案。你的思考总是领先一步，预判各方的后续行动。',
+    '你是一个冷静理智的学者，习惯用逻辑推理分析一切。即使身处恐怖之中，你也能保持头脑清醒，从细节中寻找线索。',
+    '你是一个经验丰富的猎人，对危险有着敏锐的直觉。你善于观察他人的微表情和肢体语言，能快速判断谁在说谎。',
+    '你是一个内向谨慎的研究员，不轻易表达观点，但每次发言都经过深思熟虑。你擅长记录和分析他人的行为模式。',
+    '你是一个果断强势的领导者，习惯主导讨论和决策。你有很强的说服力，但有时过于自信可能导致判断失误。',
+    '你是一个善解人意的医生，擅长从情感层面理解他人。你相信人性本善，但也明白绝境中人性的扭曲。',
+    '你是一个玩世不恭的流浪者，用黑色幽默掩饰内心的恐惧。你的分析往往隐藏在玩笑话中，让人难以捉摸。',
+    '你是一个精明的商人，擅长权衡利弊和概率计算。你会用数据和逻辑来支撑你的每一个判断。',
+    '你是一个沉默寡言的工匠，只在关键时刻发声。你的观察力极强，往往能发现别人忽略的细节。',
+    '你是一个热情外向的教师，善于组织讨论和整合信息。你试图用理性对抗恐惧，让大家团结起来。',
+    '你是一个多疑警惕的侦探，对一切都保持怀疑态度。你擅长设置陷阱和试探，用反问揭露矛盾。',
+    '你是一个温柔坚韧的护士，在混乱中试图保护他人。你相信观察比质问更有效，习惯倾听而非指责。',
+    '你是一个冷酷现实的军人，只关注事实和证据。你的发言简洁有力，从不浪费时间在情绪上。',
+    '你是一个敏感脆弱的艺术家，容易被恐惧支配，但有时直觉反而最准确。你的情绪化表达可能暴露真相，也可能被利用。',
+    '你是一个老谋深算的政客，擅长操纵舆论和引导节奏。你深知人性的弱点，善于利用混乱达成目标。',
+    '你是一个单纯善良的学生，对这一切感到恐惧和困惑。你缺乏经验，但真诚的态度可能成为你的保护伞。',
   ];
 
   const shuffledRoles = shuffle([...roles]);
@@ -169,24 +193,30 @@ export function advancePhase(state: GameState): GamePhase {
  */
 export function checkWinCondition(
   state: GameState,
-): 'werewolf' | 'villager' | null {
+): 'marked' | 'lamb' | null {
   const alivePlayers = state.players.filter((p) => p.isAlive);
-  const aliveWerewolves = alivePlayers.filter((p) => p.role === 'werewolf');
-  const aliveVillagers = alivePlayers.filter((p) => p.role !== 'werewolf');
+  const aliveMarked = alivePlayers.filter(
+    (p) => p.role === 'marked' || p.role === 'heretic',
+  );
+  const aliveLambs = alivePlayers.filter(
+    (p) => p.role !== 'marked' && p.role !== 'heretic',
+  );
 
-  if (aliveWerewolves.length === 0) {
-    return 'villager';
+  // 所有烙印者+背誓者被淘汰，羔羊获胜
+  if (aliveMarked.length === 0) {
+    return 'lamb';
   }
 
-  if (aliveWerewolves.length >= aliveVillagers.length) {
-    return 'werewolf';
+  // 烙印者+背誓者数量 >= 羔羊数量，收割阵营获胜
+  if (aliveMarked.length >= aliveLambs.length) {
+    return 'marked';
   }
 
   return null;
 }
 
 /**
- * Process night phase - werewolf kill based on votes
+ * Process night phase - marked kill based on votes
  */
 export function processNightPhase(state: GameState): {
   killedPlayer: Player | null;
@@ -197,7 +227,7 @@ export function processNightPhase(state: GameState): {
   if (state.nightVotes.length === 0) {
     return {
       killedPlayer: null,
-      message: createMessage('旁白', '昨夜平安无事'),
+      message: createMessage('旁白', '白蜡篝火跳动。这一夜，无人死去。'),
       isTied: false,
       tiedPlayers: [],
     };
@@ -231,19 +261,34 @@ export function processNightPhase(state: GameState): {
       killedPlayer: null,
       message: createMessage(
         '旁白',
-        `狼人投票平票！${playersWithMaxVotes.join('、')} 各得 ${maxVotes} 票。需要重新讨论投票。`,
+        `烙印者们的意见分歧。${playersWithMaxVotes.join('、')} 各得 ${maxVotes} 票。需要重新商议。`,
       ),
       isTied: true,
       tiedPlayers: playersWithMaxVotes,
     };
   }
 
-  const player = state.players.find((p) => p.name === playersWithMaxVotes[0]);
+  const targetName = playersWithMaxVotes[0];
+  const player = state.players.find((p) => p.name === targetName);
 
   if (!player || !player.isAlive) {
     return {
       killedPlayer: null,
-      message: createMessage('旁白', '昨夜平安无事'),
+      message: createMessage('旁白', '白蜡篝火跳动。这一夜，无人死去。'),
+      isTied: false,
+      tiedPlayers: [],
+    };
+  }
+
+  // Check if player was guarded
+  const lastGuardRecord = state.guardRecords[state.guardRecords.length - 1];
+  if (lastGuardRecord && lastGuardRecord.target === targetName && lastGuardRecord.round === state.round) {
+    return {
+      killedPlayer: null,
+      message: createMessage(
+        '旁白',
+        `门闩阻挡了利爪。${targetName} 的房门从外被锁死，躲过了一劫。`,
+      ),
       isTied: false,
       tiedPlayers: [],
     };
@@ -253,7 +298,7 @@ export function processNightPhase(state: GameState): {
     killedPlayer: player,
     message: createMessage(
       '旁白',
-      `昨夜 ${player.name} 被狼人杀害了`,
+      `黎明时分，${player.name} 的房门被推开。冰冷的尸体躺在地上，灵魂已被收割。`,
     ),
     isTied: false,
     tiedPlayers: [],
@@ -272,7 +317,7 @@ export function processVoting(state: GameState): {
   if (state.votes.length === 0) {
     return {
       eliminated: null,
-      message: createMessage('旁白', '没有人投票'),
+      message: createMessage('旁白', '无人被选为献祭。'),
       isTied: false,
       tiedPlayers: [],
     };
@@ -305,7 +350,7 @@ export function processVoting(state: GameState): {
       eliminated: null,
       message: createMessage(
         '旁白',
-        `投票结果平票！${playersWithMaxVotes.join('、')} 各得 ${maxVotes} 票。`,
+        `献祭石的指向分散。${playersWithMaxVotes.join('、')} 各得 ${maxVotes} 票。平票，无人被献祭。`,
       ),
       isTied: true,
       tiedPlayers: playersWithMaxVotes,
@@ -317,7 +362,7 @@ export function processVoting(state: GameState): {
   if (!player) {
     return {
       eliminated: null,
-      message: createMessage('旁白', '没有人被淘汰'),
+      message: createMessage('旁白', '无人被选为献祭。'),
       isTied: false,
       tiedPlayers: [],
     };
@@ -327,7 +372,7 @@ export function processVoting(state: GameState): {
     eliminated: player,
     message: createMessage(
       '旁白',
-      `${player.name} 被投票淘汰了。`,
+      `献祭仪式完成。${player.name} 被推入白蜡篝火，化为灰烬。`,
     ),
     isTied: false,
     tiedPlayers: [],

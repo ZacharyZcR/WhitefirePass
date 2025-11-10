@@ -1,19 +1,14 @@
 /**
- * Faction statistics component - shows villagers vs werewolves
+ * Faction statistics component - shows alive players by faction
+ * 白烬山口 (Whitefire Pass) - 阵营对抗统计
  */
 
 'use client';
 
-import type { GameState } from '@/types/game';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Users, Dog, Shield, Swords, AlertTriangle, CheckCircle2, Target } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import type { GameState } from '@/types/game';
+import { Swords, Shield, Skull, AlertTriangle, CheckCircle2, Target } from 'lucide-react';
 
 interface FactionStatsProps {
   gameState: GameState;
@@ -21,15 +16,21 @@ interface FactionStatsProps {
 
 export function FactionStats({ gameState }: FactionStatsProps) {
   const alivePlayers = gameState.players.filter((p) => p.isAlive);
-  const aliveWerewolves = alivePlayers.filter((p) => p.role === 'werewolf');
-  const aliveVillagers = alivePlayers.filter((p) => p.role !== 'werewolf');
+  // 收割阵营 = 烙印者 + 背誓者
+  const aliveHarvest = alivePlayers.filter(
+    (p) => p.role === 'marked' || p.role === 'heretic',
+  );
+  // 羔羊阵营 = 所有其他人
+  const aliveLambs = alivePlayers.filter(
+    (p) => p.role !== 'marked' && p.role !== 'heretic',
+  );
 
   const totalAlive = alivePlayers.length;
-  const werewolfPercent = totalAlive > 0 ? (aliveWerewolves.length / totalAlive) * 100 : 0;
-  const villagerPercent = totalAlive > 0 ? (aliveVillagers.length / totalAlive) * 100 : 0;
+  const harvestPercent = totalAlive > 0 ? (aliveHarvest.length / totalAlive) * 100 : 0;
+  const lambPercent = totalAlive > 0 ? (aliveLambs.length / totalAlive) * 100 : 0;
 
   return (
-    <Card className="bg-card/90 backdrop-blur-sm">
+    <Card className="bg-card/90 backdrop-blur-sm border-slate-700">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-bold flex items-center gap-2">
           <Swords className="w-4 h-4" />
@@ -37,98 +38,78 @@ export function FactionStats({ gameState }: FactionStatsProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Villagers */}
+        {/* Lamb Faction */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="space-y-2 cursor-help">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2 text-blue-400">
+                  <span className="flex items-center gap-2 text-sky-400">
                     <Shield className="w-4 h-4" />
-                    好人阵营
+                    羔羊阵营
                   </span>
-                  <span className="font-bold text-blue-400">
-                    {aliveVillagers.length}
+                  <span className="font-bold text-sky-400">
+                    {aliveLambs.length}
                   </span>
                 </div>
                 <div className="h-3 bg-secondary rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-500"
-                    style={{ width: `${villagerPercent}%` }}
+                    className="h-full bg-gradient-to-r from-sky-600 to-sky-400 transition-all duration-500"
+                    style={{ width: `${lambPercent}%` }}
                   />
                 </div>
               </div>
             </TooltipTrigger>
             <TooltipContent side="right">
               <p className="text-xs">
-                存活: {aliveVillagers.map((p) => p.name).join(', ')}
+                存活: {aliveLambs.map((p) => p.name).join('、')}
               </p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
-        {/* Werewolves */}
+        {/* Harvest Faction */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="space-y-2 cursor-help">
                 <div className="flex items-center justify-between text-sm">
                   <span className="flex items-center gap-2 text-red-400">
-                    <Dog className="w-4 h-4" />
-                    狼人阵营
+                    <Skull className="w-4 h-4" />
+                    收割阵营
                   </span>
                   <span className="font-bold text-red-400">
-                    {aliveWerewolves.length}
+                    {aliveHarvest.length}
                   </span>
                 </div>
                 <div className="h-3 bg-secondary rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-red-600 to-red-400 transition-all duration-500"
-                    style={{ width: `${werewolfPercent}%` }}
+                    style={{ width: `${harvestPercent}%` }}
                   />
                 </div>
               </div>
             </TooltipTrigger>
             <TooltipContent side="right">
               <p className="text-xs">
-                存活: {aliveWerewolves.map((p) => p.name).join(', ')}
+                存活: {aliveHarvest.map((p) => p.name).join('、')}
               </p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
-        {/* Total alive */}
+        {/* Balance Status */}
         <div className="pt-2 border-t border-border">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Users className="w-3 h-3" />
-              存活人数
-            </span>
-            <span className="font-semibold">
-              {totalAlive} / {gameState.players.length}
-            </span>
-          </div>
-        </div>
-
-        {/* Victory condition hint */}
-        {totalAlive > 0 && (
-          <div className={cn(
-            "text-xs p-2 rounded text-center font-medium transition-colors flex items-center justify-center gap-1",
-            aliveWerewolves.length >= aliveVillagers.length
-              ? "bg-red-950/50 text-red-400"
-              : aliveWerewolves.length === 0
-                ? "bg-blue-950/50 text-blue-400"
-                : "bg-yellow-950/50 text-yellow-400"
-          )}>
-            {aliveWerewolves.length >= aliveVillagers.length ? (
+          <div className="flex items-center justify-center gap-2 text-xs">
+            {aliveHarvest.length >= aliveLambs.length ? (
               <>
                 <AlertTriangle className="w-3 h-3" />
-                狼人占据优势！
+                收割阵营占据优势！
               </>
-            ) : aliveWerewolves.length === 0 ? (
+            ) : aliveHarvest.length === 0 ? (
               <>
                 <CheckCircle2 className="w-3 h-3" />
-                好人获胜！
+                羔羊获胜！
               </>
             ) : (
               <>
@@ -137,7 +118,7 @@ export function FactionStats({ gameState }: FactionStatsProps) {
               </>
             )}
           </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );

@@ -191,7 +191,7 @@ export function SaveGameManager() {
                           </Badge>
                           {save.state.winner && (
                             <Badge className="text-xs">
-                              {save.state.winner === 'werewolf' ? '狼人胜利' : '村民胜利'}
+                              {save.state.winner === 'marked' ? '收割胜利' : '羔羊胜利'}
                             </Badge>
                           )}
                         </div>
