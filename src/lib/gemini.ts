@@ -83,7 +83,7 @@ export async function getAIResponse(
  * Build prompt for AI player based on game context
  */
 // eslint-disable-next-line complexity
-function buildPrompt(player: Player, gameState: GameState): string {
+export function buildPrompt(player: Player, gameState: GameState): string {
   const { phase, nightPhase, round, players, messages } = gameState;
 
   const alivePlayers = players.filter((p) => p.isAlive);

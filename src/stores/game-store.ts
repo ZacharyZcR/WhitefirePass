@@ -14,7 +14,7 @@ import {
   getAlivePlayers,
   getPlayerByName,
 } from '@/lib/game-engine';
-import { getAIResponse } from '@/lib/gemini';
+import { getAIResponse, buildPrompt } from '@/lib/gemini';
 import { getInitialClues } from '@/lib/clues-data';
 
 /**
@@ -644,6 +644,18 @@ export const useGameStore = create<GameStore>()(
       });
 
       set({ gameState: { ...gameState } });
+
+      // Build and record full prompt for transparency
+      const fullPrompt = buildPrompt(currentPlayer, gameState);
+      gameState.messages.push(
+        addMessage(
+          gameState,
+          `${currentPlayer.name} (神谕)`,
+          fullPrompt,
+          'prompt',
+          { player: currentPlayer.name },
+        ),
+      );
 
       // Get AI response
       const response = await getAIResponse(currentPlayer, gameState, { apiKey });
