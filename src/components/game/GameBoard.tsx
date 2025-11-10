@@ -88,170 +88,13 @@ export function GameBoard() {
     <>
       <div
         className={cn(
-          "h-screen w-screen overflow-hidden flex flex-col bg-gradient-to-br transition-all duration-1000 ease-in-out relative",
+          "h-screen w-screen overflow-hidden flex flex-col bg-gradient-to-br transition-all duration-1000 ease-in-out",
           theme.gradient
         )}
       >
-      {/* Victorian Gothic Corner Decorations - Intricate vine and floral carvings */}
-      <div className="absolute inset-0 pointer-events-none z-0 opacity-12">
-        {/* Top-left corner - Elaborate vine pattern */}
-        <div className="absolute top-0 left-0 text-foreground/25">
-          <svg width="180" height="180" viewBox="0 0 180 180" fill="none" stroke="currentColor" strokeWidth="0.6">
-            {/* Main vine stems - flowing curves */}
-            <path d="M0,80 Q20,60 40,45 Q60,30 80,20 Q100,10 120,5" opacity="0.7" strokeLinecap="round" />
-            <path d="M0,80 Q15,65 30,52 Q45,38 60,28" opacity="0.6" strokeLinecap="round" />
-            <path d="M0,90 Q10,75 20,60 Q30,45 40,35" opacity="0.5" strokeLinecap="round" />
-            <path d="M0,100 Q8,88 16,75 Q24,62 32,52" opacity="0.4" strokeLinecap="round" />
-
-            {/* Vertical main stem */}
-            <path d="M80,0 Q70,20 60,40 Q50,60 45,80" opacity="0.7" strokeLinecap="round" />
-            <path d="M90,0 Q82,18 74,36 Q66,54 60,70" opacity="0.5" strokeLinecap="round" />
-
-            {/* Decorative leaves - small curved shapes */}
-            <path d="M25,55 Q20,50 18,45 Q20,48 25,50" fill="currentColor" opacity="0.3" />
-            <path d="M40,40 Q35,35 33,30 Q35,33 40,35" fill="currentColor" opacity="0.3" />
-            <path d="M55,28 Q50,23 48,18 Q50,21 55,23" fill="currentColor" opacity="0.3" />
-            <path d="M70,18 Q65,13 63,8 Q65,11 70,13" fill="currentColor" opacity="0.3" />
-            <path d="M35,65 Q30,60 28,55 Q30,58 35,60" fill="currentColor" opacity="0.25" />
-            <path d="M50,48 Q45,43 43,38 Q45,41 50,43" fill="currentColor" opacity="0.25" />
-
-            {/* Leaves on vertical stem */}
-            <path d="M75,15 Q80,12 85,10 Q80,12 75,15" fill="currentColor" opacity="0.3" />
-            <path d="M65,30 Q70,27 75,25 Q70,27 65,30" fill="currentColor" opacity="0.3" />
-            <path d="M55,45 Q60,42 65,40 Q60,42 55,45" fill="currentColor" opacity="0.25" />
-
-            {/* Delicate tendrils - spiral curves */}
-            <path d="M45,52 Q48,48 50,46 Q52,44 54,43" opacity="0.4" strokeWidth="0.4" />
-            <path d="M60,35 Q63,31 65,29 Q67,27 69,26" opacity="0.4" strokeWidth="0.4" />
-            <path d="M75,20 Q78,16 80,14 Q82,12 84,11" opacity="0.4" strokeWidth="0.4" />
-
-            {/* Small flowers/buds */}
-            <circle cx="28" cy="58" r="1.5" fill="currentColor" opacity="0.3" />
-            <circle cx="43" cy="42" r="1.3" fill="currentColor" opacity="0.3" />
-            <circle cx="58" cy="30" r="1.2" fill="currentColor" opacity="0.3" />
-            <circle cx="73" cy="16" r="1" fill="currentColor" opacity="0.3" />
-            <circle cx="70" cy="25" r="0.8" fill="currentColor" opacity="0.25" />
-            <circle cx="55" cy="40" r="0.8" fill="currentColor" opacity="0.25" />
-
-            {/* Decorative border frame */}
-            <path d="M0,110 Q5,108 10,105" opacity="0.3" strokeWidth="0.5" />
-            <path d="M110,0 Q108,5 105,10" opacity="0.3" strokeWidth="0.5" />
-          </svg>
-        </div>
-
-        {/* Top-right corner */}
-        <div className="absolute top-0 right-0 text-foreground/25 scale-x-[-1]">
-          <svg width="180" height="180" viewBox="0 0 180 180" fill="none" stroke="currentColor" strokeWidth="0.6">
-            <path d="M0,80 Q20,60 40,45 Q60,30 80,20 Q100,10 120,5" opacity="0.7" strokeLinecap="round" />
-            <path d="M0,80 Q15,65 30,52 Q45,38 60,28" opacity="0.6" strokeLinecap="round" />
-            <path d="M0,90 Q10,75 20,60 Q30,45 40,35" opacity="0.5" strokeLinecap="round" />
-            <path d="M0,100 Q8,88 16,75 Q24,62 32,52" opacity="0.4" strokeLinecap="round" />
-            <path d="M80,0 Q70,20 60,40 Q50,60 45,80" opacity="0.7" strokeLinecap="round" />
-            <path d="M90,0 Q82,18 74,36 Q66,54 60,70" opacity="0.5" strokeLinecap="round" />
-            <path d="M25,55 Q20,50 18,45 Q20,48 25,50" fill="currentColor" opacity="0.3" />
-            <path d="M40,40 Q35,35 33,30 Q35,33 40,35" fill="currentColor" opacity="0.3" />
-            <path d="M55,28 Q50,23 48,18 Q50,21 55,23" fill="currentColor" opacity="0.3" />
-            <path d="M70,18 Q65,13 63,8 Q65,11 70,13" fill="currentColor" opacity="0.3" />
-            <path d="M35,65 Q30,60 28,55 Q30,58 35,60" fill="currentColor" opacity="0.25" />
-            <path d="M50,48 Q45,43 43,38 Q45,41 50,43" fill="currentColor" opacity="0.25" />
-            <path d="M75,15 Q80,12 85,10 Q80,12 75,15" fill="currentColor" opacity="0.3" />
-            <path d="M65,30 Q70,27 75,25 Q70,27 65,30" fill="currentColor" opacity="0.3" />
-            <path d="M55,45 Q60,42 65,40 Q60,42 55,45" fill="currentColor" opacity="0.25" />
-            <path d="M45,52 Q48,48 50,46 Q52,44 54,43" opacity="0.4" strokeWidth="0.4" />
-            <path d="M60,35 Q63,31 65,29 Q67,27 69,26" opacity="0.4" strokeWidth="0.4" />
-            <path d="M75,20 Q78,16 80,14 Q82,12 84,11" opacity="0.4" strokeWidth="0.4" />
-            <circle cx="28" cy="58" r="1.5" fill="currentColor" opacity="0.3" />
-            <circle cx="43" cy="42" r="1.3" fill="currentColor" opacity="0.3" />
-            <circle cx="58" cy="30" r="1.2" fill="currentColor" opacity="0.3" />
-            <circle cx="73" cy="16" r="1" fill="currentColor" opacity="0.3" />
-            <circle cx="70" cy="25" r="0.8" fill="currentColor" opacity="0.25" />
-            <circle cx="55" cy="40" r="0.8" fill="currentColor" opacity="0.25" />
-            <path d="M0,110 Q5,108 10,105" opacity="0.3" strokeWidth="0.5" />
-            <path d="M110,0 Q108,5 105,10" opacity="0.3" strokeWidth="0.5" />
-          </svg>
-        </div>
-
-        {/* Bottom-left corner */}
-        <div className="absolute bottom-0 left-0 text-foreground/25 scale-y-[-1]">
-          <svg width="180" height="180" viewBox="0 0 180 180" fill="none" stroke="currentColor" strokeWidth="0.6">
-            <path d="M0,80 Q20,60 40,45 Q60,30 80,20 Q100,10 120,5" opacity="0.7" strokeLinecap="round" />
-            <path d="M0,80 Q15,65 30,52 Q45,38 60,28" opacity="0.6" strokeLinecap="round" />
-            <path d="M0,90 Q10,75 20,60 Q30,45 40,35" opacity="0.5" strokeLinecap="round" />
-            <path d="M0,100 Q8,88 16,75 Q24,62 32,52" opacity="0.4" strokeLinecap="round" />
-            <path d="M80,0 Q70,20 60,40 Q50,60 45,80" opacity="0.7" strokeLinecap="round" />
-            <path d="M90,0 Q82,18 74,36 Q66,54 60,70" opacity="0.5" strokeLinecap="round" />
-            <path d="M25,55 Q20,50 18,45 Q20,48 25,50" fill="currentColor" opacity="0.3" />
-            <path d="M40,40 Q35,35 33,30 Q35,33 40,35" fill="currentColor" opacity="0.3" />
-            <path d="M55,28 Q50,23 48,18 Q50,21 55,23" fill="currentColor" opacity="0.3" />
-            <path d="M70,18 Q65,13 63,8 Q65,11 70,13" fill="currentColor" opacity="0.3" />
-            <path d="M35,65 Q30,60 28,55 Q30,58 35,60" fill="currentColor" opacity="0.25" />
-            <path d="M50,48 Q45,43 43,38 Q45,41 50,43" fill="currentColor" opacity="0.25" />
-            <path d="M75,15 Q80,12 85,10 Q80,12 75,15" fill="currentColor" opacity="0.3" />
-            <path d="M65,30 Q70,27 75,25 Q70,27 65,30" fill="currentColor" opacity="0.3" />
-            <path d="M55,45 Q60,42 65,40 Q60,42 55,45" fill="currentColor" opacity="0.25" />
-            <path d="M45,52 Q48,48 50,46 Q52,44 54,43" opacity="0.4" strokeWidth="0.4" />
-            <path d="M60,35 Q63,31 65,29 Q67,27 69,26" opacity="0.4" strokeWidth="0.4" />
-            <path d="M75,20 Q78,16 80,14 Q82,12 84,11" opacity="0.4" strokeWidth="0.4" />
-            <circle cx="28" cy="58" r="1.5" fill="currentColor" opacity="0.3" />
-            <circle cx="43" cy="42" r="1.3" fill="currentColor" opacity="0.3" />
-            <circle cx="58" cy="30" r="1.2" fill="currentColor" opacity="0.3" />
-            <circle cx="73" cy="16" r="1" fill="currentColor" opacity="0.3" />
-            <circle cx="70" cy="25" r="0.8" fill="currentColor" opacity="0.25" />
-            <circle cx="55" cy="40" r="0.8" fill="currentColor" opacity="0.25" />
-            <path d="M0,110 Q5,108 10,105" opacity="0.3" strokeWidth="0.5" />
-            <path d="M110,0 Q108,5 105,10" opacity="0.3" strokeWidth="0.5" />
-          </svg>
-        </div>
-
-        {/* Bottom-right corner */}
-        <div className="absolute bottom-0 right-0 text-foreground/25 scale-[-1]">
-          <svg width="180" height="180" viewBox="0 0 180 180" fill="none" stroke="currentColor" strokeWidth="0.6">
-            <path d="M0,80 Q20,60 40,45 Q60,30 80,20 Q100,10 120,5" opacity="0.7" strokeLinecap="round" />
-            <path d="M0,80 Q15,65 30,52 Q45,38 60,28" opacity="0.6" strokeLinecap="round" />
-            <path d="M0,90 Q10,75 20,60 Q30,45 40,35" opacity="0.5" strokeLinecap="round" />
-            <path d="M0,100 Q8,88 16,75 Q24,62 32,52" opacity="0.4" strokeLinecap="round" />
-            <path d="M80,0 Q70,20 60,40 Q50,60 45,80" opacity="0.7" strokeLinecap="round" />
-            <path d="M90,0 Q82,18 74,36 Q66,54 60,70" opacity="0.5" strokeLinecap="round" />
-            <path d="M25,55 Q20,50 18,45 Q20,48 25,50" fill="currentColor" opacity="0.3" />
-            <path d="M40,40 Q35,35 33,30 Q35,33 40,35" fill="currentColor" opacity="0.3" />
-            <path d="M55,28 Q50,23 48,18 Q50,21 55,23" fill="currentColor" opacity="0.3" />
-            <path d="M70,18 Q65,13 63,8 Q65,11 70,13" fill="currentColor" opacity="0.3" />
-            <path d="M35,65 Q30,60 28,55 Q30,58 35,60" fill="currentColor" opacity="0.25" />
-            <path d="M50,48 Q45,43 43,38 Q45,41 50,43" fill="currentColor" opacity="0.25" />
-            <path d="M75,15 Q80,12 85,10 Q80,12 75,15" fill="currentColor" opacity="0.3" />
-            <path d="M65,30 Q70,27 75,25 Q70,27 65,30" fill="currentColor" opacity="0.3" />
-            <path d="M55,45 Q60,42 65,40 Q60,42 55,45" fill="currentColor" opacity="0.25" />
-            <path d="M45,52 Q48,48 50,46 Q52,44 54,43" opacity="0.4" strokeWidth="0.4" />
-            <path d="M60,35 Q63,31 65,29 Q67,27 69,26" opacity="0.4" strokeWidth="0.4" />
-            <path d="M75,20 Q78,16 80,14 Q82,12 84,11" opacity="0.4" strokeWidth="0.4" />
-            <circle cx="28" cy="58" r="1.5" fill="currentColor" opacity="0.3" />
-            <circle cx="43" cy="42" r="1.3" fill="currentColor" opacity="0.3" />
-            <circle cx="58" cy="30" r="1.2" fill="currentColor" opacity="0.3" />
-            <circle cx="73" cy="16" r="1" fill="currentColor" opacity="0.3" />
-            <circle cx="70" cy="25" r="0.8" fill="currentColor" opacity="0.25" />
-            <circle cx="55" cy="40" r="0.8" fill="currentColor" opacity="0.25" />
-            <path d="M0,110 Q5,108 10,105" opacity="0.3" strokeWidth="0.5" />
-            <path d="M110,0 Q108,5 105,10" opacity="0.3" strokeWidth="0.5" />
-          </svg>
-        </div>
-      </div>
-
       {/* Fixed Header */}
-      <header className="flex-shrink-0 border-b border-border/50 backdrop-blur-sm bg-background/10 shadow-lg relative z-10">
-        <div className="px-6 py-4 flex items-center justify-between relative">
-          {/* Header decorative underline */}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-px pointer-events-none">
-            <div className="w-full h-full bg-gradient-to-r from-transparent via-foreground/10 to-transparent" />
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-              <svg width="32" height="16" viewBox="0 0 32 16" className="text-foreground/10" fill="none" stroke="currentColor" strokeWidth="0.5">
-                <circle cx="16" cy="8" r="2.5" opacity="0.4" />
-                <circle cx="16" cy="8" r="4.5" opacity="0.2" />
-                <path d="M4,8 L10,8" opacity="0.3" />
-                <path d="M22,8 L28,8" opacity="0.3" />
-              </svg>
-            </div>
-          </div>
-
+      <header className="flex-shrink-0 border-b border-border/50 backdrop-blur-sm bg-background/10 shadow-lg">
+        <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Mountain className="w-8 h-8 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
             <div>
@@ -280,27 +123,12 @@ export function GameBoard() {
       </header>
 
       {/* Main Content Area - No Scroll */}
-      <div className="flex-1 flex gap-4 p-4 overflow-hidden relative z-10">
+      <div className="flex-1 flex gap-4 p-4 overflow-hidden">
         {/* Left Sidebar - Players & Controls */}
-        <div className="w-96 flex flex-col gap-4 overflow-hidden relative">
-          {/* Vertical decorative line on the right edge */}
-          <div className="absolute top-0 bottom-0 -right-2 w-px pointer-events-none">
-            <div className="w-full h-full bg-gradient-to-b from-transparent via-foreground/10 to-transparent" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <svg width="16" height="48" viewBox="0 0 16 48" className="text-foreground/10" fill="none" stroke="currentColor" strokeWidth="0.5">
-                <circle cx="8" cy="24" r="2.5" opacity="0.4" />
-                <circle cx="8" cy="24" r="4.5" opacity="0.2" />
-                <path d="M8,8 L8,16" opacity="0.3" />
-                <path d="M8,32 L8,40" opacity="0.3" />
-              </svg>
-            </div>
-          </div>
+        <div className="w-96 flex flex-col gap-4 overflow-hidden">
           {/* Players List - Scrollable */}
           <div className="flex-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border shadow-xl shadow-inner-glow overflow-hidden flex flex-col">
-            <div className="flex-shrink-0 px-4 py-3 border-b border-border bg-gradient-to-r from-card via-card/50 to-card relative">
-              {/* Title decorative elements */}
-              <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-foreground/20" />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-foreground/20" />
+            <div className="flex-shrink-0 px-4 py-3 border-b border-border bg-gradient-to-r from-card via-card/50 to-card">
               <h2 className="text-lg font-bold text-card-foreground font-cinzel tracking-wide">
                 玩家列表
                 <span className="block text-[10px] text-muted-foreground font-normal tracking-widest opacity-60 mt-0.5">
@@ -355,10 +183,7 @@ export function GameBoard() {
         <div className="flex-1 flex gap-4 overflow-hidden">
           {/* Game Log with Tabs */}
           <div className="flex-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border shadow-xl shadow-inner-glow overflow-hidden flex flex-col">
-            <div className="flex-shrink-0 px-4 py-3 border-b border-border bg-gradient-to-r from-card via-card/50 to-card relative">
-              {/* Title decorative elements */}
-              <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-foreground/20" />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-foreground/20" />
+            <div className="flex-shrink-0 px-4 py-3 border-b border-border bg-gradient-to-r from-card via-card/50 to-card">
               <h2 className="text-lg font-bold text-card-foreground font-cinzel tracking-wide">
                 游戏日志
                 <span className="block text-[10px] text-muted-foreground font-normal tracking-widest opacity-60 mt-0.5">

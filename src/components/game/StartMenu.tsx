@@ -69,20 +69,20 @@ export function StartMenu() {
     }
   }, [storedApiKey]);
 
-  // Orchestrated entry animation sequence - Slower, more deliberate
+  // Orchestrated entry animation sequence
   useEffect(() => {
     const timers: NodeJS.Timeout[] = [];
 
-    // Sequence timing (in milliseconds) - Slowed down for gravitas
-    timers.push(setTimeout(() => setBackgroundVisible(true), 200));  // Background fades in from black
-    timers.push(setTimeout(() => setStage('icon'), 1200));           // Mountain icon appears
-    timers.push(setTimeout(() => setStage('title'), 2400));          // Title fades in (1.2s later)
-    timers.push(setTimeout(() => setStage('divider'), 3800));        // Divider draws (1.4s later)
-    timers.push(setTimeout(() => setStage('subtitle'), 4800));       // English subtitle (1s later)
-    timers.push(setTimeout(() => setStage('description'), 5800));    // Description (1s later)
-    timers.push(setTimeout(() => setStage('buttons'), 6800));        // Buttons appear (1s later)
-    timers.push(setTimeout(() => setStage('complete'), 7500));       // Complete
-    timers.push(setTimeout(() => setSnowVisible(true), 3500));       // Snow starts falling
+    // Sequence timing (in milliseconds)
+    timers.push(setTimeout(() => setBackgroundVisible(true), 100));  // Background fades in from black
+    timers.push(setTimeout(() => setStage('icon'), 600));            // Mountain icon appears
+    timers.push(setTimeout(() => setStage('title'), 1300));          // Title fades in
+    timers.push(setTimeout(() => setStage('divider'), 1900));        // Divider draws
+    timers.push(setTimeout(() => setStage('subtitle'), 2300));       // English subtitle
+    timers.push(setTimeout(() => setStage('description'), 2800));    // Description
+    timers.push(setTimeout(() => setStage('buttons'), 3300));        // Buttons appear
+    timers.push(setTimeout(() => setStage('complete'), 3800));       // Complete
+    timers.push(setTimeout(() => setSnowVisible(true), 2300));       // Snow starts falling
 
     return () => timers.forEach(clearTimeout);
   }, []);
@@ -235,129 +235,12 @@ export function StartMenu() {
             />
           </div>
 
-          {/* Game Title with Victorian Gothic Vine Decorations */}
-          <div className="space-y-6 relative">
-            {/* Intricate Victorian vine carvings - Ornate and detailed */}
-            <div className={`
-              absolute -inset-24 pointer-events-none
-              transition-all duration-2500 ease-out
-              ${['initial', 'icon', 'title'].includes(stage)
-                ? 'opacity-0 scale-98'
-                : 'opacity-18 scale-100'
-              }
-            `}>
-              {/* Top-left vine carving */}
-              <div className="absolute top-0 left-0 text-slate-400">
-                <svg width="120" height="120" viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="0.6">
-                  {/* Main vine stems */}
-                  <path d="M0,55 Q15,40 30,30 Q45,20 60,15 Q75,10 90,8" opacity="0.7" strokeLinecap="round" />
-                  <path d="M0,55 Q10,45 20,35 Q30,25 40,20" opacity="0.6" strokeLinecap="round" />
-                  <path d="M0,65 Q8,55 16,45 Q24,35 32,28" opacity="0.5" strokeLinecap="round" />
-                  <path d="M55,0 Q45,15 35,30 Q28,42 24,55" opacity="0.7" strokeLinecap="round" />
-                  <path d="M65,0 Q57,13 49,26 Q42,38 37,50" opacity="0.5" strokeLinecap="round" />
-
-                  {/* Decorative leaves */}
-                  <path d="M18,42 Q14,38 12,34 Q14,36 18,38" fill="currentColor" opacity="0.3" />
-                  <path d="M28,32 Q24,28 22,24 Q24,26 28,28" fill="currentColor" opacity="0.3" />
-                  <path d="M38,24 Q34,20 32,16 Q34,18 38,20" fill="currentColor" opacity="0.3" />
-                  <path d="M48,17 Q44,13 42,9 Q44,11 48,13" fill="currentColor" opacity="0.3" />
-                  <path d="M25,50 Q21,46 19,42 Q21,44 25,46" fill="currentColor" opacity="0.25" />
-                  <path d="M52,12 Q56,10 60,8 Q56,10 52,12" fill="currentColor" opacity="0.3" />
-                  <path d="M42,22 Q46,20 50,18 Q46,20 42,22" fill="currentColor" opacity="0.3" />
-
-                  {/* Tendrils */}
-                  <path d="M32,38 Q35,34 37,32 Q39,30 41,29" opacity="0.4" strokeWidth="0.4" />
-                  <path d="M46,24 Q49,20 51,18 Q53,16 55,15" opacity="0.4" strokeWidth="0.4" />
-
-                  {/* Flower buds */}
-                  <circle cx="20" cy="44" r="1.3" fill="currentColor" opacity="0.3" />
-                  <circle cx="30" cy="34" r="1.1" fill="currentColor" opacity="0.3" />
-                  <circle cx="40" cy="26" r="1" fill="currentColor" opacity="0.3" />
-                  <circle cx="50" cy="15" r="0.9" fill="currentColor" opacity="0.3" />
-                  <circle cx="47" cy="20" r="0.7" fill="currentColor" opacity="0.25" />
-                </svg>
-              </div>
-
-              {/* Top-right vine carving */}
-              <div className="absolute top-0 right-0 text-slate-400 scale-x-[-1]">
-                <svg width="120" height="120" viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="0.6">
-                  <path d="M0,55 Q15,40 30,30 Q45,20 60,15 Q75,10 90,8" opacity="0.7" strokeLinecap="round" />
-                  <path d="M0,55 Q10,45 20,35 Q30,25 40,20" opacity="0.6" strokeLinecap="round" />
-                  <path d="M0,65 Q8,55 16,45 Q24,35 32,28" opacity="0.5" strokeLinecap="round" />
-                  <path d="M55,0 Q45,15 35,30 Q28,42 24,55" opacity="0.7" strokeLinecap="round" />
-                  <path d="M65,0 Q57,13 49,26 Q42,38 37,50" opacity="0.5" strokeLinecap="round" />
-                  <path d="M18,42 Q14,38 12,34 Q14,36 18,38" fill="currentColor" opacity="0.3" />
-                  <path d="M28,32 Q24,28 22,24 Q24,26 28,28" fill="currentColor" opacity="0.3" />
-                  <path d="M38,24 Q34,20 32,16 Q34,18 38,20" fill="currentColor" opacity="0.3" />
-                  <path d="M48,17 Q44,13 42,9 Q44,11 48,13" fill="currentColor" opacity="0.3" />
-                  <path d="M25,50 Q21,46 19,42 Q21,44 25,46" fill="currentColor" opacity="0.25" />
-                  <path d="M52,12 Q56,10 60,8 Q56,10 52,12" fill="currentColor" opacity="0.3" />
-                  <path d="M42,22 Q46,20 50,18 Q46,20 42,22" fill="currentColor" opacity="0.3" />
-                  <path d="M32,38 Q35,34 37,32 Q39,30 41,29" opacity="0.4" strokeWidth="0.4" />
-                  <path d="M46,24 Q49,20 51,18 Q53,16 55,15" opacity="0.4" strokeWidth="0.4" />
-                  <circle cx="20" cy="44" r="1.3" fill="currentColor" opacity="0.3" />
-                  <circle cx="30" cy="34" r="1.1" fill="currentColor" opacity="0.3" />
-                  <circle cx="40" cy="26" r="1" fill="currentColor" opacity="0.3" />
-                  <circle cx="50" cy="15" r="0.9" fill="currentColor" opacity="0.3" />
-                  <circle cx="47" cy="20" r="0.7" fill="currentColor" opacity="0.25" />
-                </svg>
-              </div>
-
-              {/* Bottom-left vine carving */}
-              <div className="absolute bottom-0 left-0 text-slate-400 scale-y-[-1]">
-                <svg width="120" height="120" viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="0.6">
-                  <path d="M0,55 Q15,40 30,30 Q45,20 60,15 Q75,10 90,8" opacity="0.7" strokeLinecap="round" />
-                  <path d="M0,55 Q10,45 20,35 Q30,25 40,20" opacity="0.6" strokeLinecap="round" />
-                  <path d="M0,65 Q8,55 16,45 Q24,35 32,28" opacity="0.5" strokeLinecap="round" />
-                  <path d="M55,0 Q45,15 35,30 Q28,42 24,55" opacity="0.7" strokeLinecap="round" />
-                  <path d="M65,0 Q57,13 49,26 Q42,38 37,50" opacity="0.5" strokeLinecap="round" />
-                  <path d="M18,42 Q14,38 12,34 Q14,36 18,38" fill="currentColor" opacity="0.3" />
-                  <path d="M28,32 Q24,28 22,24 Q24,26 28,28" fill="currentColor" opacity="0.3" />
-                  <path d="M38,24 Q34,20 32,16 Q34,18 38,20" fill="currentColor" opacity="0.3" />
-                  <path d="M48,17 Q44,13 42,9 Q44,11 48,13" fill="currentColor" opacity="0.3" />
-                  <path d="M25,50 Q21,46 19,42 Q21,44 25,46" fill="currentColor" opacity="0.25" />
-                  <path d="M52,12 Q56,10 60,8 Q56,10 52,12" fill="currentColor" opacity="0.3" />
-                  <path d="M42,22 Q46,20 50,18 Q46,20 42,22" fill="currentColor" opacity="0.3" />
-                  <path d="M32,38 Q35,34 37,32 Q39,30 41,29" opacity="0.4" strokeWidth="0.4" />
-                  <path d="M46,24 Q49,20 51,18 Q53,16 55,15" opacity="0.4" strokeWidth="0.4" />
-                  <circle cx="20" cy="44" r="1.3" fill="currentColor" opacity="0.3" />
-                  <circle cx="30" cy="34" r="1.1" fill="currentColor" opacity="0.3" />
-                  <circle cx="40" cy="26" r="1" fill="currentColor" opacity="0.3" />
-                  <circle cx="50" cy="15" r="0.9" fill="currentColor" opacity="0.3" />
-                  <circle cx="47" cy="20" r="0.7" fill="currentColor" opacity="0.25" />
-                </svg>
-              </div>
-
-              {/* Bottom-right vine carving */}
-              <div className="absolute bottom-0 right-0 text-slate-400 scale-[-1]">
-                <svg width="120" height="120" viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="0.6">
-                  <path d="M0,55 Q15,40 30,30 Q45,20 60,15 Q75,10 90,8" opacity="0.7" strokeLinecap="round" />
-                  <path d="M0,55 Q10,45 20,35 Q30,25 40,20" opacity="0.6" strokeLinecap="round" />
-                  <path d="M0,65 Q8,55 16,45 Q24,35 32,28" opacity="0.5" strokeLinecap="round" />
-                  <path d="M55,0 Q45,15 35,30 Q28,42 24,55" opacity="0.7" strokeLinecap="round" />
-                  <path d="M65,0 Q57,13 49,26 Q42,38 37,50" opacity="0.5" strokeLinecap="round" />
-                  <path d="M18,42 Q14,38 12,34 Q14,36 18,38" fill="currentColor" opacity="0.3" />
-                  <path d="M28,32 Q24,28 22,24 Q24,26 28,28" fill="currentColor" opacity="0.3" />
-                  <path d="M38,24 Q34,20 32,16 Q34,18 38,20" fill="currentColor" opacity="0.3" />
-                  <path d="M48,17 Q44,13 42,9 Q44,11 48,13" fill="currentColor" opacity="0.3" />
-                  <path d="M25,50 Q21,46 19,42 Q21,44 25,46" fill="currentColor" opacity="0.25" />
-                  <path d="M52,12 Q56,10 60,8 Q56,10 52,12" fill="currentColor" opacity="0.3" />
-                  <path d="M42,22 Q46,20 50,18 Q46,20 42,22" fill="currentColor" opacity="0.3" />
-                  <path d="M32,38 Q35,34 37,32 Q39,30 41,29" opacity="0.4" strokeWidth="0.4" />
-                  <path d="M46,24 Q49,20 51,18 Q53,16 55,15" opacity="0.4" strokeWidth="0.4" />
-                  <circle cx="20" cy="44" r="1.3" fill="currentColor" opacity="0.3" />
-                  <circle cx="30" cy="34" r="1.1" fill="currentColor" opacity="0.3" />
-                  <circle cx="40" cy="26" r="1" fill="currentColor" opacity="0.3" />
-                  <circle cx="50" cy="15" r="0.9" fill="currentColor" opacity="0.3" />
-                  <circle cx="47" cy="20" r="0.7" fill="currentColor" opacity="0.25" />
-                </svg>
-              </div>
-            </div>
-
+          {/* Game Title - Fades in with slight upward movement */}
+          <div className="space-y-6">
             <h1
               className={`
-                text-8xl font-bold font-cinzel tracking-[0.2em] text-slate-700 drop-shadow-sm relative z-10
-                transition-all duration-1500 ease-out
+                text-8xl font-bold font-cinzel tracking-[0.2em] text-slate-700 drop-shadow-sm
+                transition-all duration-1000 ease-out
                 ${['initial', 'icon'].includes(stage)
                   ? 'opacity-0 translate-y-4'
                   : 'opacity-100 translate-y-0'
@@ -367,36 +250,25 @@ export function StartMenu() {
               白烬山口
             </h1>
 
-            {/* Subtle Divider - Elegant and understated */}
-            <div className="relative h-8 w-80 mx-auto flex items-center justify-center">
+            {/* Divider - Draws from center */}
+            <div className="relative h-px w-48 mx-auto overflow-hidden">
               <div
                 className={`
-                  absolute inset-0 flex items-center justify-center
-                  transition-all duration-2000 ease-out
+                  absolute inset-0 bg-gradient-to-r from-transparent via-slate-400 to-transparent
+                  transition-all duration-800 ease-out
                   ${['initial', 'icon', 'title'].includes(stage)
-                    ? 'opacity-0 scale-x-0'
-                    : 'opacity-60 scale-x-100'
+                    ? 'scale-x-0'
+                    : 'scale-x-100'
                   }
                 `}
-              >
-                {/* Delicate divider line with subtle center ornament */}
-                <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent opacity-50" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <svg width="24" height="12" viewBox="0 0 24 12" className="text-slate-400" fill="none" stroke="currentColor" strokeWidth="0.5">
-                    <circle cx="12" cy="6" r="2" opacity="0.6" />
-                    <circle cx="12" cy="6" r="3.5" opacity="0.3" />
-                    <path d="M3,6 L8,6" opacity="0.4" />
-                    <path d="M16,6 L21,6" opacity="0.4" />
-                  </svg>
-                </div>
-              </div>
+              />
             </div>
 
             {/* English subtitle - Fades in */}
             <p
               className={`
                 text-xl font-cinzel tracking-[0.3em] text-slate-500 uppercase
-                transition-all duration-1000 ease-out
+                transition-all duration-800 ease-out
                 ${['initial', 'icon', 'title', 'divider'].includes(stage)
                   ? 'opacity-0'
                   : 'opacity-100'
@@ -411,7 +283,7 @@ export function StartMenu() {
           <p
             className={`
               text-base font-serif text-slate-600 tracking-wide max-w-xl mx-auto leading-relaxed
-              transition-all duration-1200 ease-out
+              transition-all duration-800 ease-out
               ${['initial', 'icon', 'title', 'divider', 'subtitle'].includes(stage)
                 ? 'opacity-0 translate-y-2'
                 : 'opacity-100 translate-y-0'
@@ -425,7 +297,7 @@ export function StartMenu() {
           <div
             className={`
               flex gap-6 justify-center pt-8
-              transition-all duration-1200 ease-out
+              transition-all duration-800 ease-out
               ${['initial', 'icon', 'title', 'divider', 'subtitle', 'description'].includes(stage)
                 ? 'opacity-0 translate-y-8'
                 : 'opacity-100 translate-y-0'

@@ -51,10 +51,7 @@ export function VoteTracker({ gameState }: VoteTrackerProps) {
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader className="flex-shrink-0 pb-2 px-3 py-2 bg-gradient-to-r from-card via-card/50 to-card border-b border-border relative">
-        {/* Title decorative elements */}
-        <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-foreground/20" />
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-foreground/20" />
+      <CardHeader className="flex-shrink-0 pb-2 px-3 py-2 bg-gradient-to-r from-card via-card/50 to-card border-b border-border">
         <CardTitle className="text-sm font-cinzel tracking-wide">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4" />
