@@ -14,6 +14,7 @@ import { VotingProgress } from './VotingProgress';
 import { CurrentSpeaker } from './CurrentSpeaker';
 import { StartMenu } from './StartMenu';
 import { GameTransition } from './GameTransition';
+import { StoryIntro } from './StoryIntro';
 import { Mountain, Gamepad2, Moon, Sun, Users as UsersIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -75,15 +76,23 @@ export function GameBoard() {
   const [showTransition, setShowTransition] = useState(false);
   const [previousPhase, setPreviousPhase] = useState<string>('setup');
   const [isGameEntering, setIsGameEntering] = useState(false);
+  const [showStoryIntro, setShowStoryIntro] = useState(false);
 
-  // Detect phase change from setup to game
+  // Detect phase change from setup to game - show story first
   useEffect(() => {
     if (previousPhase === 'setup' && phase !== 'setup' && gameState) {
-      setShowTransition(true);
-      setIsGameEntering(true);
+      // Show story intro instead of transition
+      setShowStoryIntro(true);
     }
     setPreviousPhase(phase);
   }, [phase, previousPhase, gameState]);
+
+  // Handle story completion - then show transition
+  const handleStoryComplete = () => {
+    setShowStoryIntro(false);
+    setShowTransition(true);
+    setIsGameEntering(true);
+  };
 
   // Game entry animation
   useEffect(() => {
@@ -106,13 +115,17 @@ export function GameBoard() {
   }
 
   return (
-    <div
-      className={cn(
-        "h-screen w-screen overflow-hidden flex flex-col bg-gradient-to-br transition-all duration-1000 ease-in-out",
-        theme.gradient,
-        isGameEntering ? 'opacity-0' : 'opacity-100'
-      )}
-    >
+    <>
+      {/* Story intro dialog */}
+      <StoryIntro open={showStoryIntro} onComplete={handleStoryComplete} />
+
+      <div
+        className={cn(
+          "h-screen w-screen overflow-hidden flex flex-col bg-gradient-to-br transition-all duration-1000 ease-in-out",
+          theme.gradient,
+          isGameEntering ? 'opacity-0' : 'opacity-100'
+        )}
+      >
       {/* Fixed Header */}
       <header className={cn(
         "flex-shrink-0 border-b border-border/50 backdrop-blur-sm bg-background/10 shadow-lg transition-all duration-1000 ease-out",
@@ -276,5 +289,6 @@ export function GameBoard() {
         </div>
       </div>
     </div>
+    </>
   );
 }

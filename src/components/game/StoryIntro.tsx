@@ -1,37 +1,55 @@
 /**
  * Story introduction component with typewriter effect
+ * Displays game intro story as a dialog after game starts
  */
 
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Mountain, Loader2 } from 'lucide-react';
+import { Mountain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
 interface StoryIntroProps {
+  open: boolean;
   onComplete: () => void;
 }
 
 /**
- * Story text with special keyword markers
+ * Story segments with special keyword markers
  * Format: {keyword:type}text{/keyword}
  */
-const STORY_TEXT = `
-夜幕降临，{place:white}白烬山口{/place}的风雪愈发猛烈。
+const STORY_SEGMENTS = [
+  {
+    speaker: '山灵',
+    speakerType: 'spirit',
+    text: `{place:white}白烬山口{/place}，{place:lodge}寂静山庄{/place}。
 
-15名旅人被困于这座荒凉的{place:lodge}寂静山庄{/place}，四周是无尽的雪原与冰封的山峦。
+一场{curse:storm}非自然的暴风雪{/curse}，将 15 名旅人驱赶至此。
 
-传说中，这里曾是{spirit:mountain}山灵{/spirit}栖息之地。数百年前，贪婪的猎人闯入禁地，屠戮山中生灵，{spirit:mountain}山灵{/spirit}因此暴怒...
+大门{warning:close}轰然关闭{/warning}。篝火散发着{cold:fire}无温度的冰冷白光{/cold}。`,
+  },
+  {
+    speaker: '山灵',
+    speakerType: 'spirit',
+    text: `"{contract:contract}契约已成。盛宴开始。{/contract}"
 
-如今，每当暴风雪封锁山口，{evil:marked}烙印者{/evil}便会在人群中觉醒——他们被{spirit:mountain}山灵{/spirit}选中，背负着{curse:curse}收割生命{/curse}的诅咒。
+"在你们之中，我播撒了'{evil:hunger}饥饿{/evil}'。"
 
-唯有献祭足够的{sacrifice:blood}羔羊之血{/sacrifice}，或是找出所有的{evil:marked}烙印者{/evil}，{contract:contract}契约{/contract}方能解除。
+"现在，用你们的{fear:fear}猜疑和恐惧{/fear}，来取悦我。"`,
+  },
+  {
+    speaker: '旁白',
+    speakerType: 'narrator',
+    text: `【{brand:mark}身份已被烙印{/brand}】
 
-在这漫长的{dark:night}黑夜{/dark}中，没人知道谁能活到{dawn:dawn}黎明{/dawn}...
+{evil:harvest}收割阵营{/evil}：3名烙印者
+{lamb:lamb}羔羊阵营{/lamb}：1名聆心者、1名食灰者、2名共誓者、1名设闩者、6名无知者
 
-{warning:warning}白烬山口的审判，即将开始。{/warning}
-`;
+{warning:warning}夜幕即将降临。第一个夜晚开始...{/warning}`,
+  },
+];
 
 /**
  * Parse story text and identify keywords
@@ -67,38 +85,71 @@ function getKeywordClasses(type: string): string {
   const classes: Record<string, string> = {
     white: 'text-cyan-300 font-bold animate-pulse drop-shadow-[0_0_8px_rgba(165,243,252,0.8)]',
     lodge: 'text-slate-300 font-semibold tracking-wider',
-    mountain: 'text-blue-400 font-bold animate-pulse drop-shadow-[0_0_12px_rgba(96,165,250,0.9)]',
-    evil: 'text-red-500 font-bold drop-shadow-[0_0_10px_rgba(239,68,68,1)] animate-pulse',
+    spirit: 'text-blue-400 font-bold animate-pulse drop-shadow-[0_0_12px_rgba(96,165,250,0.9)]',
+    evil: 'text-red-500 font-bold drop-shadow-[0_0_10px_rgba(239,68,68,1)]',
+    harvest: 'text-red-600 font-bold drop-shadow-[0_0_8px_rgba(220,38,38,0.9)]',
+    hunger: 'text-red-500 font-bold animate-pulse drop-shadow-[0_0_10px_rgba(239,68,68,1)]',
     marked: 'text-red-500 font-bold drop-shadow-[0_0_10px_rgba(239,68,68,1)]',
     curse: 'text-amber-500 font-semibold drop-shadow-[0_0_8px_rgba(245,158,11,0.7)]',
-    sacrifice: 'text-red-600 font-bold drop-shadow-[0_0_8px_rgba(220,38,38,0.9)]',
-    blood: 'text-red-600 font-bold',
+    storm: 'text-slate-400 font-semibold drop-shadow-[0_0_6px_rgba(148,163,184,0.6)]',
     contract: 'text-amber-400 font-bold tracking-wide drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]',
-    dark: 'text-slate-400 font-semibold',
-    night: 'text-slate-400 font-semibold',
-    dawn: 'text-amber-300 font-semibold drop-shadow-[0_0_6px_rgba(252,211,77,0.6)]',
-    warning: 'text-red-400 font-bold text-lg drop-shadow-[0_0_12px_rgba(248,113,113,0.9)] animate-pulse',
+    brand: 'text-amber-500 font-bold drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]',
+    mark: 'text-amber-500 font-bold',
+    lamb: 'text-blue-400 font-semibold drop-shadow-[0_0_6px_rgba(96,165,250,0.6)]',
+    fear: 'text-slate-400 font-semibold italic',
+    cold: 'text-cyan-300 font-semibold drop-shadow-[0_0_6px_rgba(165,243,252,0.6)]',
+    fire: 'text-cyan-300 font-semibold',
+    close: 'text-red-400 font-semibold',
+    warning: 'text-red-400 font-bold drop-shadow-[0_0_10px_rgba(248,113,113,0.8)] animate-pulse',
   };
   return classes[type] || '';
 }
 
-export function StoryIntro({ onComplete }: StoryIntroProps) {
+/**
+ * Get speaker name styling
+ */
+function getSpeakerClasses(type: string): string {
+  const classes: Record<string, string> = {
+    spirit: 'text-blue-400 drop-shadow-[0_0_12px_rgba(96,165,250,0.9)]',
+    narrator: 'text-slate-400 drop-shadow-[0_0_6px_rgba(148,163,184,0.6)]',
+  };
+  return classes[type] || 'text-slate-400';
+}
+
+export function StoryIntro({ open, onComplete }: StoryIntroProps) {
+  const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
   const [displayedChars, setDisplayedChars] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
+  const [isSegmentComplete, setIsSegmentComplete] = useState(false);
   const [canSkip, setCanSkip] = useState(false);
 
-  const segments = parseStoryText(STORY_TEXT.trim());
+  const currentSegment = STORY_SEGMENTS[currentSegmentIndex];
+  const segments = parseStoryText(currentSegment.text.trim());
   const fullText = segments.map((s) => s.text).join('');
 
-  // Typewriter effect
+  // Reset when dialog opens or segment changes
   useEffect(() => {
-    // Allow skipping after 2 seconds
-    const skipTimer = setTimeout(() => setCanSkip(true), 2000);
+    if (open) {
+      setDisplayedChars(0);
+      setIsSegmentComplete(false);
+      setCanSkip(false);
+    }
+  }, [open, currentSegmentIndex]);
+
+  // Typewriter effect with slower speed
+  useEffect(() => {
+    if (!open) return;
+
+    // Allow skipping after 3 seconds
+    const skipTimer = setTimeout(() => setCanSkip(true), 3000);
 
     if (displayedChars < fullText.length) {
-      // Vary speed: faster for spaces and punctuation
+      // Slower speed: spaces fast, punctuation pause, normal chars moderate
       const currentChar = fullText[displayedChars];
-      const delay = currentChar === ' ' ? 20 : currentChar.match(/[,。，、！!？?]/) ? 200 : 50;
+      const delay = currentChar === ' ' ? 30 :
+                    currentChar === '\n' ? 400 :
+                    currentChar.match(/[,。，、！!？?：:]/) ? 500 :
+                    currentChar.match(/["'「」『』【】]/) ? 200 :
+                    80;
 
       const timer = setTimeout(() => {
         setDisplayedChars((prev) => prev + 1);
@@ -109,20 +160,24 @@ export function StoryIntro({ onComplete }: StoryIntroProps) {
         clearTimeout(skipTimer);
       };
     } else {
-      setIsComplete(true);
+      setIsSegmentComplete(true);
       return () => clearTimeout(skipTimer);
     }
-  }, [displayedChars, fullText]);
+  }, [displayedChars, fullText, open]);
 
   const handleSkip = () => {
     if (canSkip) {
       setDisplayedChars(fullText.length);
-      setIsComplete(true);
+      setIsSegmentComplete(true);
     }
   };
 
-  const handleContinue = () => {
-    onComplete();
+  const handleNext = () => {
+    if (currentSegmentIndex < STORY_SEGMENTS.length - 1) {
+      setCurrentSegmentIndex((prev) => prev + 1);
+    } else {
+      onComplete();
+    }
   };
 
   // Build displayed text with keyword styling
@@ -159,65 +214,82 @@ export function StoryIntro({ onComplete }: StoryIntroProps) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black"
-      onClick={handleSkip}
-    >
-      {/* Snow effect */}
-      <div className="absolute inset-0 pointer-events-none opacity-30">
-        <div className="absolute inset-0 bg-gradient-to-b from-blue-950/50 via-transparent to-slate-950/50" />
-      </div>
+    <Dialog open={open} onOpenChange={() => {}}>
+      <DialogContent
+        className="max-w-3xl bg-slate-950/95 backdrop-blur-xl border-2 border-slate-700/50 shadow-2xl"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
+        <div className="relative" onClick={handleSkip}>
+          {/* Mountain icon */}
+          <div className="flex justify-center mb-8">
+            <Mountain className="w-16 h-16 text-cyan-300 drop-shadow-[0_0_20px_rgba(165,243,252,0.8)] animate-pulse" />
+          </div>
 
-      {/* Content */}
-      <div className="relative max-w-4xl mx-auto px-8">
-        {/* Mountain icon */}
-        <div className="flex justify-center mb-12 animate-fade-in">
-          <Mountain className="w-20 h-20 text-cyan-300 drop-shadow-[0_0_20px_rgba(165,243,252,0.8)] animate-pulse" />
-        </div>
+          {/* Speaker name */}
+          <div className="text-center mb-6">
+            <h3 className={cn(
+              'text-2xl font-cinzel font-bold tracking-wider',
+              getSpeakerClasses(currentSegment.speakerType)
+            )}>
+              {currentSegment.speaker}
+            </h3>
+          </div>
 
-        {/* Story text */}
-        <div className="relative">
-          <div className="text-slate-200 text-xl leading-relaxed whitespace-pre-wrap font-serif tracking-wide text-center">
-            {renderText()}
-            {!isComplete && (
-              <span className="inline-block w-0.5 h-6 bg-slate-400 ml-1 animate-pulse" />
+          {/* Story text */}
+          <div className="relative min-h-[240px] flex items-center justify-center px-8">
+            <div className="text-slate-200 text-lg leading-relaxed whitespace-pre-wrap font-serif tracking-wide text-center">
+              {renderText()}
+              {!isSegmentComplete && (
+                <span className="inline-block w-0.5 h-6 bg-slate-400 ml-1 animate-pulse" />
+              )}
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="mt-8 flex flex-col items-center gap-4">
+            {!isSegmentComplete && canSkip && (
+              <button
+                onClick={handleSkip}
+                className="text-sm text-slate-400 hover:text-slate-300 transition-colors"
+              >
+                点击任意处跳过当前段落...
+              </button>
             )}
+
+            {isSegmentComplete && (
+              <Button
+                onClick={handleNext}
+                size="lg"
+                className="bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 text-white font-cinzel tracking-wider border-2 border-slate-600 shadow-glow-amber animate-fade-in"
+              >
+                {currentSegmentIndex < STORY_SEGMENTS.length - 1 ? '继续' : '开始游戏'}
+                <Mountain className="w-5 h-5 ml-2" />
+              </Button>
+            )}
+          </div>
+
+          {/* Segment indicator */}
+          <div className="mt-6 flex justify-center gap-2">
+            {STORY_SEGMENTS.map((_, index) => (
+              <div
+                key={index}
+                className={cn(
+                  'w-2 h-2 rounded-full transition-all duration-300',
+                  index === currentSegmentIndex
+                    ? 'bg-cyan-400 w-8'
+                    : index < currentSegmentIndex
+                    ? 'bg-slate-600'
+                    : 'bg-slate-800'
+                )}
+              />
+            ))}
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="mt-12 flex flex-col items-center gap-4">
-          {!isComplete && canSkip && (
-            <button
-              onClick={handleSkip}
-              className="text-sm text-slate-400 hover:text-slate-300 transition-colors"
-            >
-              点击任意处跳过...
-            </button>
-          )}
-
-          {!isComplete && !canSkip && (
-            <div className="flex items-center gap-2 text-slate-500">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-sm">故事正在展开...</span>
-            </div>
-          )}
-
-          {isComplete && (
-            <Button
-              onClick={handleContinue}
-              size="lg"
-              className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-cinzel tracking-wider shadow-glow-amber animate-fade-in"
-            >
-              进入山庄
-              <Mountain className="w-5 h-5 ml-2" />
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Vignette effect */}
-      <div className="absolute inset-0 pointer-events-none bg-gradient-radial from-transparent via-transparent to-black opacity-60" />
-    </div>
+        {/* Vignette effect */}
+        <div className="absolute inset-0 pointer-events-none bg-gradient-radial from-transparent via-transparent to-slate-950/50 rounded-lg" />
+      </DialogContent>
+    </Dialog>
   );
 }
