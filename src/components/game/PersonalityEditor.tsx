@@ -1,5 +1,6 @@
 /**
- * Personality editor dialog component
+ * Traveler Gallery - Tarot Card Style
+ * Display all travelers as tarot cards
  */
 
 'use client';
@@ -13,97 +14,82 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Users,
-  Sparkles,
-  RotateCcw,
-  CheckCircle2,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { TarotCard } from './TarotCard';
+import { Sparkles } from 'lucide-react';
+import type { Player } from '@/types/game';
 
 interface PersonalityEditorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-/**
- * Default personality templates
- */
-const DEFAULT_PERSONALITIES: Record<string, string> = {
-  logical: '你是一个逻辑严谨的分析型玩家。你善于从细节中发现矛盾，通过理性推理来判断局势。你的发言总是有理有据，但有时过于冷静可能让人觉得不近人情。',
-  emotional: '你是一个感性丰富的玩家。你擅长观察他人的情绪变化，通过直觉和感受来判断。你的发言充满热情，容易被情绪影响，但这也让你更容易获得他人的信任。',
-  cautious: '你是一个谨慎保守的玩家。你不轻易表态，总是等待更多信息后再做判断。你的发言简洁克制，避免暴露过多信息，这让你不容易成为目标，但也可能被怀疑隐藏什么。',
-  aggressive: '你是一个激进主动的玩家。你喜欢掌控局面，主动发起讨论和投票。你的发言直接果断，不怕得罪人，这让你容易成为焦点，但也容易被针对。',
-  cooperative: '你是一个善于合作的玩家。你重视团队配合，愿意听取他人意见。你的发言温和友善，善于调解矛盾，这让你容易获得好感，但可能被认为缺乏主见。',
-  mysterious: '你是一个神秘莫测的玩家。你说话总是留有余地，让人猜不透你的真实想法。你的发言暗示多于明示，这让你显得高深莫测，但也容易引起怀疑。',
-};
-
-const TEMPLATE_NAMES: Record<string, string> = {
-  logical: '理性分析型',
-  emotional: '感性直觉型',
-  cautious: '谨慎保守型',
-  aggressive: '激进主导型',
-  cooperative: '合作友善型',
-  mysterious: '神秘莫测型',
-};
-
 export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps) {
-  const gameState = useGameStore((state) => state.gameState);
-  const updatePlayerPersonality = useGameStore((state) => state.updatePlayerPersonality);
+  const { gameState } = useGameStore();
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
 
-  // Local state for editing
-  const [editingPersonalities, setEditingPersonalities] = useState<Record<string, string>>({});
-  const [expandedPlayer, setExpandedPlayer] = useState<string | null>(null);
+  if (!gameState) {
+    return null;
+  }
 
-  // Initialize editing state when dialog opens
-  const handleOpenChange = (newOpen: boolean) => {
-    if (newOpen && gameState) {
-      const initial: Record<string, string> = {};
-      gameState.players.forEach((player) => {
-        initial[player.id] = player.personality ?? '';
-      });
-      setEditingPersonalities(initial);
-    }
-    onOpenChange(newOpen);
+  const handleCardClick = (playerId: string) => {
+    setSelectedPlayerId(playerId === selectedPlayerId ? null : playerId);
   };
 
-  const handleSave = (playerId: string) => {
-    const personality = editingPersonalities[playerId] ?? '';
-    updatePlayerPersonality(playerId, personality);
-  };
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-hidden flex flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+        <DialogHeader className="flex-shrink-0 border-b border-amber-900/30 pb-4">
+          <DialogTitle className="flex items-center gap-2 text-amber-100">
+            <Sparkles className="w-5 h-5 text-amber-500" />
+            旅者画廊
+          </DialogTitle>
+          <DialogDescription className="text-slate-400">
+            点击卡片查看旅者详情
+          </DialogDescription>
+        </DialogHeader>
 
-  const handleSaveAll = () => {
-    Object.entries(editingPersonalities).forEach(([playerId, personality]) => {
-      updatePlayerPersonality(playerId, personality);
-    });
-    onOpenChange(false);
-  };
+        <div className="flex-1 overflow-y-auto py-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 px-4">
+            {gameState.players.map((player) => (
+              <div
+                key={player.id}
+                className="perspective-1000 flex justify-center"
+                onClick={() => handleCardClick(player.id)}
+              >
+                <TarotCard
+                  player={player}
+                  isFlipped={selectedPlayerId === player.id}
+                  className="hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
 
-  const handleApplyTemplate = (playerId: string, templateKey: string) => {
-    setEditingPersonalities((prev) => ({
-      ...prev,
-      [playerId]: DEFAULT_PERSONALITIES[templateKey],
-    }));
-  };
+        {/* Detail panel - shows when a card is selected */}
+        {selectedPlayerId && (
+          <div className="flex-shrink-0 border-t border-amber-900/30 bg-slate-900/50 backdrop-blur-sm">
+            <TravelerDetail
+              player={gameState.players.find((p) => p.id === selectedPlayerId)!}
+              onClose={() => setSelectedPlayerId(null)}
+            />
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
 
-  const handleClear = (playerId: string) => {
-    setEditingPersonalities((prev) => ({
-      ...prev,
-      [playerId]: '',
-    }));
-  };
-
-  const toggleExpand = (playerId: string) => {
-    setExpandedPlayer(expandedPlayer === playerId ? null : playerId);
-  };
-
-  if (!gameState) return null;
-
+/**
+ * Traveler detail panel - shows below when card is flipped
+ */
+function TravelerDetail({
+  player,
+  onClose,
+}: {
+  player: Player;
+  onClose: () => void;
+}) {
   const roleNames: Record<string, { name: string; subtitle: string }> = {
     marked: { name: '烙印者', subtitle: 'The Marked' },
     heretic: { name: '背誓者', subtitle: 'The Heretic' },
@@ -114,166 +100,104 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
     innocent: { name: '无知者', subtitle: 'The Innocent' },
   };
 
-  const roleColors: Record<string, string> = {
-    marked: 'bg-red-600',
-    heretic: 'bg-slate-700',
-    listener: 'bg-purple-600',
-    coroner: 'bg-cyan-700',
-    twin: 'bg-teal-600',
-    guard: 'bg-amber-600',
-    innocent: 'bg-blue-600',
-  };
-
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5" />
-            旅者详情
-          </DialogTitle>
-          <DialogDescription>
-            查看和设置每位旅者的性格特征与行为风格
-          </DialogDescription>
-        </DialogHeader>
-
-        <ScrollArea className="flex-1 min-h-0 pr-4">
-          <div className="space-y-4 pb-4">
-            {gameState.players.map((player) => {
-              const isExpanded = expandedPlayer === player.id;
-              const currentPersonality = editingPersonalities[player.id] ?? '';
-              const hasChanges = currentPersonality !== (player.personality ?? '');
-
-              return (
-                <Card key={player.id} className={cn(
-                  'transition-all',
-                  isExpanded && 'ring-2 ring-primary'
-                )}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-base">{player.name}</CardTitle>
-                        <Badge className={cn('text-xs', roleColors[player.role])}>
-                          {roleNames[player.role]?.name}
-                        </Badge>
-                        {!player.isAlive && (
-                          <Badge variant="outline" className="text-xs">已淘汰</Badge>
-                        )}
-                        {hasChanges && (
-                          <Badge variant="outline" className="text-xs text-amber-600">
-                            未保存
-                          </Badge>
-                        )}
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => toggleExpand(player.id)}
-                      >
-                        {isExpanded ? '收起' : '展开编辑'}
-                      </Button>
-                    </div>
-                  </CardHeader>
-
-                  {isExpanded && (
-                    <CardContent className="space-y-4">
-                      {/* Template buttons */}
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-muted-foreground">
-                          快速模板
-                        </label>
-                        <div className="grid grid-cols-3 gap-2">
-                          {Object.entries(TEMPLATE_NAMES).map(([key, name]) => (
-                            <Button
-                              key={key}
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleApplyTemplate(player.id, key)}
-                              className="text-xs"
-                            >
-                              {name}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Personality textarea */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <label className="text-sm font-medium">
-                            性格设定
-                          </label>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleClear(player.id)}
-                              className="text-xs flex items-center gap-1"
-                            >
-                              <RotateCcw className="w-3 h-3" />
-                              清空
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => handleSave(player.id)}
-                              disabled={!hasChanges}
-                              className="text-xs flex items-center gap-1"
-                            >
-                              <CheckCircle2 className="w-3 h-3" />
-                              保存
-                            </Button>
-                          </div>
-                        </div>
-                        <Textarea
-                          value={currentPersonality}
-                          onChange={(e) => {
-                            setEditingPersonalities((prev) => ({
-                              ...prev,
-                              [player.id]: e.target.value,
-                            }));
-                          }}
-                          placeholder="描述该玩家的性格特征、行为风格、说话方式等... 例如：你是一个谨慎保守的玩家，总是等待更多信息后再做判断..."
-                          className="min-h-[120px] resize-none"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          字符数：{currentPersonality.length}
-                          {currentPersonality.length > 300 && (
-                            <span className="text-amber-600 ml-2">
-                              建议不超过 300 字
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                    </CardContent>
-                  )}
-                </Card>
-              );
-            })}
+    <div className="p-6 animate-in slide-in-from-bottom duration-500">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h3 className="text-2xl font-bold text-amber-100 font-cinzel tracking-wider">
+              {player.name}
+            </h3>
+            <div className="flex items-center gap-3 mt-2">
+              <span className="text-sm text-amber-500 font-cinzel">
+                {roleNames[player.role]?.name}
+              </span>
+              <span className="text-xs text-slate-500 font-serif">
+                {roleNames[player.role]?.subtitle}
+              </span>
+            </div>
           </div>
-        </ScrollArea>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-amber-500 transition-colors"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
 
-        <div className="flex-shrink-0 flex items-center justify-between pt-4 border-t">
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            <Users className="w-3 h-3" />
-            共 {gameState.players.length} 名玩家
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              取消
-            </Button>
-            <Button
-              onClick={handleSaveAll}
-              className="flex items-center gap-2"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              保存全部
-            </Button>
+        {/* Content placeholder - will be designed later */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Left column - Basic info */}
+          <div className="space-y-4">
+            <div className="border border-amber-900/30 rounded-lg p-4 bg-slate-950/50">
+              <h4 className="text-sm font-semibold text-amber-400 mb-2 font-cinzel tracking-wider">
+                基本信息
+              </h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">编号</span>
+                  <span className="text-slate-200 font-mono">
+                    {player.id.slice(-6).toUpperCase()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">状态</span>
+                  <span
+                    className={
+                      player.isAlive ? 'text-green-400' : 'text-red-400'
+                    }
+                  >
+                    {player.isAlive ? '存活' : '已死亡'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="border border-amber-900/30 rounded-lg p-4 bg-slate-950/50">
+              <h4 className="text-sm font-semibold text-amber-400 mb-2 font-cinzel tracking-wider">
+                旅者人设
+              </h4>
+              <p className="text-sm text-slate-300 leading-relaxed font-serif">
+                {player.personality || '暂无人设描述'}
+              </p>
+            </div>
+          </div>
+
+          {/* Right column - Additional info (placeholder) */}
+          <div className="space-y-4">
+            <div className="border border-amber-900/30 rounded-lg p-4 bg-slate-950/50">
+              <h4 className="text-sm font-semibold text-amber-400 mb-2 font-cinzel tracking-wider">
+                角色能力
+              </h4>
+              <p className="text-sm text-slate-400 italic">
+                详细能力说明将在此显示...
+              </p>
+            </div>
+
+            <div className="border border-amber-900/30 rounded-lg p-4 bg-slate-950/50">
+              <h4 className="text-sm font-semibold text-amber-400 mb-2 font-cinzel tracking-wider">
+                游戏记录
+              </h4>
+              <p className="text-sm text-slate-400 italic">
+                该旅者的行动记录将在此显示...
+              </p>
+            </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }
