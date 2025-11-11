@@ -9,7 +9,7 @@ import type { Player } from '@/types/game';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, Check } from 'lucide-react';
+import { Users, Check, Flame, Ghost, Ear, Search, Users as UsersIcon, Shield, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SecretMeetingSelectorProps {
@@ -17,6 +17,45 @@ interface SecretMeetingSelectorProps {
   timing: 'before_discussion' | 'after_sacrifice';
   onConfirm: (participants: [string, string]) => void;
 }
+
+/**
+ * Role names with English/Latin subtitles
+ */
+const roleNames: Record<string, { name: string; subtitle: string }> = {
+  marked: { name: '烙印者', subtitle: 'The Marked' },
+  heretic: { name: '背誓者', subtitle: 'The Heretic' },
+  listener: { name: '聆心者', subtitle: 'The Listener' },
+  coroner: { name: '食灰者', subtitle: 'Ash-Walker' },
+  twin: { name: '共誓者', subtitle: 'The Twin' },
+  guard: { name: '设闩者', subtitle: 'Guardian' },
+  innocent: { name: '无知者', subtitle: 'The Innocent' },
+};
+
+/**
+ * Role icon components
+ */
+const roleIconComponents: Record<string, React.ComponentType<{ className?: string }>> = {
+  marked: Flame,
+  heretic: Ghost,
+  listener: Ear,
+  coroner: Search,
+  twin: UsersIcon,
+  guard: Shield,
+  innocent: User,
+};
+
+/**
+ * Role colors
+ */
+const roleColors: Record<string, string> = {
+  marked: 'text-red-400 bg-red-950/30 border-red-500/40',
+  heretic: 'text-slate-400 bg-slate-950/30 border-slate-500/40',
+  listener: 'text-purple-400 bg-purple-950/30 border-purple-500/40',
+  coroner: 'text-cyan-400 bg-cyan-950/30 border-cyan-500/40',
+  twin: 'text-teal-400 bg-teal-950/30 border-teal-500/40',
+  guard: 'text-amber-400 bg-amber-950/30 border-amber-500/40',
+  innocent: 'text-blue-400 bg-blue-950/30 border-blue-500/40',
+};
 
 export function SecretMeetingSelector({
   players,
@@ -92,6 +131,9 @@ export function SecretMeetingSelector({
             {alivePlayers.map(player => {
               const isSelected = selectedPlayers.includes(player.name);
               const canSelect = !isSelected && selectedPlayers.length < 2;
+              const RoleIcon = roleIconComponents[player.role];
+              const roleInfo = roleNames[player.role];
+              const roleColor = roleColors[player.role];
 
               return (
                 <button
@@ -114,12 +156,26 @@ export function SecretMeetingSelector({
                     </div>
                   )}
 
-                  <div className="text-center">
-                    <div className="font-bold text-foreground mb-1">
+                  <div className="space-y-2">
+                    {/* Player Name */}
+                    <div className="font-bold text-foreground text-center">
                       {player.name}
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {player.occupation || '旅者'}
+
+                    {/* Role Info */}
+                    <div className={cn(
+                      'flex items-center justify-center gap-2 py-2 px-3 rounded border',
+                      roleColor
+                    )}>
+                      {RoleIcon && <RoleIcon className="w-4 h-4" />}
+                      <div className="text-xs font-semibold font-cinzel">
+                        {roleInfo?.name}
+                      </div>
+                    </div>
+
+                    {/* Role Subtitle */}
+                    <div className="text-[10px] text-center text-muted-foreground font-serif italic">
+                      {roleInfo?.subtitle}
                     </div>
                   </div>
                 </button>
