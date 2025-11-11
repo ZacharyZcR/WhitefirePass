@@ -384,30 +384,33 @@ export function GameBoard() {
                     <TabsTrigger value="thinking">内心独白</TabsTrigger>
                     <TabsTrigger value="prompt">神谕指引</TabsTrigger>
                   </TabsList>
-                  <TabsContent value="game" className="flex-1 overflow-hidden m-0 flex flex-col">
+
+                  {/* Shared Message Filter - applies to all tabs */}
+                  <div className="flex-shrink-0">
                     <MessageFilter
                       messages={gameState.messages}
                       players={gameState.players}
                       onFilterChange={setFilteredGameMessages}
                     />
-                    <div className="flex-1 overflow-hidden">
-                      <MessageFlow
-                        messages={filteredGameMessages.length > 0 ? filteredGameMessages : gameState.messages}
-                        players={gameState.players}
-                        filterTypes={['system', 'speech', 'death', 'action', 'secret']}
-                      />
-                    </div>
+                  </div>
+
+                  <TabsContent value="game" className="flex-1 overflow-hidden m-0">
+                    <MessageFlow
+                      messages={filteredGameMessages.length > 0 ? filteredGameMessages : gameState.messages}
+                      players={gameState.players}
+                      filterTypes={['system', 'speech', 'death', 'action', 'secret']}
+                    />
                   </TabsContent>
                   <TabsContent value="thinking" className="flex-1 overflow-hidden m-0">
                     <MessageFlow
-                      messages={gameState.messages}
+                      messages={filteredGameMessages.length > 0 ? filteredGameMessages : gameState.messages}
                       players={gameState.players}
                       filterTypes={['thinking']}
                     />
                   </TabsContent>
                   <TabsContent value="prompt" className="flex-1 overflow-hidden m-0">
                     <MessageFlow
-                      messages={gameState.messages}
+                      messages={filteredGameMessages.length > 0 ? filteredGameMessages : gameState.messages}
                       players={gameState.players}
                       filterTypes={['prompt']}
                     />
