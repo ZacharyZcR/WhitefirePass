@@ -9,6 +9,19 @@ const PROXY_URL = 'http://127.0.0.1:7897';
 const proxyAgent = new ProxyAgent(PROXY_URL);
 
 /**
+ * Validate request body
+ */
+function validateRequest(body: { apiKey?: string; prompt?: string }) {
+  if (!body.apiKey) {
+    return NextResponse.json({ error: '缺少 API Key' }, { status: 400 });
+  }
+  if (!body.prompt) {
+    return NextResponse.json({ error: '缺少 prompt' }, { status: 400 });
+  }
+  return null;
+}
+
+/**
  * POST handler for Gemini API requests
  */
 export async function POST(request: NextRequest) {
@@ -21,19 +34,8 @@ export async function POST(request: NextRequest) {
     };
     const { apiKey, apiUrl, model, prompt } = body;
 
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: '缺少 API Key' },
-        { status: 400 },
-      );
-    }
-
-    if (!prompt) {
-      return NextResponse.json(
-        { error: '缺少 prompt' },
-        { status: 400 },
-      );
-    }
+    const validationError = validateRequest(body);
+    if (validationError) return validationError;
 
     const baseUrl = apiUrl || 'https://generativelanguage.googleapis.com';
     const response = await undiciFetch(

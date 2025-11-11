@@ -706,20 +706,24 @@ export const useGameStore = create<GameStore>()(
     set({ isAutoExecuting: true });
 
     try {
-      // Record the starting phase to know when to stop
       const startingPhase = gameState.phase;
       const startingRound = gameState.round;
 
-      // Keep executing until phase changes or game ends
-      while (
-        get().gameState?.phase === startingPhase &&
-        get().gameState?.round === startingRound &&
-        get().gameState?.phase !== 'end' &&
-        get().isAutoExecuting
-      ) {
-        await get().executeNextStep();
+      // Helper function to check if should continue
+      const shouldContinue = () => {
+        const state = get();
+        const currentPhase = state.gameState?.phase;
+        const currentRound = state.gameState?.round;
+        return (
+          currentPhase === startingPhase &&
+          currentRound === startingRound &&
+          state.isAutoExecuting
+        );
+      };
 
-        // Small delay to allow UI updates
+      // Keep executing until phase changes or game ends
+      while (shouldContinue()) {
+        await get().executeNextStep();
         await new Promise(resolve => setTimeout(resolve, 100));
 
         // Check if there was an error

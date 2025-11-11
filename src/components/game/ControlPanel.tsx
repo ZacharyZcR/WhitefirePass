@@ -393,30 +393,31 @@ function ControlTabContent({
   );
 }
 
+// Phase display name mapping
+const PHASE_DISPLAY_MAP: Record<string, string> = {
+  'prologue': '序章',
+  'setup': '序章',
+  'day': '白天讨论',
+  'voting': '献祭投票',
+  'secret_meeting': '密会阶段',
+  'event': '事件阶段',
+  'end': '游戏结束',
+  'night-listener': '夜晚 - 聆心者查验',
+  'night-marked-discuss': '夜晚 - 烙印者讨论',
+  'night-marked-vote': '夜晚 - 烙印者投票',
+  'night-guard': '夜晚 - 设闩者守护',
+  'night-coroner': '夜晚 - 食灰者验尸',
+  'night': '夜晚',
+};
+
 function CurrentPlayerDisplay({ gameState }: { gameState: GameState }) {
   // Get phase display name
   const getPhaseDisplay = () => {
     const { phase, nightPhase } = gameState;
-
-    if (phase === 'prologue' || phase === 'setup') return '序章';
-    if (phase === 'day') return '白天讨论';
-    if (phase === 'voting') return '献祭投票';
-    if (phase === 'secret_meeting') return '密会阶段';
-    if (phase === 'event') return '事件阶段';
-    if (phase === 'end') return '游戏结束';
-
     if (phase === 'night' && nightPhase) {
-      switch (nightPhase) {
-        case 'listener': return '夜晚 - 聆心者查验';
-        case 'marked-discuss': return '夜晚 - 烙印者讨论';
-        case 'marked-vote': return '夜晚 - 烙印者投票';
-        case 'guard': return '夜晚 - 设闩者守护';
-        case 'coroner': return '夜晚 - 食灰者验尸';
-        default: return '夜晚';
-      }
+      return PHASE_DISPLAY_MAP[`night-${nightPhase}`] || PHASE_DISPLAY_MAP['night'];
     }
-
-    return '未知阶段';
+    return PHASE_DISPLAY_MAP[phase] || '未知阶段';
   };
 
   // Get role display name
@@ -533,6 +534,87 @@ function CurrentPlayerDisplay({ gameState }: { gameState: GameState }) {
   );
 }
 
+function RetryButton({ isProcessing, onRetry }: { isProcessing: boolean; onRetry: () => void }) {
+  return (
+    <Button onClick={onRetry} className="w-full bg-orange-600 hover:bg-orange-700 text-white" disabled={isProcessing}>
+      {isProcessing ? (
+        <>
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          重试中...
+        </>
+      ) : (
+        <>
+          <RotateCw className="w-4 h-4 mr-2" />
+          重试当前步骤
+        </>
+      )}
+    </Button>
+  );
+}
+
+function SecretMeetingButton({ canStart, inProgress, onClick }: { canStart: boolean; inProgress: boolean; onClick: () => void }) {
+  return (
+    <Button onClick={onClick} className="w-full bg-purple-600 hover:bg-purple-700 text-white" disabled={!canStart || inProgress}>
+      {inProgress ? (
+        <>
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          密会进行中...
+        </>
+      ) : (
+        <>
+          <Users className="w-4 h-4 mr-2" />
+          发起密会
+        </>
+      )}
+    </Button>
+  );
+}
+
+function NormalPhaseButtons({
+  canExecuteNext,
+  isAutoExecuting,
+  isProcessing,
+  onAutoExecute,
+  onStopAuto,
+  onNextStep
+}: {
+  canExecuteNext: boolean;
+  isAutoExecuting: boolean;
+  isProcessing: boolean;
+  onAutoExecute: () => void;
+  onStopAuto: () => void;
+  onNextStep: () => void;
+}) {
+  return (
+    <>
+      {isAutoExecuting ? (
+        <Button onClick={onStopAuto} className="w-full bg-red-600 hover:bg-red-700 text-white">
+          <XCircle className="w-4 h-4 mr-2" />
+          停止自动执行
+        </Button>
+      ) : (
+        <Button onClick={onAutoExecute} className="w-full bg-green-600 hover:bg-green-700 text-white" disabled={!canExecuteNext}>
+          <PlayCircle className="w-4 h-4 mr-2" />
+          自动执行阶段
+        </Button>
+      )}
+      <Button onClick={onNextStep} className="w-full" disabled={!canExecuteNext || isAutoExecuting}>
+        {isProcessing ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            处理中...
+          </>
+        ) : (
+          <>
+            <ArrowRight className="w-4 h-4 mr-2" />
+            下一步
+          </>
+        )}
+      </Button>
+    </>
+  );
+}
+
 function ControlButtons({
   gameState,
   isValidating,
@@ -564,11 +646,7 @@ function ControlButtons({
 }) {
   if (!gameState) {
     return (
-      <Button
-        onClick={onStart}
-        className="w-full"
-        disabled={isValidating}
-      >
+      <Button onClick={onStart} className="w-full" disabled={isValidating}>
         {isValidating ? (
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -584,120 +662,39 @@ function ControlButtons({
     );
   }
 
-  // Check if we're in secret meeting phase
   const isSecretMeetingPhase = gameState.phase === 'secret_meeting';
-  const hasSecretMeetingPending = isSecretMeetingPhase && gameState.pendingSecretMeeting && !gameState.pendingSecretMeeting.selectedParticipants;
-  const canStartSecretMeeting = hasSecretMeetingPending && !isProcessing && !hasError;
-  const secretMeetingInProgress = isSecretMeetingPhase && Boolean(gameState.pendingSecretMeeting?.selectedParticipants) && isProcessing && !hasError;
+
+  // Extract complex conditions
+  const getSecretMeetingState = (): { canStart: boolean; inProgress: boolean } => {
+    const hasPending = Boolean(gameState.pendingSecretMeeting && !gameState.pendingSecretMeeting.selectedParticipants);
+    const hasSelected = Boolean(gameState.pendingSecretMeeting?.selectedParticipants);
+    return {
+      canStart: Boolean(hasPending && !isProcessing && !hasError),
+      inProgress: Boolean(hasSelected && isProcessing && !hasError)
+    };
+  };
+
+  const secretMeetingState = getSecretMeetingState();
+
+  // Select button component
+  const ButtonComponent = hasError ? (
+    <RetryButton isProcessing={isProcessing} onRetry={onRetry} />
+  ) : isSecretMeetingPhase ? (
+    <SecretMeetingButton canStart={secretMeetingState.canStart} inProgress={secretMeetingState.inProgress} onClick={onOpenSecretMeeting} />
+  ) : (
+    <NormalPhaseButtons
+      canExecuteNext={canExecuteNext}
+      isAutoExecuting={isAutoExecuting}
+      isProcessing={isProcessing}
+      onAutoExecute={onAutoExecute}
+      onStopAuto={onStopAuto}
+      onNextStep={onNextStep}
+    />
+  );
 
   return (
     <>
-      {/* Secret Meeting Phase - Show only secret meeting button */}
-      {isSecretMeetingPhase ? (
-        <>
-          {hasError ? (
-            <Button
-              onClick={onRetry}
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white"
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  重试中...
-                </>
-              ) : (
-                <>
-                  <RotateCw className="w-4 h-4 mr-2" />
-                  重试当前步骤
-                </>
-              )}
-            </Button>
-          ) : (
-            <Button
-              onClick={onOpenSecretMeeting}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-              disabled={!canStartSecretMeeting || secretMeetingInProgress}
-            >
-              {secretMeetingInProgress ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  密会进行中...
-                </>
-              ) : (
-                <>
-                  <Users className="w-4 h-4 mr-2" />
-                  发起密会
-                </>
-              )}
-            </Button>
-          )}
-        </>
-      ) : (
-        /* Normal Phase - Show next step / retry button */
-        <>
-          {hasError ? (
-            <Button
-              onClick={onRetry}
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white"
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  重试中...
-                </>
-              ) : (
-                <>
-                  <RotateCw className="w-4 h-4 mr-2" />
-                  重试当前步骤
-                </>
-              )}
-            </Button>
-          ) : (
-            <>
-              {/* Auto Execute Phase Button */}
-              {isAutoExecuting ? (
-                <Button
-                  onClick={onStopAuto}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white"
-                >
-                  <XCircle className="w-4 h-4 mr-2" />
-                  停止自动执行
-                </Button>
-              ) : (
-                <Button
-                  onClick={onAutoExecute}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  disabled={!canExecuteNext}
-                >
-                  <PlayCircle className="w-4 h-4 mr-2" />
-                  自动执行阶段
-                </Button>
-              )}
-
-              {/* Next Step Button */}
-              <Button
-                onClick={onNextStep}
-                className="w-full"
-                disabled={!canExecuteNext || isAutoExecuting}
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    处理中...
-                  </>
-                ) : (
-                  <>
-                    <ArrowRight className="w-4 h-4 mr-2" />
-                    下一步
-                  </>
-                )}
-              </Button>
-            </>
-          )}
-        </>
-      )}
+      {ButtonComponent}
       <Button
         onClick={onReset}
         className="w-full bg-red-600 hover:bg-red-700 text-white"

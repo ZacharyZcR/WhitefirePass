@@ -42,11 +42,86 @@ const messageTypeNames: Record<string, string> = {
   secret: '密会',
 };
 
+function EmptyDialogState({ className }: { className?: string }) {
+  return (
+    <div className={cn('relative w-full h-64 bg-gradient-to-b from-slate-900/95 to-slate-950/98 backdrop-blur-sm border-t-2 border-amber-600/30', className)}>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-amber-600/50 font-cinzel text-lg mb-2">WHITEFIRE PASS</div>
+          <div className="text-slate-500 text-sm font-serif">点击「下一步」，故事将会开始……</div>
+        </div>
+      </div>
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-600/50 to-transparent" />
+    </div>
+  );
+}
+
+function CharacterPortrait({ player, isVisible }: { player: Player; isVisible: boolean }) {
+  return (
+    <div className={cn('flex-shrink-0 transition-all duration-500', isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8')}>
+      <div className="relative">
+        <div className="relative group scale-75">
+          <div className="absolute inset-0 bg-amber-600/20 blur-xl group-hover:bg-amber-600/30 transition-all" />
+          <div className="relative transform hover:scale-105 transition-transform">
+            <TarotCard player={player} isFlipped={true} size="small" />
+          </div>
+        </div>
+        {!player.isAlive && (
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+            <span className="text-red-500 font-bold text-sm rotate-12 font-cinzel tracking-wider">DECEASED</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DialogContent({ message, displayText, roleInfo, messageTypeName, isVisible }: {
+  message: Message;
+  displayText: string;
+  roleInfo: { name: string; subtitle: string } | null;
+  messageTypeName: string;
+  isVisible: boolean;
+}) {
+  return (
+    <div className={cn('flex-1 flex flex-col justify-between min-h-0 transition-all duration-500', isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4')}>
+      <div className="flex items-baseline gap-3 mb-3">
+        <div className="relative">
+          <h3 className={cn(TYPOGRAPHY.h2, "text-amber-100")}>{message.from}</h3>
+          <div className="absolute -bottom-1 left-0 right-0 h-px bg-gradient-to-r from-amber-600/80 via-amber-600/40 to-transparent" />
+        </div>
+        {roleInfo && (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-amber-600/70 font-serif">{roleInfo.name}</span>
+            <span className="text-slate-500">·</span>
+            <span className="text-slate-500 italic font-serif">{roleInfo.subtitle}</span>
+          </div>
+        )}
+        <div className="ml-auto">
+          <span className={cn(BADGE.default, "rounded font-serif bg-amber-900/30 text-amber-500/80", getBorderClass('all', 'border-amber-600', 'divider'))}>
+            {messageTypeName}
+          </span>
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgb(120 113 108) transparent' }}>
+        <div className={cn('text-slate-200 text-base leading-relaxed font-serif', message.type === 'thinking' && 'italic text-emerald-400/90', message.type === 'system' && 'text-amber-100/90')}>
+          {displayText}
+        </div>
+      </div>
+      <div className="mt-3 pt-2 border-t border-amber-600/10">
+        <div className="flex items-center justify-between text-xs text-slate-500">
+          <span className="font-serif italic">白烬山口 · 寂静山庄</span>
+          <span className="font-mono">{new Date(message.timestamp).toLocaleTimeString('zh-CN')}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ADVDialogBox({ currentMessage, currentPlayer, className }: ADVDialogBoxProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [displayText, setDisplayText] = useState('');
 
-  // Show/hide animation when message changes
   useEffect(() => {
     if (currentMessage) {
       setIsVisible(false);
@@ -58,18 +133,7 @@ export function ADVDialogBox({ currentMessage, currentPlayer, className }: ADVDi
   }, [currentMessage]);
 
   if (!currentMessage) {
-    return (
-      <div className={cn('relative w-full h-64 bg-gradient-to-b from-slate-900/95 to-slate-950/98 backdrop-blur-sm border-t-2 border-amber-600/30', className)}>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-amber-600/50 font-cinzel text-lg mb-2">WHITEFIRE PASS</div>
-            <div className="text-slate-500 text-sm font-serif">点击「下一步」，故事将会开始……</div>
-          </div>
-        </div>
-        {/* Decorative border pattern */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-600/50 to-transparent" />
-      </div>
-    );
+    return <EmptyDialogState className={className} />;
   }
 
   const isSystemMessage = currentMessage.from === '叙述者' || currentMessage.type === 'system';
@@ -96,86 +160,16 @@ export function ADVDialogBox({ currentMessage, currentPlayer, className }: ADVDi
       </div>
 
       <div className="relative h-full flex items-center gap-6 px-8 py-6">
-        {/* Character portrait (left side) */}
         {!isSystemMessage && currentPlayer && (
-          <div className={cn(
-            'flex-shrink-0 transition-all duration-500',
-            isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'
-          )}>
-            <div className="relative">
-              {/* Portrait container with glow effect */}
-              <div className="relative group scale-75">
-                <div className="absolute inset-0 bg-amber-600/20 blur-xl group-hover:bg-amber-600/30 transition-all" />
-                <div className="relative transform hover:scale-105 transition-transform">
-                  <TarotCard player={currentPlayer} isFlipped={true} size="small" />
-                </div>
-              </div>
-
-              {/* Character status indicator */}
-              {!currentPlayer.isAlive && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                  <span className="text-red-500 font-bold text-sm rotate-12 font-cinzel tracking-wider">
-                    DECEASED
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
+          <CharacterPortrait player={currentPlayer} isVisible={isVisible} />
         )}
-
-        {/* Dialog box (right side) */}
-        <div className={cn(
-          'flex-1 flex flex-col justify-between min-h-0 transition-all duration-500',
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-        )}>
-          {/* Name plate */}
-          <div className="flex items-baseline gap-3 mb-3">
-            <div className="relative">
-              <h3 className={cn(TYPOGRAPHY.h2, "text-amber-100")}>
-                {currentMessage.from}
-              </h3>
-              {/* Decorative underline */}
-              <div className="absolute -bottom-1 left-0 right-0 h-px bg-gradient-to-r from-amber-600/80 via-amber-600/40 to-transparent" />
-            </div>
-
-            {roleInfo && (
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-amber-600/70 font-serif">{roleInfo.name}</span>
-                <span className="text-slate-500">·</span>
-                <span className="text-slate-500 italic font-serif">{roleInfo.subtitle}</span>
-              </div>
-            )}
-
-            {/* Message type badge */}
-            <div className="ml-auto">
-              <span className={cn(BADGE.default, "rounded font-serif bg-amber-900/30 text-amber-500/80", getBorderClass('all', 'border-amber-600', 'divider'))}>
-                {messageTypeName}
-              </span>
-            </div>
-          </div>
-
-          {/* Dialog content */}
-          <div className="flex-1 overflow-y-auto pr-2" style={{
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'rgb(120 113 108) transparent'
-          }}>
-            <div className={cn(
-              'text-slate-200 text-base leading-relaxed font-serif',
-              currentMessage.type === 'thinking' && 'italic text-emerald-400/90',
-              currentMessage.type === 'system' && 'text-amber-100/90'
-            )}>
-              {displayText}
-            </div>
-          </div>
-
-          {/* Bottom decorative line */}
-          <div className="mt-3 pt-2 border-t border-amber-600/10">
-            <div className="flex items-center justify-between text-xs text-slate-500">
-              <span className="font-serif italic">白烬山口 · 寂静山庄</span>
-              <span className="font-mono">{new Date(currentMessage.timestamp).toLocaleTimeString('zh-CN')}</span>
-            </div>
-          </div>
-        </div>
+        <DialogContent
+          message={currentMessage}
+          displayText={displayText}
+          roleInfo={roleInfo}
+          messageTypeName={messageTypeName}
+          isVisible={isVisible}
+        />
       </div>
 
       {/* Decorative corners */}
