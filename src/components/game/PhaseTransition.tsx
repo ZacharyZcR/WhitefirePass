@@ -6,7 +6,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Sun, Moon, Vote, Mountain } from 'lucide-react';
+import { Sun, Moon, Vote, Mountain, Users, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { GamePhase } from '@/types/game';
 
@@ -50,6 +50,20 @@ const phaseConfig: Record<GamePhase, {
     sublabel: 'VOTING',
     gradient: 'from-orange-900 via-red-800 to-orange-900',
     iconColor: 'text-orange-300',
+  },
+  secret_meeting: {
+    icon: Users,
+    label: '密会',
+    sublabel: 'SECRET MEETING',
+    gradient: 'from-purple-900 via-violet-800 to-purple-900',
+    iconColor: 'text-purple-300',
+  },
+  event: {
+    icon: Sparkles,
+    label: '事件',
+    sublabel: 'EVENT',
+    gradient: 'from-teal-900 via-cyan-800 to-teal-900',
+    iconColor: 'text-teal-300',
   },
   night: {
     icon: Moon,

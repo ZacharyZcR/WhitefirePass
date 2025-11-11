@@ -19,7 +19,7 @@ export type Role =
 /**
  * Game phases
  */
-export type GamePhase = 'prologue' | 'setup' | 'night' | 'day' | 'voting' | 'end';
+export type GamePhase = 'prologue' | 'setup' | 'night' | 'day' | 'secret_meeting' | 'event' | 'voting' | 'end';
 
 /**
  * Night sub-phases
@@ -41,7 +41,9 @@ export type MessageType =
   | 'vote'        // Voting
   | 'death'       // Death announcements
   | 'prompt'      // AI prompt
-  | 'thinking';   // AI thinking process
+  | 'thinking'    // AI thinking process
+  | 'secret'      // Secret meeting conversation
+  | 'event';      // Game event
 
 /**
  * Player interface - unified abstraction for AI and human players
@@ -104,7 +106,8 @@ export type MessageVisibility =
   | 'coroner'       // Only 食灰者 can see (autopsy results)
   | 'guard'         // Only 设闩者 can see (guard actions)
   | 'twins'         // Only 共誓者 can see (twin communication)
-  | { player: string };  // Only specific player can see
+  | { player: string }  // Only specific player can see
+  | { secretMeeting: [string, string] };  // Only two specific players can see (secret meeting)
 
 /**
  * Game message
@@ -221,6 +224,16 @@ export interface GameState {
 
   // Emotional state changes
   pendingStateChanges: EmotionalStateChange[];  // Queue of state changes to show to user
+
+  // Secret meetings
+  secretMeetings: SecretMeeting[];  // History of all secret meetings
+  pendingSecretMeeting?: {
+    timing: 'before_discussion' | 'after_sacrifice';
+    selectedParticipants?: [string, string];  // User-selected participants
+  };
+
+  // Game events
+  gameEvents: GameEventRecord[];  // History of all game events
 }
 
 /**
@@ -264,4 +277,27 @@ export interface Clue {
     date?: string;
     text: string;
   }>;  // Full content (supports multi-page like diary)
+}
+
+/**
+ * Secret meeting record
+ */
+export interface SecretMeeting {
+  round: number;
+  participants: [string, string];  // Two participants
+  messageIds: string[];  // Messages exchanged in this meeting
+  timing: 'before_discussion' | 'after_sacrifice';  // When the meeting occurred
+}
+
+/**
+ * Game event record
+ */
+export interface GameEventRecord {
+  round: number;
+  eventId: string;
+  title: string;
+  description: string;
+  participants: string[];
+  effects: string[];
+  type: 'positive' | 'negative' | 'neutral';
 }

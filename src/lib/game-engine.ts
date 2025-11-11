@@ -12,8 +12,11 @@ import type {
   GameConfig,
   TwinPair,
   EmotionalStateChange,
+  SecretMeeting,
+  GameEventRecord,
 } from '@/types/game';
 import { getTriggeredStateChanges } from './relationships';
+import { selectRandomEvent, selectRandomParticipants, formatEventDescription } from './game-events';
 
 /**
  * Create initial game state
@@ -75,6 +78,8 @@ export function createGame(config: GameConfig): GameState {
     nightVoteHistory: [],
     storyProgress: 0,
     pendingStateChanges: [],
+    secretMeetings: [],
+    gameEvents: [],
   };
 }
 
@@ -300,7 +305,7 @@ function createPlayers(roles: Role[]): Player[] {
 
 /**
  * Advance to next game phase
- * Flow: prologue → setup → day → voting → night → day → voting → ...
+ * Flow: prologue → setup → secret_meeting (before) → day → voting → secret_meeting (after) → event → night → ...
  */
 export function advancePhase(state: GameState): GamePhase {
   if (state.phase === 'prologue') {
@@ -308,6 +313,18 @@ export function advancePhase(state: GameState): GamePhase {
   }
 
   if (state.phase === 'setup') {
+    // After setup, go to secret meeting before discussion
+    return 'secret_meeting';
+  }
+
+  if (state.phase === 'secret_meeting') {
+    // Determine next phase based on timing
+    if (state.pendingSecretMeeting?.timing === 'before_discussion') {
+      return 'day';
+    } else if (state.pendingSecretMeeting?.timing === 'after_sacrifice') {
+      return 'event';
+    }
+    // Fallback to day if timing is unclear
     return 'day';
   }
 
@@ -316,11 +333,18 @@ export function advancePhase(state: GameState): GamePhase {
   }
 
   if (state.phase === 'voting') {
+    // After voting, go to secret meeting after sacrifice
+    return 'secret_meeting';
+  }
+
+  if (state.phase === 'event') {
+    // After event, check win condition
     return checkWinCondition(state) ? 'end' : 'night';
   }
 
   if (state.phase === 'night') {
-    return 'day';
+    // After night, go to secret meeting before next day's discussion
+    return 'secret_meeting';
   }
 
   return 'end';
@@ -643,4 +667,120 @@ export function handleDeathTriggers(
     // Add to pending state changes queue
     state.pendingStateChanges.push(stateChange);
   }
+}
+
+/**
+ * Initialize secret meeting phase
+ */
+export function initSecretMeetingPhase(
+  state: GameState,
+  timing: "before_discussion" | "after_sacrifice"
+): void {
+  state.pendingSecretMeeting = {
+    timing,
+    selectedParticipants: undefined,
+  };
+}
+
+/**
+ * Set secret meeting participants (user selection)
+ */
+export function setSecretMeetingParticipants(
+  state: GameState,
+  participants: [string, string]
+): void {
+  if (state.pendingSecretMeeting) {
+    state.pendingSecretMeeting.selectedParticipants = participants;
+  }
+}
+
+/**
+ * Complete secret meeting and record it
+ */
+export function completeSecretMeeting(
+  state: GameState,
+  messageIds: string[]
+): void {
+  if (!state.pendingSecretMeeting?.selectedParticipants) return;
+
+  const meeting: SecretMeeting = {
+    round: state.round,
+    participants: state.pendingSecretMeeting.selectedParticipants,
+    messageIds,
+    timing: state.pendingSecretMeeting.timing,
+  };
+
+  state.secretMeetings.push(meeting);
+  state.pendingSecretMeeting = undefined;
+}
+
+/**
+ * Skip secret meeting (if user chooses not to have one)
+ */
+export function skipSecretMeeting(state: GameState): void {
+  state.pendingSecretMeeting = undefined;
+}
+
+/**
+ * Generate and apply a random game event
+ */
+export function generateGameEvent(state: GameState): GameEventRecord | null {
+  const alivePlayers = state.players.filter(p => p.isAlive);
+  
+  // Need at least 3 alive players for an event
+  if (alivePlayers.length < 3) return null;
+
+  // Randomly select participant count (3-5)
+  const maxParticipants = Math.min(5, alivePlayers.length);
+  const minParticipants = 3;
+  const participantCount = Math.floor(Math.random() * (maxParticipants - minParticipants + 1)) + minParticipants;
+
+  // Select random event with this participant count
+  const event = selectRandomEvent(participantCount);
+  if (!event) return null;
+
+  // Select random participants
+  const participants = selectRandomParticipants(
+    alivePlayers.map(p => p.name),
+    participantCount
+  );
+  if (participants.length < participantCount) return null;
+
+  // Format event description with participant names
+  const { description, effects } = formatEventDescription(event, participants);
+
+  // Create event record
+  const eventRecord: GameEventRecord = {
+    round: state.round,
+    eventId: event.id,
+    title: event.title,
+    description,
+    participants,
+    effects,
+    type: event.type,
+  };
+
+  // Add to game events history
+  state.gameEvents.push(eventRecord);
+
+  // Add event message to game log
+  const eventMessage: Message = {
+    id: generateId(),
+    type: "event",
+    from: "叙述者",
+    content: `**【${event.title}】**
+
+${description}
+
+**效果：**
+${effects.map(e => `• ${e}`).join("\n")}`,
+    timestamp: Date.now(),
+    round: state.round,
+    phase: "event",
+    visibility: "all",
+  };
+
+  state.messages.push(eventMessage);
+
+  return eventRecord;
 }

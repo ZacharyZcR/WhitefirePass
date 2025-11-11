@@ -14,6 +14,11 @@ import {
   getAlivePlayers,
   getPlayerByName,
   handleDeathTriggers,
+  initSecretMeetingPhase,
+  setSecretMeetingParticipants as engineSetSecretMeetingParticipants,
+  skipSecretMeeting as engineSkipSecretMeeting,
+  completeSecretMeeting,
+  generateGameEvent,
 } from '@/lib/game-engine';
 import { getAIResponse, buildPrompt } from '@/lib/gemini';
 import { getInitialClues } from '@/lib/clues-data';
@@ -60,6 +65,14 @@ interface GameStore {
 
   // Emotional state changes
   clearPendingStateChanges: () => void;
+
+  // Secret meeting actions
+  setSecretMeetingParticipants: (participants: [string, string]) => void;
+  skipSecretMeeting: () => void;
+  executeSecretMeeting: () => Promise<void>;
+
+  // Event actions
+  generateEvent: () => void;
 
   // Internal actions
   advanceToNextPhase: () => void;
@@ -185,6 +198,168 @@ export const useGameStore = create<GameStore>()(
     // Ensure pendingStateChanges exists and clear it
     gameState.pendingStateChanges = [];
     set({ gameState: { ...gameState } });
+  },
+
+  /**
+   * Set secret meeting participants (user selected)
+   */
+  setSecretMeetingParticipants: (participants: [string, string]) => {
+    const { gameState } = get();
+    if (!gameState) return;
+    engineSetSecretMeetingParticipants(gameState, participants);
+    set({ gameState: { ...gameState } });
+  },
+
+  /**
+   * Skip secret meeting phase
+   */
+  skipSecretMeeting: () => {
+    const { gameState } = get();
+    if (!gameState) return;
+    engineSkipSecretMeeting(gameState);
+    // Advance to next phase
+    get().advanceToNextPhase();
+    set({ gameState: { ...gameState }, isProcessing: false });
+  },
+
+  /**
+   * Execute secret meeting between two players
+   */
+  executeSecretMeeting: async () => {
+    const { gameState, apiKey } = get();
+    if (!gameState || !gameState.pendingSecretMeeting?.selectedParticipants) return;
+
+    const [player1Name, player2Name] = gameState.pendingSecretMeeting.selectedParticipants;
+    const player1 = getPlayerByName(gameState, player1Name);
+    const player2 = getPlayerByName(gameState, player2Name);
+
+    if (!player1 || !player2) return;
+
+    set({ isProcessing: true });
+
+    try {
+      const messageIds: string[] = [];
+
+      // Add system message announcing the secret meeting
+      const meetingStartMsg = addMessage(
+        gameState,
+        '叙述者',
+        `${player1.name} 和 ${player2.name} 在暗处进行了一次私密的交谈...\n\n（此对话仅存在于两人的记忆中）`,
+        'system',
+        { secretMeeting: [player1.name, player2.name] },
+      );
+      gameState.messages.push(meetingStartMsg);
+      messageIds.push(meetingStartMsg.id);
+
+      // Player 1 speaks
+      const fullPrompt1 = buildPrompt(player1, gameState);
+      gameState.messages.push(
+        addMessage(
+          gameState,
+          `${player1.name} (神谕)`,
+          fullPrompt1 + `\n\n【密会场景】你正在和 ${player2.name} 进行私密对话，其他人不会知道你们说了什么。请自然地交流你的想法。`,
+          'prompt',
+          { secretMeeting: [player1.name, player2.name] },
+        ),
+      );
+
+      const response1 = await getAIResponse(player1, gameState, { apiKey });
+      const { thinking: thinking1, speech: speech1 } = parseAIResponse(response1);
+
+      if (thinking1) {
+        const thinkingMsg1 = addMessage(
+          gameState,
+          player1.name,
+          thinking1,
+          'thinking',
+          { secretMeeting: [player1.name, player2.name] },
+        );
+        gameState.messages.push(thinkingMsg1);
+        messageIds.push(thinkingMsg1.id);
+      }
+
+      const speechMsg1 = addMessage(
+        gameState,
+        player1.name,
+        speech1,
+        'secret',
+        { secretMeeting: [player1.name, player2.name] },
+      );
+      gameState.messages.push(speechMsg1);
+      messageIds.push(speechMsg1.id);
+
+      // Player 2 responds
+      const fullPrompt2 = buildPrompt(player2, gameState);
+      gameState.messages.push(
+        addMessage(
+          gameState,
+          `${player2.name} (神谕)`,
+          fullPrompt2 + `\n\n【密会场景】你正在和 ${player1.name} 进行私密对话。${player1.name} 刚才对你说："${speech1}"。请回应。`,
+          'prompt',
+          { secretMeeting: [player1.name, player2.name] },
+        ),
+      );
+
+      const response2 = await getAIResponse(player2, gameState, { apiKey });
+      const { thinking: thinking2, speech: speech2 } = parseAIResponse(response2);
+
+      if (thinking2) {
+        const thinkingMsg2 = addMessage(
+          gameState,
+          player2.name,
+          thinking2,
+          'thinking',
+          { secretMeeting: [player1.name, player2.name] },
+        );
+        gameState.messages.push(thinkingMsg2);
+        messageIds.push(thinkingMsg2.id);
+      }
+
+      const speechMsg2 = addMessage(
+        gameState,
+        player2.name,
+        speech2,
+        'secret',
+        { secretMeeting: [player1.name, player2.name] },
+      );
+      gameState.messages.push(speechMsg2);
+      messageIds.push(speechMsg2.id);
+
+      // Complete the meeting
+      completeSecretMeeting(gameState, messageIds);
+
+      // Advance to next phase
+      get().advanceToNextPhase();
+
+      set({ gameState: { ...gameState }, isProcessing: false, lastError: null });
+    } catch (error) {
+      console.error('Secret meeting error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      set({
+        isProcessing: false,
+        lastError: `密会执行失败: ${errorMessage}`,
+      });
+    }
+  },
+
+  /**
+   * Generate and apply a random game event
+   */
+  generateEvent: () => {
+    const { gameState } = get();
+    if (!gameState) return;
+
+    // Generate event
+    const event = generateGameEvent(gameState);
+
+    if (event) {
+      // Event was generated successfully, message already added to game log
+      set({ gameState: { ...gameState } });
+    }
+
+    // Advance to next phase (event phase is auto-completed)
+    get().advanceToNextPhase();
+    set({ isProcessing: false });
   },
 
   /**
@@ -615,13 +790,21 @@ export const useGameStore = create<GameStore>()(
         );
       });
 
-      // Transition to day phase with animation
-      gameState.phase = 'day';
+      // Transition to secret meeting phase with animation (before first day discussion)
+      gameState.phase = 'secret_meeting';
       gameState.round = 1;
       gameState.currentPlayerIndex = 0;
 
+      // Initialize secret meeting phase
+      initSecretMeetingPhase(gameState, 'before_discussion');
+
       // Trigger transition animation
-      get().triggerTransition('day', 1);
+      get().triggerTransition('secret_meeting', 1);
+    } else if (gameState.phase === 'secret_meeting') {
+      // Secret meeting phase - user should select participants or skip
+      // This will be handled by UI buttons calling setSecretMeetingParticipants or skipSecretMeeting
+      // This function shouldn't be called during secret_meeting phase normally
+      return;
     } else if (gameState.phase === 'day') {
       // Day phase ended, go to voting
       gameState.phase = 'voting';
@@ -650,10 +833,17 @@ export const useGameStore = create<GameStore>()(
       const phaseBefore = gameState.phase;
       handleDayVotingResult(gameState, eliminated, isTied, tiedPlayers);
 
-      // Trigger transition if entered night phase
-      if (phaseBefore === 'voting' && (gameState.phase as string) === 'night') {
-        get().triggerTransition('night', gameState.round);
+      // After voting, go to secret meeting (after sacrifice)
+      if (phaseBefore === 'voting' && gameState.phase === 'voting') {
+        gameState.phase = 'secret_meeting';
+        initSecretMeetingPhase(gameState, 'after_sacrifice');
+        get().triggerTransition('secret_meeting', gameState.round);
       }
+    } else if (gameState.phase === 'event') {
+      // Event phase - auto-generate and complete
+      get().generateEvent();
+      // generateEvent will call advanceToNextPhase, so return here
+      return;
     } else if (gameState.phase === 'night') {
       // Night phase ended, process night actions and go to day
       const { killedPlayer, message, isTied } = processNightPhase(gameState);
@@ -663,9 +853,12 @@ export const useGameStore = create<GameStore>()(
         const phaseBefore = gameState.phase;
         handleNightKillResult(gameState, killedPlayer, message);
 
-        // Trigger transition to day phase
+        // Trigger transition to secret meeting (before next day discussion)
         if (phaseBefore === 'night' && (gameState.phase as string) === 'day') {
-          get().triggerTransition('day', gameState.round);
+          // Instead of going directly to day, go to secret meeting first
+          gameState.phase = 'secret_meeting';
+          initSecretMeetingPhase(gameState, 'before_discussion');
+          get().triggerTransition('secret_meeting', gameState.round);
         }
       }
     }

@@ -10,13 +10,15 @@ import type { GameState } from '@/types/game';
  * BGM configuration for different game phases
  */
 const BGM_TRACKS = {
-  menu: '/bgm/day.mp3',      // Main menu
-  setup: '/bgm/day.mp3',     // Setup phase
-  day: '/bgm/day.mp3',       // Day phase
-  voting: '/bgm/day.mp3',    // Voting phase (same as day)
-  night: '/bgm/night.mp3',   // Night phase
-  end: '/bgm/night.mp3',     // Game end (same as night)
-  prologue: '/bgm/day.mp3',  // Prologue (same as day)
+  menu: '/bgm/day.mp3',          // Main menu
+  setup: '/bgm/day.mp3',         // Setup phase
+  day: '/bgm/day.mp3',           // Day phase
+  voting: '/bgm/day.mp3',        // Voting phase (same as day)
+  secret_meeting: '/bgm/night.mp3', // Secret meeting (mysterious)
+  event: '/bgm/day.mp3',         // Event (same as day)
+  night: '/bgm/night.mp3',       // Night phase
+  end: '/bgm/night.mp3',         // Game end (same as night)
+  prologue: '/bgm/day.mp3',      // Prologue (same as day)
 } as const;
 
 /**

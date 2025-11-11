@@ -101,7 +101,10 @@ export function buildPrompt(player: Player, gameState: GameState): string {
     if (m.visibility === 'coroner' && player.role === 'coroner') return true;
     if (m.visibility === 'guard' && player.role === 'guard') return true;
     if (m.visibility === 'twins' && player.role === 'twin') return true;
-    if (typeof m.visibility === 'object' && m.visibility.player === player.name) return true;
+    if (typeof m.visibility === 'object') {
+      if ('player' in m.visibility && m.visibility.player === player.name) return true;
+      if ('secretMeeting' in m.visibility && m.visibility.secretMeeting.includes(player.name)) return true;
+    }
     // AI can see its own thinking
     if (m.type === 'thinking' && m.from === player.name) return true;
     return false;

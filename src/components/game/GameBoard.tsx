@@ -17,6 +17,7 @@ import { CluesPanel } from './CluesPanel';
 import { PhaseTransition } from './PhaseTransition';
 import { GameEndDialog } from './GameEndDialog';
 import { EmotionalStateDialog } from './EmotionalStateDialog';
+import { SecretMeetingSelector } from './SecretMeetingSelector';
 import { Mountain, Gamepad2, Moon, Sun, Users as UsersIcon, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -50,6 +51,20 @@ function getPhaseTheme(phase: string) {
         border: 'border-orange-400/40',
         icon: <UsersIcon className="w-8 h-8 text-orange-300" />,
         label: '投票阶段',
+      };
+    case 'secret_meeting':
+      return {
+        gradient: 'from-slate-950 via-purple-950/50 to-slate-950',
+        border: 'border-purple-400/40',
+        icon: <UsersIcon className="w-8 h-8 text-purple-300" />,
+        label: '密会',
+      };
+    case 'event':
+      return {
+        gradient: 'from-slate-950 via-teal-950/50 to-slate-950',
+        border: 'border-teal-400/40',
+        icon: <Mountain className="w-8 h-8 text-teal-300" />,
+        label: '事件',
       };
     case 'end':
       return {
@@ -96,6 +111,9 @@ export function GameBoard() {
     transitionRound,
     completeTransition,
     clearPendingStateChanges,
+    setSecretMeetingParticipants,
+    skipSecretMeeting,
+    executeSecretMeeting,
   } = useGameStore();
   const phase = gameState?.phase || 'setup';
   const theme = getPhaseTheme(phase);
@@ -415,6 +433,19 @@ export function GameBoard() {
         <EmotionalStateDialog
           stateChanges={gameState.pendingStateChanges}
           onComplete={clearPendingStateChanges}
+        />
+      )}
+
+      {/* Secret Meeting Selector */}
+      {gameState && gameState.phase === 'secret_meeting' && gameState.pendingSecretMeeting && !gameState.pendingSecretMeeting.selectedParticipants && (
+        <SecretMeetingSelector
+          players={gameState.players}
+          timing={gameState.pendingSecretMeeting.timing}
+          onConfirm={(participants) => {
+            setSecretMeetingParticipants(participants);
+            void executeSecretMeeting();
+          }}
+          onCancel={skipSecretMeeting}
         />
       )}
     </>
