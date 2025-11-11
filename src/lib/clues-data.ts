@@ -14,12 +14,12 @@ export const TRAVELER_TESTAMENT: Clue = {
   title: '迷路旅人的遗书',
   category: 'diary',
   description: '一本沾满灰尘的日记本，记录了前一批旅人的遭遇。最后几页带有暗红色的痕迹...',
-  date: '1913年10月24日 - 10月29日',
+  date: '1903年10月24日 - 10月29日',
   unlockedAt: Date.now(),
   isRead: false,
   content: [
     {
-      date: '1913年10月24日',
+      date: '1903年10月24日',
       text: `我们一行{warning:fifteen}十五人{/warning}，从省城雇了马车来{place:white}白烬山口{/place}考察矿脉。
 
 领队说这里的地质构造很特殊，可能蕴藏着{redacted:rich}███{/redacted}。大家都很兴奋，憧憬着发财的前景。
@@ -37,7 +37,7 @@ export const TRAVELER_TESTAMENT: Clue = {
 他说{redacted:bad}███{/redacted}。`,
     },
     {
-      date: '1913年10月25日',
+      date: '1903年10月25日',
       text: `暴雪依旧肆虐。更可怕的事发生了。
 
 {warning:door}门打不开了{/warning}。所有的门窗都打不开。
@@ -61,7 +61,7 @@ export const TRAVELER_TESTAMENT: Clue = {
 是从那{cold:white}苍白的火焰{/cold}中传来的，像是在召唤什么。`,
     },
     {
-      date: '1913年10月26日',
+      date: '1903年10月26日',
       text: `清晨醒来，我察觉到某种{fear:change}可怕的变化{/fear}。
 
 有些人不一样了。
@@ -101,7 +101,7 @@ export const TRAVELER_TESTAMENT: Clue = {
 {fear:doubt}他们真的不是人类了吗{/fear}？`,
     },
     {
-      date: '1913年10月27日',
+      date: '1903年10月27日',
       text: `{warning:warning}仪式开始了{/warning}。
 
 昨夜，有人死了。
@@ -147,7 +147,7 @@ export const TRAVELER_TESTAMENT: Clue = {
 天黑后，我们在那{cold:white}苍白的火焰{/cold}旁，将她{redacted:sacrifice}███{/redacted}。`,
     },
     {
-      date: '1913年10月28日',
+      date: '1903年10月28日',
       text: `又一个白昼与黑夜的循环。
 
 又死了两个人。昨夜一个，今日白昼被献祭一个。
@@ -179,7 +179,7 @@ export const TRAVELER_TESTAMENT: Clue = {
 {cold:white}苍白的火焰{/cold}依旧在燃烧。它好像在{fear:watch}注视着我{/fear}。`,
     },
     {
-      date: '1913年10月29日 清晨四时',
+      date: '1903年10月29日 清晨四时',
       text: `如果有人找到这本日记...
 
 我在天亮前会死。
@@ -216,7 +216,7 @@ export const TRAVELER_TESTAMENT: Clue = {
 
 {redacted:name}███{/redacted}
 
-1913年10月29日清晨
+1903年10月29日清晨
 
 ——一个即将被{sacrifice:sacrifice}献祭{/sacrifice}的羔羊
 
