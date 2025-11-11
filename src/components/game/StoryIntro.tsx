@@ -338,14 +338,12 @@ function getKeywordClasses(type: string): string {
     many: 'text-slate-500 italic',
     run: 'text-red-500 font-bold underline decoration-double',
     feel: 'text-slate-400 italic',
-    eyes: 'text-slate-300 font-semibold',
     chaos: 'text-red-400 font-bold italic',
     collapse: 'text-red-500 font-bold',
     guess: 'text-slate-400 italic',
     vocal: 'text-slate-400 italic underline',
     target: 'text-red-500 font-bold underline',
     die: 'text-red-600 font-bold',
-    frame: 'text-red-400 font-semibold italic',
 
     // Cold/Ice
     cold: 'text-cyan-300 font-semibold drop-shadow-[0_0_6px_rgba(165,243,252,0.6)]',
@@ -377,9 +375,8 @@ function getKeywordClasses(type: string): string {
     cursed: 'text-purple-500 font-bold italic drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]',
     punishment: 'text-red-500 font-bold',
 
-    // Curse/Storm
+    // Curse
     curse: 'text-amber-500 font-semibold drop-shadow-[0_0_8px_rgba(245,158,11,0.7)]',
-    storm: 'text-slate-400 font-semibold drop-shadow-[0_0_6px_rgba(148,163,184,0.6)]',
 
     // Good/Observation/Survival
     lamb: 'text-blue-400 font-semibold drop-shadow-[0_0_6px_rgba(96,165,250,0.6)]',

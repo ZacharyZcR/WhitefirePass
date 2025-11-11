@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useGameStore } from '@/stores/game-store';
 import { PlayerCard } from './PlayerCard';
 import { MessageFlow } from './MessageFlow';
@@ -15,6 +15,7 @@ import { CurrentSpeaker } from './CurrentSpeaker';
 import { StartMenu } from './StartMenu';
 import { CluesPanel } from './CluesPanel';
 import { PhaseTransition } from './PhaseTransition';
+import { GameEndDialog } from './GameEndDialog';
 import { Mountain, Gamepad2, Moon, Sun, Users as UsersIcon, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -99,6 +100,20 @@ export function GameBoard() {
   // BGM system
   const bgmPhase = gameState ? phase : 'menu';
   const { volume, setVolume, isMuted, toggleMute } = useBGM(bgmPhase, true);
+
+  // Game end dialog state
+  const [showEndDialog, setShowEndDialog] = useState(false);
+
+  // Auto-open game end dialog when game ends
+  useEffect(() => {
+    if (gameState?.phase === 'end' && gameState.winner && !showEndDialog) {
+      // Delay slightly to allow the ending message to show first
+      const timer = setTimeout(() => {
+        setShowEndDialog(true);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [gameState?.phase, gameState?.winner, showEndDialog]);
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -382,6 +397,15 @@ export function GameBoard() {
         </div>
       </div>
     </div>
+
+      {/* Game End Dialog */}
+      {gameState && gameState.phase === 'end' && gameState.winner && (
+        <GameEndDialog
+          gameState={gameState}
+          open={showEndDialog}
+          onOpenChange={setShowEndDialog}
+        />
+      )}
     </>
   );
 }

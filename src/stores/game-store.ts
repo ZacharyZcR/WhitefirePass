@@ -238,6 +238,7 @@ export const useGameStore = create<GameStore>()(
    * Retry current step after error (called manually by user or automatically)
    */
   retryCurrentStep: async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { gameState, retryCount } = get();
     if (!gameState) return;
 
@@ -349,11 +350,17 @@ export const useGameStore = create<GameStore>()(
       if (winner) {
         gameState.winner = winner;
         gameState.phase = 'end';
+
+        // Add atmospheric ending message based on winner
+        const endingMessage = winner === 'marked'
+          ? `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n山灵的收割已然完成。\n\n黎明不再降临白烬山口，永夜吞噬了最后的希望。\n血肉献祭，灵魂皈依，收割者的呼唤得到了回应。\n\n这座村庄的故事，就此终结。\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
+          : `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n黎明的光芒刺破了永夜。\n\n最后的收割者倒在了祭坛之前，山灵的诅咒终于被打破。\n幸存的羔羊们围聚在一起，泪水与血迹交织。\n\n白烬山口迎来了久违的宁静。\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
         gameState.messages.push(
           addMessage(
             gameState,
-            'system',
-            `游戏结束！${winner === 'marked' ? '收割阵营' : '羔羊阵营'}获胜！`,
+            '叙述者',
+            endingMessage,
             'system',
           ),
         );
@@ -628,7 +635,7 @@ export const useGameStore = create<GameStore>()(
       handleDayVotingResult(gameState, eliminated, isTied, tiedPlayers);
 
       // Trigger transition if entered night phase
-      if (phaseBefore === 'voting' && gameState.phase === 'night') {
+      if (phaseBefore === 'voting' && (gameState.phase as string) === 'night') {
         get().triggerTransition('night', gameState.round);
       }
     } else if (gameState.phase === 'night') {
@@ -641,7 +648,7 @@ export const useGameStore = create<GameStore>()(
         handleNightKillResult(gameState, killedPlayer, message);
 
         // Trigger transition to day phase
-        if (phaseBefore === 'night' && gameState.phase === 'day') {
+        if (phaseBefore === 'night' && (gameState.phase as string) === 'day') {
           get().triggerTransition('day', gameState.round);
         }
       }
