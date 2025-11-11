@@ -72,7 +72,9 @@ export interface CharacterRelationship {
   character: string;  // Character name
   target: string;     // Related character name
   type: RelationshipType;
-  virtueOnDeath?: boolean;  // true = 触发美德, false = 触发罪恶
+  virtueChance: number;  // 0-1: Probability of triggering virtue (美德)
+  viceChance: number;    // 0-1: Probability of triggering vice (罪恶)
+  // Note: virtueChance + viceChance can be < 1, remaining = stay normal
 }
 
 export interface Player {

@@ -591,7 +591,7 @@ export function getPlayerByName(
 
 /**
  * Handle emotional state changes triggered by a character's death
- * Checks relationships and queues state changes
+ * Uses probability-based dual direction system (virtue vs vice)
  */
 export function handleDeathTriggers(
   state: GameState,
@@ -605,8 +605,28 @@ export function handleDeathTriggers(
     // Only affect alive players
     if (!affectedPlayer || !affectedPlayer.isAlive) continue;
 
-    // Determine new state based on relationship
-    const newState = relationship.virtueOnDeath ? 'virtue' : 'vice';
+    // Roll for emotional state change (dual direction probability)
+    const roll = Math.random();
+    let newState: EmotionalStateChange['newState'] | null = null;
+
+    if (roll < relationship.virtueChance) {
+      // Virtue triggered
+      newState = 'virtue';
+    } else if (roll < relationship.virtueChance + relationship.viceChance) {
+      // Vice triggered
+      newState = 'vice';
+    }
+    // else: stay normal (no state change)
+
+    if (!newState) continue; // No change, skip
+
+    // Check if character has the corresponding state prompt
+    // (some characters only have virtue or vice, not both)
+    const statePrompts = require('./emotional-prompts').EMOTIONAL_STATE_PROMPTS[relationship.character];
+    if (!statePrompts || !statePrompts[newState]) {
+      // Character doesn't have this state prompt, stay normal
+      continue;
+    }
 
     // Update player's emotional state
     affectedPlayer.emotionalState = newState;
