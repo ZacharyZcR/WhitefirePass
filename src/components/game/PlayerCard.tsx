@@ -4,6 +4,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import type { Player } from '@/types/game';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +18,9 @@ import {
   Search,
   Users,
   Shield,
+  Info,
 } from 'lucide-react';
+import { PlayerDetailDialog } from './PlayerDetailDialog';
 
 interface PlayerCardProps {
   player: Player;
@@ -121,60 +124,71 @@ function PlayerAvatar({
 
 export function PlayerCard({ player, showRole = false, isCurrent = false }: PlayerCardProps) {
   const borderColor = roleBorderColors[player.role];
+  const [detailOpen, setDetailOpen] = useState(false);
 
   return (
-    <Card
-      className={cn(
-        'transition-all duration-300 relative',
-        player.isAlive
-          ? cn(
-              'border-2',
-              showRole ? borderColor : 'border-border',
-              isCurrent && 'ring-4 ring-yellow-500/50 shadow-2xl shadow-yellow-500/20 animate-pulse',
-            )
-          : 'opacity-50 grayscale border-gray-400',
-      )}
-    >
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-3">
-          {showRole && (
-            <PlayerAvatar
-              name={player.name}
-              role={player.role}
-              isAlive={player.isAlive}
-            />
-          )}
-          <div className="flex-1">
-            <CardTitle className="flex items-center justify-between text-lg">
-              <span className="flex items-center gap-2">
-                {player.name}
-              </span>
-              {!player.isAlive && (
-                <Badge variant="destructive" className="text-xs flex items-center gap-1">
-                  <Skull className="w-3 h-3" />
-                  已死亡
-                </Badge>
-              )}
-            </CardTitle>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        {showRole && (
-          <div className="space-y-1">
-            <Badge className={cn('w-full justify-center text-xs', roleColors[player.role])}>
-              {roleNames[player.role]?.name}
-            </Badge>
-            <div className="text-[10px] text-center text-muted-foreground font-cinzel tracking-wider opacity-70">
-              {roleNames[player.role]?.subtitle}
+    <>
+      <Card
+        className={cn(
+          'transition-all duration-300 relative cursor-pointer hover:shadow-lg',
+          player.isAlive
+            ? cn(
+                'border-2',
+                showRole ? borderColor : 'border-border',
+                isCurrent && 'ring-4 ring-yellow-500/50 shadow-2xl shadow-yellow-500/20 animate-pulse',
+              )
+            : 'opacity-50 grayscale border-gray-400',
+        )}
+        onClick={() => setDetailOpen(true)}
+      >
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            {showRole && (
+              <PlayerAvatar
+                name={player.name}
+                role={player.role}
+                isAlive={player.isAlive}
+              />
+            )}
+            <div className="flex-1">
+              <CardTitle className="flex items-center justify-between text-lg">
+                <span className="flex items-center gap-2">
+                  {player.name}
+                  <Info className="w-3 h-3 text-muted-foreground opacity-50" />
+                </span>
+                {!player.isAlive && (
+                  <Badge variant="destructive" className="text-xs flex items-center gap-1">
+                    <Skull className="w-3 h-3" />
+                    已死亡
+                  </Badge>
+                )}
+              </CardTitle>
             </div>
           </div>
-        )}
-        <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-          <User className="w-3 h-3" />
-          旅者
-        </div>
-      </CardContent>
-    </Card>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {showRole && (
+            <div className="space-y-1">
+              <Badge className={cn('w-full justify-center text-xs', roleColors[player.role])}>
+                {roleNames[player.role]?.name}
+              </Badge>
+              <div className="text-[10px] text-center text-muted-foreground font-cinzel tracking-wider opacity-70">
+                {roleNames[player.role]?.subtitle}
+              </div>
+            </div>
+          )}
+          <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+            <User className="w-3 h-3" />
+            旅者
+          </div>
+        </CardContent>
+      </Card>
+
+      <PlayerDetailDialog
+        player={player}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
+    </>
   );
 }
