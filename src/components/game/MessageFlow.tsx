@@ -7,6 +7,7 @@
 import { useEffect, useRef } from 'react';
 import type { Message, Player } from '@/types/game';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
   Brain,
@@ -16,7 +17,9 @@ import {
   Activity,
   FileText,
   AlertCircle,
+  RotateCcw,
 } from 'lucide-react';
+import { useGameStore } from '@/stores/game-store';
 
 interface MessageFlowProps {
   messages: Message[];
@@ -184,19 +187,25 @@ function PhaseDivider({ round, phase }: { round?: number; phase?: string }) {
 /**
  * Individual message item component
  */
-function MessageItem({ message, index, players }: {
+function MessageItem({ message, index, players, isLastAIMessage }: {
   message: Message;
   index: number;
   players?: Player[];
+  isLastAIMessage?: boolean;
 }) {
   const messageStyle = messageStyles[message.type] ?? 'bg-card';
   const messageTypeName = messageTypeNames[message.type] ?? message.type;
   const phaseName = message.phase ? (phaseNames[message.phase] ?? message.phase) : '';
   const contentColor = message.type === 'thinking' ? 'text-emerald-400' : 'text-foreground';
   const showPhaseInfo = Boolean(message.phase && message.round);
+  const { retryLastAIResponse, isProcessing } = useGameStore();
 
   // Find player role (for user to see, doesn't affect game logic)
   const playerRole = players?.find(p => p.name === message.from)?.role;
+
+  // Show retry button for AI messages (speech, vote, thinking) that are the last AI message
+  const isAIMessage = ['speech', 'vote', 'thinking'].includes(message.type) && message.from !== '叙述者';
+  const showRetryButton = isAIMessage && isLastAIMessage;
 
   return (
     <div
@@ -214,9 +223,23 @@ function MessageItem({ message, index, players }: {
           </span>
           <MessageBadges message={message} messageTypeName={messageTypeName} playerRole={playerRole} />
         </div>
-        <span className="text-xs text-muted-foreground">
-          {formatTime(message.timestamp)}
-        </span>
+        <div className="flex items-center gap-2">
+          {showRetryButton && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-6 px-2 text-xs gap-1"
+              onClick={() => void retryLastAIResponse()}
+              disabled={isProcessing}
+            >
+              <RotateCcw className="w-3 h-3" />
+              重试
+            </Button>
+          )}
+          <span className="text-xs text-muted-foreground">
+            {formatTime(message.timestamp)}
+          </span>
+        </div>
       </div>
 
       <div className={cn("text-sm leading-relaxed", contentColor)}>
@@ -252,6 +275,17 @@ export function MessageFlow({ messages, players, filterTypes }: MessageFlowProps
     let lastRound: number | undefined;
     let lastPhase: string | undefined;
 
+    // Find the last AI message index
+    let lastAIMessageIndex = -1;
+    for (let i = filteredMessages.length - 1; i >= 0; i--) {
+      const msg = filteredMessages[i];
+      const isAIMessage = ['speech', 'vote', 'thinking'].includes(msg.type) && msg.from !== '叙述者';
+      if (isAIMessage) {
+        lastAIMessageIndex = i;
+        break;
+      }
+    }
+
     filteredMessages.forEach((message, idx) => {
       // Check if round or phase changed
       const roundChanged = message.round !== undefined && message.round !== lastRound;
@@ -267,8 +301,15 @@ export function MessageFlow({ messages, players, filterTypes }: MessageFlowProps
         );
       }
 
+      const isLastAIMessage = idx === lastAIMessageIndex;
       elements.push(
-        <MessageItem key={message.id} message={message} index={idx} players={players} />
+        <MessageItem
+          key={message.id}
+          message={message}
+          index={idx}
+          players={players}
+          isLastAIMessage={isLastAIMessage}
+        />
       );
 
       lastRound = message.round;

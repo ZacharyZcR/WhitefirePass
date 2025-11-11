@@ -39,6 +39,7 @@ interface GameStore {
   resetGame: () => void;
   executeNextStep: () => Promise<void>;
   retryCurrentStep: () => Promise<void>;
+  retryLastAIResponse: () => Promise<void>;
   clearError: () => void;
   updatePlayerPersonality: (playerId: string, personality: string) => void;
 
@@ -245,6 +246,83 @@ export const useGameStore = create<GameStore>()(
 
     // Reset retry count when manually retrying
     set({ gameState: { ...gameState }, lastError: null, retryCount: 0 });
+    await get().executeCurrentPlayerAction();
+  },
+
+  /**
+   * Retry last AI response (manually triggered by user)
+   * Removes the last AI's messages and re-executes the action
+   */
+  retryLastAIResponse: async () => {
+    const { gameState, isProcessing } = get();
+    if (!gameState || isProcessing) return;
+
+    // Can't retry if no current player or already at the start
+    if (gameState.currentPlayerIndex === 0) return;
+
+    // Get the previous player (the one we want to retry)
+    const previousPlayerIndex = gameState.currentPlayerIndex - 1;
+    const alivePlayers = getAlivePlayers(gameState);
+    const previousPlayer = alivePlayers[previousPlayerIndex];
+    if (!previousPlayer) return;
+
+    set({ isProcessing: true, lastError: null });
+
+    // Remove last AI messages (thinking, speech/vote, prompt)
+    const initialMessageCount = gameState.messages.length;
+    const messagesToKeep = gameState.messages.filter(msg => {
+      // Keep all messages except the last AI player's messages
+      return msg.from !== previousPlayer.name && msg.from !== `${previousPlayer.name} (神谕)`;
+    });
+
+    // If no messages were removed, something is wrong
+    if (messagesToKeep.length === initialMessageCount) {
+      set({ isProcessing: false, lastError: '没有找到可以重试的AI消息' });
+      return;
+    }
+
+    gameState.messages = messagesToKeep;
+
+    // Remove last vote if in voting phase
+    if (gameState.phase === 'voting') {
+      const lastVoteIndex = gameState.votes.findIndex(v => v.from === previousPlayer.name);
+      if (lastVoteIndex >= 0) {
+        gameState.votes.splice(lastVoteIndex, 1);
+      }
+    }
+
+    // Remove last night action if in night phase
+    if (gameState.phase === 'night') {
+      // Remove night vote
+      const lastNightVoteIndex = gameState.nightVotes.findIndex(v => v.from === previousPlayer.name);
+      if (lastNightVoteIndex >= 0) {
+        gameState.nightVotes.splice(lastNightVoteIndex, 1);
+      }
+
+      // Remove listener check
+      if (gameState.nightPhase === 'listener') {
+        const lastCheckIndex = gameState.listenerChecks.length - 1;
+        if (lastCheckIndex >= 0) {
+          gameState.listenerChecks.splice(lastCheckIndex, 1);
+        }
+      }
+
+      // Remove guard record
+      if (gameState.nightPhase === 'guard') {
+        const lastGuardIndex = gameState.guardRecords.length - 1;
+        if (lastGuardIndex >= 0) {
+          gameState.guardRecords.splice(lastGuardIndex, 1);
+        }
+      }
+    }
+
+    // Go back to previous player
+    gameState.currentPlayerIndex = previousPlayerIndex;
+
+    // Update state
+    set({ gameState: { ...gameState }, retryCount: 0 });
+
+    // Re-execute the action
     await get().executeCurrentPlayerAction();
   },
 
@@ -744,6 +822,44 @@ function parseAIResponse(response: string): {
 }
 
 /**
+ * Extract player name from AI response text
+ * Tries to intelligently match player names even if AI added extra text
+ */
+function extractPlayerName(text: string, allPlayers: Player[]): string | null {
+  const cleanedText = text.trim();
+
+  // Try exact match first
+  const exactMatch = allPlayers.find(p => cleanedText === p.name);
+  if (exactMatch) return exactMatch.name;
+
+  // Try to find any player name mentioned in the text
+  // Sort by name length (descending) to prioritize longer names
+  const sortedPlayers = [...allPlayers].sort((a, b) => b.name.length - a.name.length);
+
+  for (const player of sortedPlayers) {
+    if (cleanedText.includes(player.name)) {
+      return player.name;
+    }
+  }
+
+  // Try partial match (first or last name)
+  for (const player of sortedPlayers) {
+    const nameParts = player.name.split('·');
+    for (const part of nameParts) {
+      if (cleanedText.includes(part) && part.length >= 2) {
+        // Additional check: make sure this partial match uniquely identifies the player
+        const matchingPlayers = allPlayers.filter(p => p.name.includes(part));
+        if (matchingPlayers.length === 1) {
+          return player.name;
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
  * Record vote or action based on player response
  */
 function recordVote(
@@ -751,7 +867,9 @@ function recordVote(
   currentPlayer: Player,
   response: string,
 ): void {
-  const targetName = response.trim();
+  // Try to extract player name intelligently
+  const extractedName = extractPlayerName(response, gameState.players);
+  const targetName = extractedName || response.trim();
   const targetPlayer = getPlayerByName(gameState, targetName);
 
   if (gameState.phase === 'voting') {
