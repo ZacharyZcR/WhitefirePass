@@ -411,7 +411,7 @@ export function GameBoard() {
       )}
 
       {/* Emotional State Change Dialog */}
-      {gameState && gameState.pendingStateChanges.length > 0 && (
+      {gameState && gameState.pendingStateChanges && gameState.pendingStateChanges.length > 0 && (
         <EmotionalStateDialog
           stateChanges={gameState.pendingStateChanges}
           onComplete={clearPendingStateChanges}

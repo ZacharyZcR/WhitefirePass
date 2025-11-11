@@ -182,6 +182,7 @@ export const useGameStore = create<GameStore>()(
   clearPendingStateChanges: () => {
     const { gameState } = get();
     if (!gameState) return;
+    // Ensure pendingStateChanges exists and clear it
     gameState.pendingStateChanges = [];
     set({ gameState: { ...gameState } });
   },
@@ -823,6 +824,12 @@ export const useGameStore = create<GameStore>()(
         apiKey: state.apiKey,
         clues: state.clues,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Ensure pendingStateChanges exists in rehydrated state
+        if (state?.gameState && !state.gameState.pendingStateChanges) {
+          state.gameState.pendingStateChanges = [];
+        }
+      },
     },
   ),
 );
