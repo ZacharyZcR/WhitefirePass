@@ -4,7 +4,7 @@
 
 一个由 AI 驱动的狼人杀变体游戏，基于 1913 年的神秘山庄背景设定。游戏使用 Gemini 2.5 Pro API 驱动 15 位 AI 旅者，支持手动单步执行，让你见证 AI 角色在生死博弈中的思考过程。
 
-[![CI](https://github.com/ZacharyZcR/Wolf/workflows/CI/badge.svg)](https://github.com/ZacharyZcR/Wolf/actions)
+[![CI](https://github.com/ZacharyZcR/WhitefirePass/workflows/CI/badge.svg)](https://github.com/ZacharyZcR/WhitefirePass/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 🎮 游戏特色
@@ -59,8 +59,8 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/ZacharyZcR/Wolf.git
-cd Wolf
+git clone https://github.com/ZacharyZcR/WhitefirePass.git
+cd WhitefirePass
 
 # 安装依赖
 pnpm install
@@ -396,8 +396,8 @@ chore: 其他修改
 
 ## 📮 联系方式
 
-- GitHub Issues: [提交问题](https://github.com/ZacharyZcR/Wolf/issues)
-- 项目主页: [白烬山口](https://github.com/ZacharyZcR/Wolf)
+- GitHub Issues: [提交问题](https://github.com/ZacharyZcR/WhitefirePass/issues)
+- 项目主页: [白烬山口](https://github.com/ZacharyZcR/WhitefirePass)
 
 ---
 
