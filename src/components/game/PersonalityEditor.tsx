@@ -6,6 +6,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useGameStore } from '@/stores/game-store';
 import {
   Dialog,
@@ -151,22 +152,34 @@ export function PersonalityEditor({ open, onOpenChange }: PersonalityEditorProps
               <div className="min-h-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 animate-in fade-in duration-500">
                 <div className="max-w-6xl mx-auto p-6 sm:p-8">
                   <div className="flex flex-col lg:flex-row gap-8 items-start">
-                    {/* Left: Card and Basic Info */}
-                    <div className="flex-shrink-0 w-full lg:w-auto space-y-6">
-                      <div className="flex justify-center perspective-1000">
-                        <TarotCard
-                          player={selectedPlayer}
-                          isFlipped={true}
-                          size="default"
+                    {/* Left: Full Portrait */}
+                    <div className="flex-shrink-0 w-full lg:w-auto">
+                      <div className="relative w-full lg:w-[400px] h-[500px] rounded-lg overflow-hidden border-4 border-amber-600/40 shadow-2xl">
+                        <Image
+                          src={`/portraits/${selectedPlayer.name}.png`}
+                          alt={selectedPlayer.name}
+                          fill
+                          className="object-cover"
+                          sizes="400px"
+                          priority
                         />
-                      </div>
-                      <div className="max-w-[256px] mx-auto">
-                        <CharacterBasicInfo player={selectedPlayer} />
+                        {/* Gradient overlay at bottom */}
+                        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
+                        {/* Character name overlay */}
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <h3 className="text-2xl font-bold text-white drop-shadow-lg font-cinzel">
+                            {selectedPlayer.name}
+                          </h3>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Right: Detail panel */}
-                    <div className="flex-1 min-w-0">
+                    {/* Right: Basic Info and Detail panel */}
+                    <div className="flex-1 min-w-0 space-y-6">
+                      {/* Basic Profile */}
+                      <CharacterBasicInfo player={selectedPlayer} />
+
+                      {/* Detail Content */}
                       <TravelerDetail player={selectedPlayer} />
                     </div>
                   </div>

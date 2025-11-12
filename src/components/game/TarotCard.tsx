@@ -14,6 +14,7 @@ interface TarotCardProps {
   player: Player;
   className?: string;
   isFlipped?: boolean;
+  showPortrait?: boolean;
 }
 
 /**
@@ -493,7 +494,28 @@ function RoleCenterPattern({ role }: { role: string }) {
   );
 }
 
-export function TarotCard({ player, className, isFlipped = false, size = 'default' }: TarotCardProps & { size?: 'small' | 'default' | 'large' }) {
+/**
+ * Role-specific decorative symbols
+ */
+function RoleSymbol({ role }: { role: string }) {
+  const symbols: Record<string, string> = {
+    marked: '✦', // 烙印者 - 火焰符号
+    heretic: '☽', // 背誓者 - 月亮
+    listener: '◈', // 聆心者 - 钻石
+    coroner: '✟', // 食灰者 - 十字
+    twin: '◐◑', // 共誓者 - 阴阳
+    guard: '◆', // 设闩者 - 盾牌
+    innocent: '○', // 无知者 - 圆
+  };
+
+  return (
+    <div className="text-4xl text-amber-600/80 font-serif">
+      {symbols[role] || '○'}
+    </div>
+  );
+}
+
+export function TarotCard({ player, className, isFlipped = false, size = 'default', showPortrait = false }: TarotCardProps & { size?: 'small' | 'default' | 'large' }) {
   const roleNames: Record<string, { name: string; subtitle: string }> = {
     marked: { name: '烙印者', subtitle: 'The Marked' },
     heretic: { name: '背誓者', subtitle: 'The Heretic' },
@@ -556,19 +578,24 @@ export function TarotCard({ player, className, isFlipped = false, size = 'defaul
               </div>
             </div>
 
-            {/* Middle section - Character portrait */}
+            {/* Middle section - Character portrait or role symbol */}
             <div className="flex flex-col items-center gap-4">
-              {/* Character Portrait */}
-              <div className="relative w-32 h-40 rounded-lg overflow-hidden border-2 border-amber-600/40 shadow-lg">
-                <Image
-                  src={`/portraits/${player.name}.png`}
-                  alt={player.name}
-                  fill
-                  className="object-cover"
-                  sizes="128px"
-                  priority
-                />
-              </div>
+              {showPortrait ? (
+                /* Character Portrait */
+                <div className="relative w-32 h-40 rounded-lg overflow-hidden border-2 border-amber-600/40 shadow-lg">
+                  <Image
+                    src={`/portraits/${player.name}.png`}
+                    alt={player.name}
+                    fill
+                    className="object-cover"
+                    sizes="128px"
+                    priority
+                  />
+                </div>
+              ) : (
+                /* Role Symbol */
+                <RoleSymbol role={player.role} />
+              )}
 
               <div className="text-center space-y-1">
                 <div className="text-lg font-bold text-amber-900 font-cinzel">
