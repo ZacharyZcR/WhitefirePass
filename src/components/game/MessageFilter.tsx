@@ -89,7 +89,9 @@ export function MessageFilter({ messages, players, onFilterChange }: MessageFilt
         }
 
         // Find the player who sent this message
-        const player = players.find(p => p.name === msg.from);
+        // For prompt messages, from is "PlayerName (神谕)", so strip the suffix
+        const playerName = msg.from.replace(/\s*\(神谕\)\s*$/, '');
+        const player = players.find(p => p.name === playerName);
         if (!player) {
           return true; // Keep narrator messages
         }
