@@ -1152,8 +1152,19 @@ export const useGameStore = create<GameStore>()(
         );
         // Record vote using helper function (voting is stored in voteHistory, not messages)
         recordVote(gameState, currentPlayer, speech);
+      } else if (gameState.phase === 'night' &&
+                 (gameState.nightPhase === 'listener' ||
+                  gameState.nightPhase === 'marked-vote' ||
+                  gameState.nightPhase === 'guard')) {
+        // Night phase actions (listener check, marked vote, guard protect)
+        // Add speech message
+        gameState.messages.push(
+          addMessage(gameState, currentPlayer.name, speech, 'speech', visibility),
+        );
+        // Record night action
+        recordVote(gameState, currentPlayer, speech);
       } else {
-        // Add speech message for non-voting phases
+        // Add speech message for other phases
         gameState.messages.push(
           addMessage(gameState, currentPlayer.name, speech, 'speech', visibility),
         );
