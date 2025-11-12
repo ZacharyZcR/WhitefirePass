@@ -55,21 +55,26 @@ function calculateBackoff(attempt: number): number {
 export async function testGeminiKey(apiKey: string, apiUrl?: string): Promise<boolean> {
   // Use fewer retries for test (2 retries max)
   const maxRetries = 2;
+  const baseUrl = apiUrl || 'https://generativelanguage.googleapis.com';
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      const response = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          apiKey,
-          apiUrl,
-          model: 'gemini-2.5-pro',
-          prompt: '测试',
-        }),
-      });
+      const response = await fetch(
+        `${baseUrl}/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [{ text: '测试' }],
+              },
+            ],
+          }),
+        }
+      );
 
       if (response.ok) {
         return true;
@@ -111,31 +116,48 @@ export async function getAIResponse(
   config: GeminiConfig,
 ): Promise<string> {
   const prompt = buildPrompt(player, gameState);
+  const baseUrl = config.apiUrl || 'https://generativelanguage.googleapis.com';
+  const model = config.model ?? 'gemini-2.5-pro';
 
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
     try {
-      const response = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          apiKey: config.apiKey,
-          apiUrl: config.apiUrl,
-          model: config.model ?? 'gemini-2.5-pro',
-          prompt,
-        }),
-      });
+      const response = await fetch(
+        `${baseUrl}/v1beta/models/${model}:generateContent?key=${config.apiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [{ text: prompt }],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.9,
+            },
+          }),
+        }
+      );
 
       if (!response.ok) {
-        const errorData = (await response.json()) as { error?: string; details?: string };
+        const errorData = (await response.json()) as {
+          error?: {
+            code?: number;
+            message?: string;
+            status?: string;
+          };
+        };
+
+        const errorMessage = errorData.error?.message ?? errorData.error?.status ?? 'API 请求失败';
 
         // Check if error is retryable
         if (isRetryableError(response.status) && attempt < RETRY_CONFIG.maxRetries) {
           const delay = calculateBackoff(attempt);
-          const reason = `HTTP ${response.status}: ${errorData.error ?? errorData.details ?? '请求失败'}`;
+          const reason = `HTTP ${response.status}: ${errorMessage}`;
 
           console.warn(
             `Gemini API 请求失败 (${response.status}), 重试 ${attempt + 1}/${RETRY_CONFIG.maxRetries}，等待 ${delay}ms...`,
@@ -150,22 +172,28 @@ export async function getAIResponse(
             reason,
           });
 
-          lastError = new Error(errorData.error ?? errorData.details ?? 'API 请求失败');
+          lastError = new Error(errorMessage);
           await sleep(delay);
           continue; // Retry
         }
 
         // Non-retryable error, throw immediately
         console.error('Gemini API 错误响应 (不可重试):', errorData);
-        throw new Error(errorData.error ?? errorData.details ?? 'API 请求失败');
+        throw new Error(errorMessage);
       }
 
       const data = (await response.json()) as {
-        text?: string;
-        usage?: unknown;
+        candidates?: Array<{
+          content?: {
+            parts?: Array<{ text?: string }>;
+          };
+        }>;
+        usageMetadata?: unknown;
       };
 
-      const text = data.text?.trim();
+      // Extract text from response
+      const parts = data.candidates?.[0]?.content?.parts;
+      const text = parts?.map((part) => part.text).filter(Boolean).join('')?.trim();
 
       if (!text) {
         // Empty response is retryable
