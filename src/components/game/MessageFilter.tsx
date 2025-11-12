@@ -55,8 +55,9 @@ export function MessageFilter({ messages, players, onFilterChange }: MessageFilt
     let filtered = messages;
 
     // Filter by type - only show game-relevant messages
+    // Include 'thinking' (内心独白) and 'prompt' (神谕指引)
     filtered = filtered.filter(msg =>
-      ['system', 'speech', 'death', 'action', 'secret'].includes(msg.type)
+      ['system', 'speech', 'death', 'action', 'secret', 'thinking', 'prompt'].includes(msg.type)
     );
 
     // If any filters are active

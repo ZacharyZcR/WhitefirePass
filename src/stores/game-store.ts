@@ -805,6 +805,9 @@ export const useGameStore = create<GameStore>()(
           gameState.nightVoteHistory.push(...nightVotesWithRound);
         }
 
+        // Don't clear nightVotes here - they're needed for processNightPhase later
+        // They will be cleared when entering the next night phase
+
         // No tie - proceed to guard phase
         gameState.revoteRound = 0;
         const guard = gameState.players.find((p) => p.role === 'guard' && p.isAlive);
