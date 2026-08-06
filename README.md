@@ -4,11 +4,9 @@
 
 一个由 AI 驱动的狼人杀变体游戏，基于 1913 年的神秘山庄背景设定。游戏使用 DeepSeek V4 Flash (RTX Pro) API 驱动 15 位 AI 旅者，支持手动单步执行，让你见证 AI 角色在生死博弈中的思考过程。
 
-[![CI](https://github.com/ZacharyZcR/WhitefirePass/workflows/CI/badge.svg)](https://github.com/ZacharyZcR/WhitefirePass/actions)
-[![Deploy](https://github.com/ZacharyZcR/WhitefirePass/workflows/Deploy%20to%20GitHub%20Pages/badge.svg)](https://github.com/ZacharyZcR/WhitefirePass/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**🎮 [在线体验](https://zacharyzcr.github.io/WhitefirePass/)** | [项目主页](https://github.com/ZacharyZcR/WhitefirePass) | [提交问题](https://github.com/ZacharyZcR/WhitefirePass/issues)
+[项目主页](https://github.com/ZacharyZcR/WhitefirePass) | [提交问题](https://github.com/ZacharyZcR/WhitefirePass/issues)
 
 ## 🎮 游戏特色
 
@@ -17,10 +15,12 @@
 游戏共有 7 种角色，分为三个阵营：
 
 **烙印者阵营**（狼人方）
+
 - 🔥 **烙印者 (The Marked)**: 夜晚共同投票杀害旅者
 - ☽ **背誓者 (The Heretic)**: 烙印者阵营，伪装成无知者
 
 **村民阵营**
+
 - ◈ **聆心者 (The Listener)**: 每晚查验一名旅者的阵营
 - ✟ **食灰者 (Ash-Walker)**: 在旅者死亡后获得其身份信息
 - ◐◑ **共誓者 (The Twin)**: 两位旅者相互验证身份
@@ -72,11 +72,13 @@ pnpm install
 ### 配置
 
 1. 复制环境变量配置文件：
+
 ```bash
 cp .env.example .env.local
 ```
 
 2. 编辑 `.env.local`，填入你的 DeepSeek API Key：
+
 ```env
 DEEPSEEK_API_KEY=your_api_key_here
 ```
@@ -111,16 +113,19 @@ pnpm dev
 ### 2. 游戏流程
 
 **白天阶段**
+
 - 所有存活旅者依次发言
 - 讨论并分析前一晚发生的事件
 - 点击"下一步"或"自动执行"推进游戏
 
 **投票阶段**
+
 - 每位旅者投票选择要驱逐的对象
 - 得票最高者被投票出局
 - 可以选择"不投票"
 
 **夜晚阶段**
+
 - **聆心者查验**: 查看一名旅者的阵营
 - **烙印者讨论**: 烙印者们秘密商讨杀人目标
 - **烙印者投票**: 选择今夜要杀害的旅者
@@ -128,6 +133,7 @@ pnpm dev
 - **食灰者验尸**: 如有旅者死亡，获得其身份信息
 
 **特殊机制**
+
 - **密会**: 在白天可发起2-3人的秘密会谈
 - **情感触发**: 重要角色死亡可能触发其他角色的情感状态变化
 
@@ -175,25 +181,30 @@ Wolf/
 ## 🛠️ 技术栈
 
 ### 核心框架
+
 - **Next.js 15** - React 框架
 - **React 18** - UI 库
 - **TypeScript** - 类型安全
 
 ### 样式与UI
+
 - **Tailwind CSS** - 原子化 CSS
 - **shadcn/ui** - UI 组件库
 - **Radix UI** - 无障碍组件
 - **Lucide React** - 图标库
 
 ### 状态管理
+
 - **Zustand** - 轻量级状态管理
 - **TanStack Query** - 数据获取
 
 ### AI 集成
+
 - **DeepSeek V4 Flash (RTX Pro)** - 本地推理模型（OpenAI 兼容）
 - **OpenAI 兼容协议** - `/chat/completions`
 
 ### 开发工具
+
 - **ESLint** - 代码检查
 - **Prettier** - 代码格式化
 - **TypeScript** - 类型检查
@@ -228,13 +239,13 @@ pnpm test:e2e         # E2E 测试
 
 ```typescript
 // 游戏状态转换
-newState = gameEngine.processAction(currentState, action)
+newState = gameEngine.processAction(currentState, action);
 
 // 相位推进
-newState = gameEngine.advancePhase(currentState)
+newState = gameEngine.advancePhase(currentState);
 
 // 投票处理
-newState = gameEngine.processVoting(currentState)
+newState = gameEngine.processVoting(currentState);
 ```
 
 ### 状态管理
@@ -264,8 +275,8 @@ const response = await aiService.generateResponse({
   player,
   gameState,
   additionalContext,
-  actionType
-})
+  actionType,
+});
 ```
 
 ## 🎨 UI/UX 设计理念
@@ -302,6 +313,7 @@ const response = await aiService.generateResponse({
 ### Git Hooks
 
 提交时自动执行：
+
 - 代码格式化
 - ESLint 检查
 - 类型检查
@@ -310,6 +322,7 @@ const response = await aiService.generateResponse({
 ### CI/CD
 
 每次提交/PR 自动运行：
+
 - ✅ 代码质量检查
 - ✅ 类型检查
 - ✅ 单元测试
@@ -323,13 +336,13 @@ const response = await aiService.generateResponse({
 
 ```typescript
 export const DEFAULT_ROLE_CONFIG = {
-  marked: 3,      // 烙印者数量
-  heretic: 1,     // 背誓者数量
-  listener: 1,    // 聆心者数量
-  coroner: 1,     // 食灰者数量
-  twin: 2,        // 共誓者数量（必须为偶数）
-  guard: 1,       // 设闩者数量
-  innocent: 6,    // 无知者数量
+  marked: 3, // 烙印者数量
+  heretic: 1, // 背誓者数量
+  listener: 1, // 聆心者数量
+  coroner: 1, // 食灰者数量
+  twin: 2, // 共誓者数量（必须为偶数）
+  guard: 1, // 设闩者数量
+  innocent: 6, // 无知者数量
 };
 ```
 

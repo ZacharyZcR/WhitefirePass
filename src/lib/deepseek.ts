@@ -6,9 +6,8 @@
 import type { GameState, Player } from '@/types/game';
 import { EMOTIONAL_STATE_PROMPTS } from './emotional-prompts';
 
-/** DeepSeek RTX Pro 本地端点与默认模型 */
+/** DeepSeek RTX Pro 本地端点 */
 const DEEPSEEK_BASE_URL = 'http://110.42.47.158:12345/deepseek-v4-rtxpro/v1';
-const DEEPSEEK_MODEL = 'DeepSeek-V4-Flash-0731';
 
 /**
  * DeepSeek API configuration
@@ -16,8 +15,12 @@ const DEEPSEEK_MODEL = 'DeepSeek-V4-Flash-0731';
 interface DeepSeekConfig {
   apiKey: string;
   apiUrl?: string;
-  model?: string;
-  onRetry?: (info: { attempt: number; maxRetries: number; delay: number; reason: string }) => void;
+  onRetry?: (info: {
+    attempt: number;
+    maxRetries: number;
+    delay: number;
+    reason: string;
+  }) => void;
 }
 
 /** 单次补全请求的统一结果 */
@@ -28,48 +31,37 @@ interface CompletionResult {
 }
 
 /**
- * 发起一次 DeepSeek 补全请求并解析文本。
- * 推理模型 content 为空时回退到 reasoning_content。
+ * 通过本地代理路由发起 DeepSeek 请求（服务端转发，规避浏览器 CORS）。
+ * 返回统一结果供重试逻辑使用。
+ * @param baseUrl
+ * @param apiKey
+ * @param prompt
  */
 async function requestCompletion(
   baseUrl: string,
-  model: string,
   apiKey: string,
-  prompt: string,
+  prompt: string
 ): Promise<CompletionResult> {
-  const response = await fetch(`${baseUrl}/chat/completions`, {
+  const response = await fetch('/api/ai', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.9,
-      max_tokens: 16384,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ apiKey, apiUrl: baseUrl, prompt }),
   });
 
   if (!response.ok) {
-    const errorData = (await response.json().catch(() => null)) as {
-      error?: { message?: string };
-    } | null;
     return {
       status: response.status,
       text: '',
-      errorMessage: errorData?.error?.message ?? 'API 请求失败',
+      errorMessage: '本地代理请求失败',
     };
   }
 
-  const data = (await response.json()) as {
-    choices?: Array<{
-      message?: { content?: string | null; reasoning_content?: string | null };
-    }>;
+  const result = (await response.json()) as CompletionResult;
+  return {
+    status: result.status,
+    text: result.text ?? '',
+    errorMessage: result.errorMessage ?? '',
   };
-  const message = data.choices?.[0]?.message;
-  const text = (message?.content ?? message?.reasoning_content ?? '').trim();
-  return { status: 200, text, errorMessage: '' };
 }
 
 /**
@@ -84,6 +76,7 @@ const RETRY_CONFIG = {
 
 /**
  * Check if error is retryable
+ * @param status
  */
 function isRetryableError(status: number): boolean {
   // Retry on server errors (500+) and rate limit (429)
@@ -92,31 +85,39 @@ function isRetryableError(status: number): boolean {
 
 /**
  * Sleep for specified milliseconds
+ * @param ms
  */
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
  * Calculate exponential backoff delay
+ * @param attempt
  */
 function calculateBackoff(attempt: number): number {
-  const delay = RETRY_CONFIG.initialDelay * Math.pow(RETRY_CONFIG.backoffMultiplier, attempt);
+  const delay =
+    RETRY_CONFIG.initialDelay *
+    Math.pow(RETRY_CONFIG.backoffMultiplier, attempt);
   return Math.min(delay, RETRY_CONFIG.maxDelay);
 }
 
 /**
  * Test if an API key is valid with retry
+ * @param apiKey
+ * @param apiUrl
  */
-export async function testApiKey(apiKey: string, apiUrl?: string): Promise<boolean> {
+export async function testApiKey(
+  apiKey: string,
+  apiUrl?: string
+): Promise<boolean> {
   // Use fewer retries for test (2 retries max)
   const maxRetries = 2;
   const baseUrl = apiUrl || DEEPSEEK_BASE_URL;
-  const model = DEEPSEEK_MODEL;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      const { status } = await requestCompletion(baseUrl, model, apiKey, '测试');
+      const { status } = await requestCompletion(baseUrl, apiKey, '测试');
       if (status === 200) {
         return true;
       }
@@ -124,19 +125,23 @@ export async function testApiKey(apiKey: string, apiUrl?: string): Promise<boole
       // If error is retryable and we have attempts left
       if (isRetryableError(status) && attempt < maxRetries) {
         const delay = calculateBackoff(attempt);
-        console.warn(`API 密钥测试失败 (${status}), 重试 ${attempt + 1}/${maxRetries}，等待 ${delay}ms...`);
+        console.warn(
+          `API 密钥测试失败 (${status}), 重试 ${attempt + 1}/${maxRetries}，等待 ${delay}ms...`
+        );
         await sleep(delay);
         continue; // Retry
       }
 
       // Non-retryable error or final attempt
       return false;
-
     } catch (error) {
       // Network error
       if (attempt < maxRetries) {
         const delay = calculateBackoff(attempt);
-        console.warn(`API 密钥测试网络错误, 重试 ${attempt + 1}/${maxRetries}，等待 ${delay}ms...`, error);
+        console.warn(
+          `API 密钥测试网络错误, 重试 ${attempt + 1}/${maxRetries}，等待 ${delay}ms...`,
+          error
+        );
         await sleep(delay);
         continue; // Retry
       }
@@ -150,15 +155,17 @@ export async function testApiKey(apiKey: string, apiUrl?: string): Promise<boole
 
 /**
  * Generate AI response using DeepSeek API with retry and exponential backoff
+ * @param player
+ * @param gameState
+ * @param config
  */
 export async function getAIResponse(
   player: Player,
   gameState: GameState,
-  config: DeepSeekConfig,
+  config: DeepSeekConfig
 ): Promise<string> {
   const prompt = buildPrompt(player, gameState);
   const baseUrl = config.apiUrl || DEEPSEEK_BASE_URL;
-  const model = config.model ?? DEEPSEEK_MODEL;
 
   let lastError: Error | null = null;
 
@@ -166,9 +173,8 @@ export async function getAIResponse(
     try {
       const { status, text, errorMessage } = await requestCompletion(
         baseUrl,
-        model,
         config.apiKey,
-        prompt,
+        prompt
       );
 
       if (status !== 200) {
@@ -232,7 +238,6 @@ export async function getAIResponse(
         console.log(`API 请求成功 (第 ${attempt + 1} 次尝试)`);
       }
       return text;
-
     } catch (error) {
       // Network error or fetch failure
       if (attempt < RETRY_CONFIG.maxRetries) {
@@ -269,6 +274,8 @@ export async function getAIResponse(
 
 /**
  * Build prompt for AI player based on game context
+ * @param player
+ * @param gameState
  */
 // eslint-disable-next-line complexity
 export function buildPrompt(player: Player, gameState: GameState): string {
@@ -289,8 +296,13 @@ export function buildPrompt(player: Player, gameState: GameState): string {
     if (m.visibility === 'guard' && player.role === 'guard') return true;
     if (m.visibility === 'twins' && player.role === 'twin') return true;
     if (typeof m.visibility === 'object') {
-      if ('player' in m.visibility && m.visibility.player === player.name) return true;
-      if ('secretMeeting' in m.visibility && m.visibility.secretMeeting.includes(player.name)) return true;
+      if ('player' in m.visibility && m.visibility.player === player.name)
+        return true;
+      if (
+        'secretMeeting' in m.visibility &&
+        m.visibility.secretMeeting.includes(player.name)
+      )
+        return true;
     }
     // AI can see its own thinking
     if (m.type === 'thinking' && m.from === player.name) return true;
@@ -298,9 +310,9 @@ export function buildPrompt(player: Player, gameState: GameState): string {
   });
 
   const recentMessages = visibleMessages
-    .filter((m) => m.type !== 'prompt')  // Exclude prompt messages to prevent identity leak
-    .filter((m) => m.type !== 'vote')    // Exclude vote messages (handled separately in voteHistory)
-    .slice(-20);  // 保留最近20条对话
+    .filter((m) => m.type !== 'prompt') // Exclude prompt messages to prevent identity leak
+    .filter((m) => m.type !== 'vote') // Exclude vote messages (handled separately in voteHistory)
+    .slice(-20); // 保留最近20条对话
   const messageHistory = recentMessages
     .map((m) => `${m.from}: ${m.content}`)
     .join('\n');
@@ -310,7 +322,7 @@ export function buildPrompt(player: Player, gameState: GameState): string {
     if (gameState.voteHistory.length === 0) return '';
 
     const votesByRound = new Map<number, typeof gameState.voteHistory>();
-    gameState.voteHistory.forEach(vote => {
+    gameState.voteHistory.forEach((vote) => {
       if (vote.round !== undefined) {
         const roundVotes = votesByRound.get(vote.round) || [];
         roundVotes.push(vote);
@@ -320,13 +332,14 @@ export function buildPrompt(player: Player, gameState: GameState): string {
 
     if (votesByRound.size === 0) return '';
 
-    let voteHistoryText = '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n【献祭投票历史】\n\n';
+    let voteHistoryText =
+      '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n【献祭投票历史】\n\n';
 
     Array.from(votesByRound.entries())
       .sort((a, b) => a[0] - b[0])
       .forEach(([round, votes]) => {
         voteHistoryText += `第 ${round} 回合献祭投票：\n`;
-        votes.forEach(vote => {
+        votes.forEach((vote) => {
           voteHistoryText += `  ${vote.from} 投给了 ${vote.target}\n`;
         });
         voteHistoryText += '\n';
@@ -359,40 +372,54 @@ export function buildPrompt(player: Player, gameState: GameState): string {
   let phaseDisplay = phaseNames[phase];
   if (phase === 'night' && nightPhase) {
     const nightPhaseNames: Record<string, string> = {
-      'listener': '夜晚-聆心者查验',
+      listener: '夜晚-聆心者查验',
       'marked-discuss': '夜晚-烙印者讨论',
       'marked-vote': '夜晚-烙印者投票',
-      'guard': '夜晚-设闩者守护',
-      'coroner': '夜晚-食灰者验尸',
+      guard: '夜晚-设闩者守护',
+      coroner: '夜晚-食灰者验尸',
     };
     phaseDisplay = nightPhaseNames[nightPhase] || phaseDisplay;
   }
 
   // Get teammate information for marked
-  const markedTeammates = player.role === 'marked'
-    ? players.filter((p) => p.role === 'marked' && p.name !== player.name)
-    : [];
+  const markedTeammates =
+    player.role === 'marked'
+      ? players.filter((p) => p.role === 'marked' && p.name !== player.name)
+      : [];
 
   // Get twin partner info
-  const twinPartner = player.role === 'twin' && gameState.twinPair
-    ? (gameState.twinPair.twin1 === player.name ? gameState.twinPair.twin2 : gameState.twinPair.twin1)
-    : null;
+  const twinPartner =
+    player.role === 'twin' && gameState.twinPair
+      ? gameState.twinPair.twin1 === player.name
+        ? gameState.twinPair.twin2
+        : gameState.twinPair.twin1
+      : null;
 
   // Get listener check info
-  const listenerCheckInfo = player.role === 'listener' && phase === 'day'
-    ? `
+  const listenerCheckInfo =
+    player.role === 'listener' && phase === 'day'
+      ? `
 【你的查验记录】
-${gameState.listenerChecks.length > 0
-  ? gameState.listenerChecks.map((check) => `第${check.round}回合查验：${check.target} 的灵魂是 ${check.isClean ? '清白的' : '污秽的'}`).join('\n')
-  : round === 1
-    ? '【重要】夜幕刚刚降临。你还没有进行过任何查验。你的第一次查验将在今晚进行。'
-    : '你还没有查验任何人'
+${
+  gameState.listenerChecks.length > 0
+    ? gameState.listenerChecks
+        .map(
+          (check) =>
+            `第${check.round}回合查验：${check.target} 的灵魂是 ${check.isClean ? '清白的' : '污秽的'}`
+        )
+        .join('\n')
+    : round === 1
+      ? '【重要】夜幕刚刚降临。你还没有进行过任何查验。你的第一次查验将在今晚进行。'
+      : '你还没有查验任何人'
 }`
-    : '';
+      : '';
 
   // Get coroner report info
-  const coronerInfo = player.role === 'coroner' && phase === 'day' && gameState.coronerReports.length > 0
-    ? `
+  const coronerInfo =
+    player.role === 'coroner' &&
+    phase === 'day' &&
+    gameState.coronerReports.length > 0
+      ? `
 【你的验尸记录】（只有你自己知道这些信息）
 ${gameState.coronerReports.map((report) => `第${report.round}回合：${report.target} 的灵魂是 ${report.isClean ? '清白的' : '污秽的'}`).join('\n')}
 
@@ -402,23 +429,30 @@ ${gameState.coronerReports.map((report) => `第${report.round}回合：${report.
 - 如果要使用这些信息，需要巧妙地引导，不要直接暴露你的能力
 - 只有当你公开宣布自己是食灰者后，其他人才会知道你能验尸
 `
-    : '';
+      : '';
 
   // Heretics don't know they are heretics until Day 2
-  const effectiveRole = (player.role === 'heretic' && round === 1) ? 'innocent' : player.role;
+  const effectiveRole =
+    player.role === 'heretic' && round === 1 ? 'innocent' : player.role;
   const displayRoleName = roleNames[effectiveRole];
 
   // Handle secret meeting phase
-  if (phase === 'secret_meeting' && gameState.pendingSecretMeeting?.selectedParticipants) {
-    const [participant1, participant2] = gameState.pendingSecretMeeting.selectedParticipants;
+  if (
+    phase === 'secret_meeting' &&
+    gameState.pendingSecretMeeting?.selectedParticipants
+  ) {
+    const [participant1, participant2] =
+      gameState.pendingSecretMeeting.selectedParticipants;
     if (participant1 === player.name || participant2 === player.name) {
-      const otherPlayer = participant1 === player.name ? participant2 : participant1;
+      const otherPlayer =
+        participant1 === player.name ? participant2 : participant1;
       const timing = gameState.pendingSecretMeeting.timing;
-      const timingText = timing === 'before_discussion' ? '白天讨论开始前' : '献祭仪式之后';
+      const timingText =
+        timing === 'before_discussion' ? '白天讨论开始前' : '献祭仪式之后';
 
       // Check if the other player has already spoken in this meeting
       const otherPlayerHasSpoken = visibleMessages.some(
-        m => m.type === 'secret' && m.from === otherPlayer
+        (m) => m.type === 'secret' && m.from === otherPlayer
       );
 
       // Determine speaking order reminder
@@ -445,24 +479,40 @@ ${otherPlayer} 还没有说话，你应该主动开启话题、询问或试探�
 重要：只有你自己知道你的真实身份，不要随便暴露！
 
 你的角色：${displayRoleName}
-${effectiveRole === 'marked' ? `
+${
+  effectiveRole === 'marked'
+    ? `
 你是收割阵营的一员。你的目标是消灭所有羔羊。
-${markedTeammates.length > 0
-  ? `你的队友：${markedTeammates.map(p => p.name).join('、')}（你们都是烙印者）`
-  : '你是唯一的烙印者'}
-` : effectiveRole === 'listener' ? `
+${
+  markedTeammates.length > 0
+    ? `你的队友：${markedTeammates.map((p) => p.name).join('、')}（你们都是烙印者）`
+    : '你是唯一的烙印者'
+}
+`
+    : effectiveRole === 'listener'
+      ? `
 你是羔羊阵营。你每晚可以查验一名玩家的灵魂是"清白"还是"污秽"。
 ${listenerCheckInfo}
-` : effectiveRole === 'coroner' ? `
+`
+      : effectiveRole === 'coroner'
+        ? `
 你是羔羊阵营。每次白天献祭后，你会在当晚得知被献祭者的灵魂是"清白"还是"污秽"。
 ${coronerInfo}
-` : effectiveRole === 'twin' ? `
+`
+        : effectiveRole === 'twin'
+          ? `
 你是羔羊阵营。${twinPartner ? `${twinPartner} 是你的共誓者，你们互相知道对方的身份。` : ''}
-` : effectiveRole === 'guard' ? `
+`
+          : effectiveRole === 'guard'
+            ? `
 你是羔羊阵营。你每晚可以守护一名玩家（不能是自己），被守护者当晚不会被杀。
-` : effectiveRole === 'innocent' ? `
+`
+            : effectiveRole === 'innocent'
+              ? `
 你是羔羊阵营。你没有特殊能力，但你可以通过观察和推理找出收割者。
-` : ''}
+`
+              : ''
+}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 【密会时刻 - ${timingText}】
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -518,11 +568,18 @@ ${player.personality || '你是一个普通的旅人，凭直觉和理性生存�
 他们会在夜晚猎杀真正的人类。
 每晚，会有一个人被撕开喉咙，永远消失。
 
-${alivePlayers.length < 15 ? `
+${
+  alivePlayers.length < 15
+    ? `
 【已死亡者】
-${players.filter(p => !p.isAlive).map(p => p.name).join('、')}
+${players
+  .filter((p) => !p.isAlive)
+  .map((p) => p.name)
+  .join('、')}
 他们的尸体堆在篝火旁。眼睛还睁着。喉咙还在流血。
-这就是你的下场，如果你做错了决定。` : ''}
+这就是你的下场，如果你做错了决定。`
+    : ''
+}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 【你的性格】
@@ -570,23 +627,30 @@ ${(() => {
   // Get speaking players for current phase
   let speakingPlayers = alivePlayers;
   if (phase === 'night' && nightPhase === 'listener') {
-    speakingPlayers = alivePlayers.filter(p => p.role === 'listener');
-  } else if (phase === 'night' && (nightPhase === 'marked-discuss' || nightPhase === 'marked-vote')) {
-    speakingPlayers = alivePlayers.filter(p => p.role === 'marked');
+    speakingPlayers = alivePlayers.filter((p) => p.role === 'listener');
+  } else if (
+    phase === 'night' &&
+    (nightPhase === 'marked-discuss' || nightPhase === 'marked-vote')
+  ) {
+    speakingPlayers = alivePlayers.filter((p) => p.role === 'marked');
   } else if (phase === 'night' && nightPhase === 'guard') {
-    speakingPlayers = alivePlayers.filter(p => p.role === 'guard');
+    speakingPlayers = alivePlayers.filter((p) => p.role === 'guard');
   } else if (phase === 'day' && gameState.isRevote) {
-    speakingPlayers = alivePlayers.filter(p => !gameState.tiedPlayers.includes(p.name));
+    speakingPlayers = alivePlayers.filter(
+      (p) => !gameState.tiedPlayers.includes(p.name)
+    );
   }
 
-  const currentIndex = speakingPlayers.findIndex(p => p.name === player.name);
+  const currentIndex = speakingPlayers.findIndex((p) => p.name === player.name);
   const totalSpeakers = speakingPlayers.length;
 
   if (currentIndex >= 0) {
-    const order = speakingPlayers.map((p, idx) => {
-      const marker = p.name === player.name ? '→ ' : '  ';
-      return `${marker}${idx + 1}. ${p.name}`;
-    }).join('\n');
+    const order = speakingPlayers
+      .map((p, idx) => {
+        const marker = p.name === player.name ? '→ ' : '  ';
+        return `${marker}${idx + 1}. ${p.name}`;
+      })
+      .join('\n');
     return `本轮发言顺序（你是第 ${currentIndex + 1}/${totalSpeakers} 位）：\n${order}`;
   }
   return '';
@@ -616,12 +680,16 @@ ${voteHistory}
 天亮了。但阳光照不进这座山庄。
 白蜡篝火仍在燃烧，发出刺骨的白光。
 
-${round > 1 ? `昨夜，有人死了。
+${
+  round > 1
+    ? `昨夜，有人死了。
 你听到了尖叫声。听到了利爪撕裂血肉的声音。
 现在尸体就躺在那里。喉咙被撕开。眼睛睁得大大的。
 
 这可能是你，如果你昨天做错了决定。
-这可能会是你，如果你今天再做错决定。` : ''}
+这可能会是你，如果你今天再做错决定。`
+    : ''
+}
 
 【这是投票之前的最后讨论阶段】
 黄昏即将降临。很快，你们就要投票决定谁会被献祭。
@@ -655,8 +723,12 @@ ${round > 1 ? `昨夜，有人死了。
 （你对所有人说的话。100-150字左右。）
 
 这是投票前的最后发言。你必须：
-${player.personality ? `- 用 ${player.name} 的语气和性格说话
-- ` : ''}- 表达你的怀疑、观察或辩护——不管真假，你必须说出来
+${
+  player.personality
+    ? `- 用 ${player.name} 的语气和性格说话
+- `
+    : ''
+}- 表达你的怀疑、观察或辩护——不管真假，你必须说出来
 - 指出谁的行为可疑，或者为自己/他人辩护
 - 说服其他人相信你的判断
 - 这不是游戏发言，这是求生的呼喊
@@ -672,7 +744,8 @@ ${player.personality ? `- 用 ${player.name} 的语气和性格说话
 
   if (phase === 'voting') {
     // Different voting prompts based on faction
-    const isHarvester = effectiveRole === 'marked' || effectiveRole === 'heretic';
+    const isHarvester =
+      effectiveRole === 'marked' || effectiveRole === 'heretic';
 
     if (isHarvester) {
       // Harvester faction voting prompt
@@ -875,7 +948,9 @@ ${player.personality ? `\n记住你是 ${player.name}：${player.personality}` :
 但你们也不是无敌的——白天你可能被识破，被献祭，被烧死。
 
 现在，你们必须决定：今晚谁会死在你们的利爪下。
-${hasHeretic && round >= 2 ? `
+${
+  hasHeretic && round >= 2
+    ? `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 【背誓者的存在】
 
@@ -889,7 +964,9 @@ ${hasHeretic && round >= 2 ? `
 - TA是你们的隐藏盟友，但你们永远无法相认。
 
 如果白天有"污秽"的人被献祭，那可能是背誓者。
-那不是你们的同类，但也是收割阵营的损失。` : ''}
+那不是你们的同类，但也是收割阵营的损失。`
+    : ''
+}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 【思考】
@@ -1046,6 +1123,11 @@ ${gameState.lastGuardedPlayer ? `昨晚你守护了 ${gameState.lastGuardedPlaye
 
 /**
  * Role-specific instructions
+ * @param role
+ * @param phase
+ * @param nightPhase
+ * @param round
+ * @param actualRole
  */
 // eslint-disable-next-line complexity
 function getRoleInstructions(
@@ -1053,7 +1135,7 @@ function getRoleInstructions(
   phase: string,
   nightPhase?: string,
   round?: number,
-  actualRole?: string,
+  actualRole?: string
 ): string {
   // Special handling for heretic on Day 2 awakening
   if (actualRole === 'heretic' && round === 2 && role === 'heretic') {
