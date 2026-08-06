@@ -34,6 +34,40 @@ import { getInitialClues } from '@/lib/clues-data';
 /** 烙印者夜间投票允许的最大重投次数，超过则本夜猎杀落空 */
 const MAX_NIGHT_REVOTES = 2;
 
+/** 写入本地存储时，保留完整神谕正文的回合数 */
+const PROMPT_RETENTION_ROUNDS = 2;
+
+/** 被清理的神谕正文占位符 */
+const EVICTED_PROMPT = '（此轮的神谕正文已从本地存档中清理，以节省存储空间）';
+
+/**
+ * 为写入 localStorage 准备一份瘦身副本。
+ *
+ * 单条神谕正文约 3-5KB，十几个回合就会撑爆 5MB 配额，而配额一满
+ * persist 只会静默失败——表现为刷新后进度悄悄回退。这里只裁剪副本，
+ * 内存中的 gameState 始终保持完整。
+ * @param gameState
+ */
+function trimForStorage(gameState: GameState): GameState {
+  const cutoff = gameState.round - PROMPT_RETENTION_ROUNDS;
+  if (cutoff <= 0) return gameState;
+
+  let evicted = false;
+  const messages = gameState.messages.map((msg) => {
+    if (
+      msg.type !== 'prompt' ||
+      (msg.round ?? 0) > cutoff ||
+      msg.content === EVICTED_PROMPT
+    ) {
+      return msg;
+    }
+    evicted = true;
+    return { ...msg, content: EVICTED_PROMPT };
+  });
+
+  return evicted ? { ...gameState, messages } : gameState;
+}
+
 /**
  * Game store state
  */
@@ -536,7 +570,11 @@ export const useGameStore = create<GameStore>()(
         const savedGame: SavedGame = {
           id: `save-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
           name,
-          state: JSON.parse(JSON.stringify(gameState)) as GameState, // Deep clone
+          // Deep clone, minus the older prompt bodies - saves share the same
+          // 5MB origin quota as the auto-persisted state.
+          state: JSON.parse(
+            JSON.stringify(trimForStorage(gameState))
+          ) as GameState,
           savedAt: Date.now(),
         };
 
@@ -544,8 +582,13 @@ export const useGameStore = create<GameStore>()(
         const saves = getSavedGamesFromStorage();
         saves.push(savedGame);
 
-        // Store in localStorage
-        localStorage.setItem('werewolf-saved-games', JSON.stringify(saves));
+        try {
+          localStorage.setItem('werewolf-saved-games', JSON.stringify(saves));
+        } catch {
+          throw new Error(
+            '本地存储空间不足，保存失败。请删除一些旧存档后重试。'
+          );
+        }
 
         return savedGame;
       },
@@ -1354,7 +1397,7 @@ export const useGameStore = create<GameStore>()(
       name: 'werewolf-game-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
-        gameState: state.gameState,
+        gameState: state.gameState ? trimForStorage(state.gameState) : null,
         apiKey: state.apiKey,
         apiUrl: state.apiUrl,
         clues: state.clues,
