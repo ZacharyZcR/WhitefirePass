@@ -1502,7 +1502,7 @@ function recordNightAction(
     gameState.nightPhase === 'guard' &&
     currentPlayer.role === 'guard'
   ) {
-    recordGuardAction(gameState, targetName, targetPlayer);
+    recordGuardAction(gameState, currentPlayer, targetName, targetPlayer);
   }
 }
 
@@ -1563,15 +1563,31 @@ function recordMarkedVote(
 /**
  * Record guard action
  * @param gameState
+ * @param currentPlayer
  * @param targetName
  * @param targetPlayer
  */
 function recordGuardAction(
   gameState: GameState,
+  currentPlayer: Player,
   targetName: string,
   targetPlayer: Player | undefined
 ): void {
   if (!targetPlayer?.isAlive) return;
+
+  // The prompt forbids self-protection; enforce it here too
+  if (targetName === currentPlayer.name) {
+    gameState.messages.push(
+      addMessage(
+        gameState,
+        '叙述者',
+        `你不能守护自己！守护失败。`,
+        'system',
+        'guard'
+      )
+    );
+    return;
+  }
 
   // Check if guard can protect this player (not the same as last night)
   if (gameState.lastGuardedPlayer === targetName) {

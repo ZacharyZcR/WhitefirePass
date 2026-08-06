@@ -361,9 +361,12 @@ export function buildPrompt(player: Player, gameState: GameState): string {
   };
 
   const phaseNames: Record<string, string> = {
+    prologue: '序幕',
     setup: '准备',
     night: '夜晚',
     day: '白天',
+    secret_meeting: '密会',
+    event: '异变',
     voting: '献祭投票',
     end: '结束',
   };
@@ -396,8 +399,10 @@ export function buildPrompt(player: Player, gameState: GameState): string {
       : null;
 
   // Get listener check info
+  // Not gated on phase: the listener needs this at night to avoid re-checking
+  // someone they already read, and during secret meetings to trade on it.
   const listenerCheckInfo =
-    player.role === 'listener' && phase === 'day'
+    player.role === 'listener'
       ? `
 【你的查验记录】
 ${
@@ -416,9 +421,7 @@ ${
 
   // Get coroner report info
   const coronerInfo =
-    player.role === 'coroner' &&
-    phase === 'day' &&
-    gameState.coronerReports.length > 0
+    player.role === 'coroner' && gameState.coronerReports.length > 0
       ? `
 【你的验尸记录】（只有你自己知道这些信息）
 ${gameState.coronerReports.map((report) => `第${report.round}回合：${report.target} 的灵魂是 ${report.isClean ? '清白的' : '污秽的'}`).join('\n')}
@@ -450,9 +453,18 @@ ${gameState.coronerReports.map((report) => `第${report.round}回合：${report.
       const timingText =
         timing === 'before_discussion' ? '白天讨论开始前' : '献祭仪式之后';
 
-      // Check if the other player has already spoken in this meeting
+      // Check if the other player has already spoken in THIS meeting.
+      // Messages from finished meetings are archived into secretMeetings, so
+      // anything not yet archived belongs to the one in progress - matching on
+      // sender alone would count an earlier meeting between the same two.
+      const archivedMessageIds = new Set(
+        gameState.secretMeetings.flatMap((m) => m.messageIds)
+      );
       const otherPlayerHasSpoken = visibleMessages.some(
-        (m) => m.type === 'secret' && m.from === otherPlayer
+        (m) =>
+          m.type === 'secret' &&
+          m.from === otherPlayer &&
+          !archivedMessageIds.has(m.id)
       );
 
       // Determine speaking order reminder
@@ -569,7 +581,7 @@ ${player.personality || '你是一个普通的旅人，凭直觉和理性生存�
 每晚，会有一个人被撕开喉咙，永远消失。
 
 ${
-  alivePlayers.length < 15
+  alivePlayers.length < players.length
     ? `
 【已死亡者】
 ${players
@@ -954,7 +966,7 @@ ${
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 【背誓者的存在】
 
-昨夜，你们感知到一股熟悉yet陌生的气息。
+昨夜，你们感知到一股熟悉而又陌生的气息。
 你们之中混入了一个"背誓者"——灵魂污秽，但不在你们的同类之中。
 
 - TA是谁？你们不知道。
