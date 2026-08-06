@@ -16,10 +16,16 @@ import type {
   GameEventRecord,
 } from '@/types/game';
 import { getTriggeredStateChanges } from './relationships';
-import { selectRandomEvent, selectRandomParticipants, formatEventDescription } from './game-events';
+import {
+  selectRandomEvent,
+  selectRandomParticipants,
+  formatEventDescription,
+} from './game-events';
+import { EMOTIONAL_STATE_PROMPTS } from './emotional-prompts';
 
 /**
  * Create initial game state
+ * @param config
  */
 export function createGame(config: GameConfig): GameState {
   const players = createPlayers(config.roles);
@@ -30,15 +36,6 @@ export function createGame(config: GameConfig): GameState {
     twins.length === 2
       ? { twin1: twins[0].name, twin2: twins[1].name }
       : undefined;
-
-  // Count roles
-  const roleCounts = config.roles.reduce(
-    (acc, role) => {
-      acc[role] = (acc[role] || 0) + 1;
-      return acc;
-    },
-    {} as Record<string, number>,
-  );
 
   return {
     phase: 'prologue',
@@ -85,18 +82,43 @@ export function createGame(config: GameConfig): GameState {
 
 /**
  * Create players with assigned roles
+ * @param roles
  */
 function createPlayers(roles: Role[]): Player[] {
   const names = [
-    '诺拉·格雷', '马库斯·霍克', '艾琳·哈钦斯', '托马斯·克劳利', '莉迪亚·克劳利',
-    '奥利弗·佩恩', '索菲亚·阿什福德', '塞缪尔·布莱克伍德', '克莱尔·沃伦', '维克多·斯通',
-    '艾米莉·卡特', '本杰明·怀特', '伊莎贝拉·费尔法克斯', '亚历山大·莫里斯', '夏洛特·温特斯',
+    '诺拉·格雷',
+    '马库斯·霍克',
+    '艾琳·哈钦斯',
+    '托马斯·克劳利',
+    '莉迪亚·克劳利',
+    '奥利弗·佩恩',
+    '索菲亚·阿什福德',
+    '塞缪尔·布莱克伍德',
+    '克莱尔·沃伦',
+    '维克多·斯通',
+    '艾米莉·卡特',
+    '本杰明·怀特',
+    '伊莎贝拉·费尔法克斯',
+    '亚历山大·莫里斯',
+    '夏洛特·温特斯',
   ];
 
   const englishNames = [
-    'Nora Grey', 'Marcus Hawke', 'Eileen Hutchins', 'Thomas Crowley', 'Lydia Crowley',
-    'Oliver Payne', 'Sophia Ashford', 'Samuel Blackwood', 'Claire Warren', 'Victor Stone',
-    'Emily Carter', 'Benjamin White', 'Isabella Fairfax', 'Alexander Morris', 'Charlotte Winters',
+    'Nora Grey',
+    'Marcus Hawke',
+    'Eileen Hutchins',
+    'Thomas Crowley',
+    'Lydia Crowley',
+    'Oliver Payne',
+    'Sophia Ashford',
+    'Samuel Blackwood',
+    'Claire Warren',
+    'Victor Stone',
+    'Emily Carter',
+    'Benjamin White',
+    'Isabella Fairfax',
+    'Alexander Morris',
+    'Charlotte Winters',
   ];
 
   const personalities = [
@@ -267,26 +289,131 @@ function createPlayers(roles: Role[]): Player[] {
 
 我会利用我的魅力和机智活下去。如果伊莎贝拉想玩游戏，我奉陪到底。毕竟，舞台上的竞争可比这座山残酷多了。
 
-我要成为明星。这座山只是我传奇故事的开始。`
+我要成为明星。这座山只是我传奇故事的开始。`,
   ];
 
   // Character basic info
   const characterInfo = [
-    { age: 26, gender: '女性' as const, occupation: '古文字研究员', trait: '理性冷静', height: '165cm', bloodType: 'A型' },
-    { age: 34, gender: '男性' as const, occupation: '职业猎人', trait: '粗犷直接', height: '182cm', bloodType: 'O型' },
-    { age: 43, gender: '女性' as const, occupation: '工厂清洁工', trait: '沉默隐忍', height: '158cm', bloodType: 'B型' },
-    { age: 28, gender: '男性' as const, occupation: '前银行职员', trait: '懦弱虚伪', height: '175cm', bloodType: 'AB型' },
-    { age: 25, gender: '女性' as const, occupation: '家庭教师', trait: '坚韧冷漠', height: '162cm', bloodType: 'A型' },
-    { age: 31, gender: '男性' as const, occupation: '药剂师', trait: '胆小谨慎', height: '170cm', bloodType: 'A型' },
-    { age: 23, gender: '女性' as const, occupation: '落魄贵族', trait: '骄傲虚荣', height: '168cm', bloodType: 'AB型' },
-    { age: 47, gender: '男性' as const, occupation: '假神父', trait: '伪善赎罪', height: '178cm', bloodType: 'O型' },
-    { age: 19, gender: '女性' as const, occupation: '逃亡女仆', trait: '卑微谨小', height: '155cm', bloodType: 'O型' },
-    { age: 39, gender: '男性' as const, occupation: '退伍军官', trait: '暴戾自毁', height: '180cm', bloodType: 'B型' },
-    { age: 32, gender: '女性' as const, occupation: '战地护士', trait: '坚韧理智', height: '167cm', bloodType: 'A型' },
-    { age: 41, gender: '男性' as const, occupation: '破产商人', trait: '自私精明', height: '172cm', bloodType: 'B型' },
-    { age: 29, gender: '女性' as const, occupation: '社交名媛', trait: '操纵狡诈', height: '170cm', bloodType: 'AB型' },
-    { age: 45, gender: '男性' as const, occupation: '讨债恶棍', trait: '冷酷无情', height: '185cm', bloodType: 'O型' },
-    { age: 21, gender: '女性' as const, occupation: '三流演员', trait: '野心勃勃', height: '163cm', bloodType: 'B型' },
+    {
+      age: 26,
+      gender: '女性' as const,
+      occupation: '古文字研究员',
+      trait: '理性冷静',
+      height: '165cm',
+      bloodType: 'A型',
+    },
+    {
+      age: 34,
+      gender: '男性' as const,
+      occupation: '职业猎人',
+      trait: '粗犷直接',
+      height: '182cm',
+      bloodType: 'O型',
+    },
+    {
+      age: 43,
+      gender: '女性' as const,
+      occupation: '工厂清洁工',
+      trait: '沉默隐忍',
+      height: '158cm',
+      bloodType: 'B型',
+    },
+    {
+      age: 28,
+      gender: '男性' as const,
+      occupation: '前银行职员',
+      trait: '懦弱虚伪',
+      height: '175cm',
+      bloodType: 'AB型',
+    },
+    {
+      age: 25,
+      gender: '女性' as const,
+      occupation: '家庭教师',
+      trait: '坚韧冷漠',
+      height: '162cm',
+      bloodType: 'A型',
+    },
+    {
+      age: 31,
+      gender: '男性' as const,
+      occupation: '药剂师',
+      trait: '胆小谨慎',
+      height: '170cm',
+      bloodType: 'A型',
+    },
+    {
+      age: 23,
+      gender: '女性' as const,
+      occupation: '落魄贵族',
+      trait: '骄傲虚荣',
+      height: '168cm',
+      bloodType: 'AB型',
+    },
+    {
+      age: 47,
+      gender: '男性' as const,
+      occupation: '假神父',
+      trait: '伪善赎罪',
+      height: '178cm',
+      bloodType: 'O型',
+    },
+    {
+      age: 19,
+      gender: '女性' as const,
+      occupation: '逃亡女仆',
+      trait: '卑微谨小',
+      height: '155cm',
+      bloodType: 'O型',
+    },
+    {
+      age: 39,
+      gender: '男性' as const,
+      occupation: '退伍军官',
+      trait: '暴戾自毁',
+      height: '180cm',
+      bloodType: 'B型',
+    },
+    {
+      age: 32,
+      gender: '女性' as const,
+      occupation: '战地护士',
+      trait: '坚韧理智',
+      height: '167cm',
+      bloodType: 'A型',
+    },
+    {
+      age: 41,
+      gender: '男性' as const,
+      occupation: '破产商人',
+      trait: '自私精明',
+      height: '172cm',
+      bloodType: 'B型',
+    },
+    {
+      age: 29,
+      gender: '女性' as const,
+      occupation: '社交名媛',
+      trait: '操纵狡诈',
+      height: '170cm',
+      bloodType: 'AB型',
+    },
+    {
+      age: 45,
+      gender: '男性' as const,
+      occupation: '讨债恶棍',
+      trait: '冷酷无情',
+      height: '185cm',
+      bloodType: 'O型',
+    },
+    {
+      age: 21,
+      gender: '女性' as const,
+      occupation: '三流演员',
+      trait: '野心勃勃',
+      height: '163cm',
+      bloodType: 'B型',
+    },
   ];
 
   const shuffledRoles = shuffle([...roles]);
@@ -306,6 +433,7 @@ function createPlayers(roles: Role[]): Player[] {
 /**
  * Advance to next game phase
  * Flow: prologue → setup → secret_meeting (before) → day → voting → secret_meeting (after) → event → night → ...
+ * @param state
  */
 export function advancePhase(state: GameState): GamePhase {
   if (state.phase === 'prologue') {
@@ -352,16 +480,15 @@ export function advancePhase(state: GameState): GamePhase {
 
 /**
  * Check if game has ended
+ * @param state
  */
-export function checkWinCondition(
-  state: GameState,
-): 'marked' | 'lamb' | null {
+export function checkWinCondition(state: GameState): 'marked' | 'lamb' | null {
   const alivePlayers = state.players.filter((p) => p.isAlive);
   const aliveMarked = alivePlayers.filter(
-    (p) => p.role === 'marked' || p.role === 'heretic',
+    (p) => p.role === 'marked' || p.role === 'heretic'
   );
   const aliveLambs = alivePlayers.filter(
-    (p) => p.role !== 'marked' && p.role !== 'heretic',
+    (p) => p.role !== 'marked' && p.role !== 'heretic'
   );
 
   // 所有烙印者+背誓者被淘汰，羔羊获胜
@@ -379,6 +506,7 @@ export function checkWinCondition(
 
 /**
  * Process night phase - marked kill based on votes
+ * @param state
  */
 export function processNightPhase(state: GameState): {
   killedPlayer: Player | null;
@@ -389,7 +517,11 @@ export function processNightPhase(state: GameState): {
   if (state.nightVotes.length === 0) {
     return {
       killedPlayer: null,
-      message: createMessage('叙述者', '白蜡篝火跳动。这一夜，无人死去。'),
+      message: createMessage(
+        state,
+        '叙述者',
+        '白蜡篝火跳动。这一夜，无人死去。'
+      ),
       isTied: false,
       tiedPlayers: [],
     };
@@ -422,8 +554,9 @@ export function processNightPhase(state: GameState): {
     return {
       killedPlayer: null,
       message: createMessage(
+        state,
         '叙述者',
-        `烙印者们的意见分歧。${playersWithMaxVotes.join('、')} 各得 ${maxVotes} 票。需要重新商议。`,
+        `烙印者们的意见分歧。${playersWithMaxVotes.join('、')} 各得 ${maxVotes} 票。需要重新商议。`
       ),
       isTied: true,
       tiedPlayers: playersWithMaxVotes,
@@ -433,23 +566,30 @@ export function processNightPhase(state: GameState): {
   const targetName = playersWithMaxVotes[0];
   const player = state.players.find((p) => p.name === targetName);
 
-  if (!player || !player.isAlive) {
+  if (!player?.isAlive) {
     return {
       killedPlayer: null,
-      message: createMessage('叙述者', '白蜡篝火跳动。这一夜，无人死去。'),
+      message: createMessage(
+        state,
+        '叙述者',
+        '白蜡篝火跳动。这一夜，无人死去。'
+      ),
       isTied: false,
       tiedPlayers: [],
     };
   }
 
-  // Check if player was guarded
-  const lastGuardRecord = state.guardRecords[state.guardRecords.length - 1];
-  if (lastGuardRecord && lastGuardRecord.target === targetName && lastGuardRecord.round === state.round) {
+  // Check if player was guarded this round
+  const guarded = state.guardRecords.some(
+    (r) => r.round === state.round && r.target === targetName
+  );
+  if (guarded) {
     return {
       killedPlayer: null,
       message: createMessage(
+        state,
         '叙述者',
-        `门闩阻挡了利爪。${targetName} 的房门从外被锁死，躲过了一劫。`,
+        `门闩阻挡了利爪。${targetName} 的房门从外被锁死，躲过了一劫。`
       ),
       isTied: false,
       tiedPlayers: [],
@@ -459,8 +599,9 @@ export function processNightPhase(state: GameState): {
   return {
     killedPlayer: player,
     message: createMessage(
+      state,
       '叙述者',
-      `黎明时分，${player.name} 的房门被推开。冰冷的尸体躺在地上，灵魂已被收割。`,
+      `黎明时分，${player.name} 的房门被推开。冰冷的尸体躺在地上，灵魂已被收割。`
     ),
     isTied: false,
     tiedPlayers: [],
@@ -469,6 +610,7 @@ export function processNightPhase(state: GameState): {
 
 /**
  * Process voting phase
+ * @param state
  */
 export function processVoting(state: GameState): {
   eliminated: Player | null;
@@ -479,7 +621,7 @@ export function processVoting(state: GameState): {
   if (state.votes.length === 0) {
     return {
       eliminated: null,
-      message: createMessage('叙述者', '无人被选为献祭。'),
+      message: createMessage(state, '叙述者', '无人被选为献祭。'),
       isTied: false,
       tiedPlayers: [],
     };
@@ -511,8 +653,9 @@ export function processVoting(state: GameState): {
     return {
       eliminated: null,
       message: createMessage(
+        state,
         '叙述者',
-        `献祭石的指向分散。${playersWithMaxVotes.join('、')} 各得 ${maxVotes} 票。平票，无人被献祭。`,
+        `献祭石的指向分散。${playersWithMaxVotes.join('、')} 各得 ${maxVotes} 票。平票，无人被献祭。`
       ),
       isTied: true,
       tiedPlayers: playersWithMaxVotes,
@@ -524,7 +667,7 @@ export function processVoting(state: GameState): {
   if (!player) {
     return {
       eliminated: null,
-      message: createMessage('叙述者', '无人被选为献祭。'),
+      message: createMessage(state, '叙述者', '无人被选为献祭。'),
       isTied: false,
       tiedPlayers: [],
     };
@@ -533,8 +676,9 @@ export function processVoting(state: GameState): {
   return {
     eliminated: player,
     message: createMessage(
+      state,
       '叙述者',
-      `献祭仪式完成。${player.name} 被推入白蜡篝火，化为灰烬。`,
+      `献祭仪式完成。${player.name} 被推入白蜡篝火，化为灰烬。`
     ),
     isTied: false,
     tiedPlayers: [],
@@ -543,13 +687,18 @@ export function processVoting(state: GameState): {
 
 /**
  * Add message to game state
+ * @param state
+ * @param from
+ * @param content
+ * @param type
+ * @param visibility
  */
 export function addMessage(
   state: GameState,
   from: string,
   content: string,
   type: Message['type'] = 'speech',
-  visibility: Message['visibility'] = 'all',
+  visibility: Message['visibility'] = 'all'
 ): Message {
   return {
     id: generateId(),
@@ -564,21 +713,31 @@ export function addMessage(
 }
 
 /**
- * Create system message
+ * Create system message (carries round/phase so the message timeline stays ordered)
+ * @param state
+ * @param from
+ * @param content
  */
-function createMessage(from: string, content: string): Message {
+function createMessage(
+  state: GameState,
+  from: string,
+  content: string
+): Message {
   return {
     id: generateId(),
     type: 'system',
     from,
     content,
     timestamp: Date.now(),
+    round: state.round,
+    phase: state.phase,
     visibility: 'all',
   };
 }
 
 /**
  * Shuffle array
+ * @param array
  */
 function shuffle<T>(array: T[]): T[] {
   const result = [...array];
@@ -598,6 +757,7 @@ function generateId(): string {
 
 /**
  * Get alive players
+ * @param state
  */
 export function getAlivePlayers(state: GameState): Player[] {
   return state.players.filter((p) => p.isAlive);
@@ -605,10 +765,12 @@ export function getAlivePlayers(state: GameState): Player[] {
 
 /**
  * Get player by name
+ * @param state
+ * @param name
  */
 export function getPlayerByName(
   state: GameState,
-  name: string,
+  name: string
 ): Player | undefined {
   return state.players.find((p) => p.name === name);
 }
@@ -616,18 +778,22 @@ export function getPlayerByName(
 /**
  * Handle emotional state changes triggered by a character's death
  * Uses probability-based dual direction system (virtue vs vice)
+ * @param state
+ * @param deadCharacterName
  */
 export function handleDeathTriggers(
   state: GameState,
-  deadCharacterName: string,
+  deadCharacterName: string
 ): void {
   const triggeredRelationships = getTriggeredStateChanges(deadCharacterName);
 
   for (const relationship of triggeredRelationships) {
-    const affectedPlayer = state.players.find(p => p.name === relationship.character);
+    const affectedPlayer = state.players.find(
+      (p) => p.name === relationship.character
+    );
 
     // Only affect alive players
-    if (!affectedPlayer || !affectedPlayer.isAlive) continue;
+    if (!affectedPlayer?.isAlive) continue;
 
     // Roll for emotional state change (dual direction probability)
     const roll = Math.random();
@@ -646,8 +812,8 @@ export function handleDeathTriggers(
 
     // Check if character has the corresponding state prompt
     // (some characters only have virtue or vice, not both)
-    const statePrompts = require('./emotional-prompts').EMOTIONAL_STATE_PROMPTS[relationship.character];
-    if (!statePrompts || !statePrompts[newState]) {
+    const statePrompts = EMOTIONAL_STATE_PROMPTS[relationship.character];
+    if (!statePrompts?.[newState]) {
       // Character doesn't have this state prompt, stay normal
       continue;
     }
@@ -671,10 +837,12 @@ export function handleDeathTriggers(
 
 /**
  * Initialize secret meeting phase
+ * @param state
+ * @param timing
  */
 export function initSecretMeetingPhase(
   state: GameState,
-  timing: "before_discussion" | "after_sacrifice"
+  timing: 'before_discussion' | 'after_sacrifice'
 ): void {
   state.pendingSecretMeeting = {
     timing,
@@ -684,6 +852,8 @@ export function initSecretMeetingPhase(
 
 /**
  * Set secret meeting participants (user selection)
+ * @param state
+ * @param participants
  */
 export function setSecretMeetingParticipants(
   state: GameState,
@@ -696,6 +866,8 @@ export function setSecretMeetingParticipants(
 
 /**
  * Complete secret meeting and record it
+ * @param state
+ * @param messageIds
  */
 export function completeSecretMeeting(
   state: GameState,
@@ -716,6 +888,7 @@ export function completeSecretMeeting(
 
 /**
  * Skip secret meeting (if user chooses not to have one)
+ * @param state
  */
 export function skipSecretMeeting(state: GameState): void {
   state.pendingSecretMeeting = undefined;
@@ -723,17 +896,20 @@ export function skipSecretMeeting(state: GameState): void {
 
 /**
  * Generate and apply a random game event
+ * @param state
  */
 export function generateGameEvent(state: GameState): GameEventRecord | null {
-  const alivePlayers = state.players.filter(p => p.isAlive);
-  
+  const alivePlayers = state.players.filter((p) => p.isAlive);
+
   // Need at least 3 alive players for an event
   if (alivePlayers.length < 3) return null;
 
   // Randomly select participant count (3-5)
   const maxParticipants = Math.min(5, alivePlayers.length);
   const minParticipants = 3;
-  const participantCount = Math.floor(Math.random() * (maxParticipants - minParticipants + 1)) + minParticipants;
+  const participantCount =
+    Math.floor(Math.random() * (maxParticipants - minParticipants + 1)) +
+    minParticipants;
 
   // Select random event with this participant count
   const event = selectRandomEvent(participantCount);
@@ -741,7 +917,7 @@ export function generateGameEvent(state: GameState): GameEventRecord | null {
 
   // Select random participants
   const participants = selectRandomParticipants(
-    alivePlayers.map(p => p.name),
+    alivePlayers.map((p) => p.name),
     participantCount
   );
   if (participants.length < participantCount) return null;
@@ -766,18 +942,18 @@ export function generateGameEvent(state: GameState): GameEventRecord | null {
   // Add event message to game log
   const eventMessage: Message = {
     id: generateId(),
-    type: "event",
-    from: "叙述者",
+    type: 'event',
+    from: '叙述者',
     content: `**【${event.title}】**
 
 ${description}
 
 **效果：**
-${effects.map(e => `• ${e}`).join("\n")}`,
+${effects.map((e) => `• ${e}`).join('\n')}`,
     timestamp: Date.now(),
     round: state.round,
-    phase: "event",
-    visibility: "all",
+    phase: 'event',
+    visibility: 'all',
   };
 
   state.messages.push(eventMessage);
