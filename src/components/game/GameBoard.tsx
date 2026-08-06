@@ -422,7 +422,7 @@ export function GameBoard() {
                     <Gamepad2 className="w-16 h-16 mx-auto mb-4 opacity-50" />
                     <p className="text-lg font-semibold mb-2">准备好开始了吗？</p>
                     <p className="text-sm">
-                      输入你的 Gemini API 密钥并开始新游戏
+                      输入你的 DeepSeek API 密钥并开始新游戏
                     </p>
                   </div>
                 </div>

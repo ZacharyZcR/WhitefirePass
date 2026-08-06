@@ -2,7 +2,7 @@
 
 > **Whitefire Pass: An AI-Powered Werewolf Game**
 
-一个由 AI 驱动的狼人杀变体游戏，基于 1913 年的神秘山庄背景设定。游戏使用 Gemini 2.5 Pro API 驱动 15 位 AI 旅者，支持手动单步执行，让你见证 AI 角色在生死博弈中的思考过程。
+一个由 AI 驱动的狼人杀变体游戏，基于 1913 年的神秘山庄背景设定。游戏使用 DeepSeek V4 Flash (RTX Pro) API 驱动 15 位 AI 旅者，支持手动单步执行，让你见证 AI 角色在生死博弈中的思考过程。
 
 [![CI](https://github.com/ZacharyZcR/WhitefirePass/workflows/CI/badge.svg)](https://github.com/ZacharyZcR/WhitefirePass/actions)
 [![Deploy](https://github.com/ZacharyZcR/WhitefirePass/workflows/Deploy%20to%20GitHub%20Pages/badge.svg)](https://github.com/ZacharyZcR/WhitefirePass/actions)
@@ -36,7 +36,7 @@
 
 ### 🤖 AI 智能体系统
 
-- 使用 **Gemini 2.5 Pro** 驱动每个 AI 旅者
+- 使用 **DeepSeek V4 Flash (RTX Pro)** 驱动每个 AI 旅者
 - 每个角色拥有独特的性格、背景和人际关系
 - **情感状态系统**: 角色会因关系网络中的死亡事件产生"美德"或"罪恶"状态
 - **完整的自传**: 每个角色都有详细的背景故事
@@ -56,7 +56,7 @@
 
 - **Node.js** >= 18.17.0
 - **pnpm** >= 8.0.0
-- **Gemini API Key** - 从 [Google AI Studio](https://makersuite.google.com/app/apikey) 获取
+- **DeepSeek API Key** - DeepSeek V4 Flash (RTX Pro) 本地端点密钥
 
 ### 安装
 
@@ -76,18 +76,20 @@ pnpm install
 cp .env.example .env.local
 ```
 
-2. 编辑 `.env.local`，填入你的 Gemini API Key：
+2. 编辑 `.env.local`，填入你的 DeepSeek API Key：
 ```env
-GEMINI_API_KEY=your_api_key_here
+DEEPSEEK_API_KEY=your_api_key_here
 ```
 
-### 代理配置（可选）
+### 模型端点
 
-如果需要通过代理访问 Gemini API，在 `src/app/api/gemini/route.ts` 中修改代理地址：
+游戏默认连接 DeepSeek V4 Flash (RTX Pro) 本地端点：
 
-```typescript
-const PROXY_URL = 'http://127.0.0.1:7897'; // 修改为你的代理地址
+```text
+http://110.42.47.158:12345/deepseek-v4-rtxpro/v1
 ```
+
+也可以在游戏内 API 配置面板中修改端点地址和密钥。
 
 ### 运行
 
@@ -140,7 +142,6 @@ pnpm dev
 Wolf/
 ├── src/
 │   ├── app/                      # Next.js 应用路由
-│   │   ├── api/gemini/          # Gemini API 代理
 │   │   ├── page.tsx             # 主页面
 │   │   └── tarot-demo/          # 塔罗牌演示
 │   ├── components/
@@ -189,8 +190,8 @@ Wolf/
 - **TanStack Query** - 数据获取
 
 ### AI 集成
-- **Gemini 2.5 Pro API** - Google 最新大模型
-- **Undici** - HTTP 客户端（支持代理）
+- **DeepSeek V4 Flash (RTX Pro)** - 本地推理模型（OpenAI 兼容）
+- **OpenAI 兼容协议** - `/chat/completions`
 
 ### 开发工具
 - **ESLint** - 代码检查
@@ -255,7 +256,7 @@ const gameStore = {
 
 ### AI 服务
 
-AI 服务负责与 Gemini API 交互：
+AI 服务负责与 DeepSeek API 交互：
 
 ```typescript
 // 生成 AI 响应
@@ -332,9 +333,9 @@ export const DEFAULT_ROLE_CONFIG = {
 };
 ```
 
-### Gemini 配置
+### DeepSeek 配置
 
-在 `src/app/api/gemini/route.ts` 中修改 API 配置：
+游戏默认使用 DeepSeek V4 Flash (RTX Pro) 本地端点，模型为 `DeepSeek-V4-Flash-0731`。在 `src/lib/deepseek.ts` 中修改默认端点与模型：
 
 ```typescript
 generationConfig: {
@@ -393,7 +394,6 @@ chore: 其他修改
 
 ## 🙏 致谢
 
-- 感谢 Google 提供的 Gemini API
 - 感谢 shadcn/ui 提供的优秀组件库
 - 感谢所有为本项目做出贡献的开发者
 

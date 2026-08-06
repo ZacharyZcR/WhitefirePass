@@ -21,7 +21,7 @@ import {
   generateGameEvent,
   advancePhase,
 } from '@/lib/game-engine';
-import { getAIResponse, buildPrompt } from '@/lib/gemini';
+import { getAIResponse, buildPrompt } from '@/lib/deepseek';
 import { getInitialClues } from '@/lib/clues-data';
 
 /**
@@ -102,7 +102,7 @@ export const useGameStore = create<GameStore>()(
   gameState: null,
   isProcessing: false,
   apiKey: '',
-  apiUrl: 'https://generativelanguage.googleapis.com',
+  apiUrl: 'http://110.42.47.158:12345/deepseek-v4-rtxpro/v1',
   lastError: null,
   retryCount: 0,
   clues: [],
@@ -119,14 +119,14 @@ export const useGameStore = create<GameStore>()(
   isAutoExecuting: false,
 
   /**
-   * Set Gemini API key
+   * Set DeepSeek API key
    */
   setApiKey: (key: string) => {
     set({ apiKey: key });
   },
 
   /**
-   * Set Gemini API URL
+   * Set DeepSeek API URL
    */
   setApiUrl: (url: string) => {
     set({ apiUrl: url });

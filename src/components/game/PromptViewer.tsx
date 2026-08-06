@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useGameStore } from '@/stores/game-store';
-import { buildPrompt } from '@/lib/gemini';
+import { buildPrompt } from '@/lib/deepseek';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Brain, User, Users, Skull } from 'lucide-react';
 import type { Player } from '@/types/game';

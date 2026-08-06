@@ -1,19 +1,75 @@
 /**
- * Gemini API client for AI player responses
+ * DeepSeek API client for AI player responses
  * 白烬山口 (Whitefire Pass) - AI驱动系统
  */
 
 import type { GameState, Player } from '@/types/game';
 import { EMOTIONAL_STATE_PROMPTS } from './emotional-prompts';
 
+/** DeepSeek RTX Pro 本地端点与默认模型 */
+const DEEPSEEK_BASE_URL = 'http://110.42.47.158:12345/deepseek-v4-rtxpro/v1';
+const DEEPSEEK_MODEL = 'DeepSeek-V4-Flash-0731';
+
 /**
- * Gemini API configuration
+ * DeepSeek API configuration
  */
-interface GeminiConfig {
+interface DeepSeekConfig {
   apiKey: string;
   apiUrl?: string;
   model?: string;
   onRetry?: (info: { attempt: number; maxRetries: number; delay: number; reason: string }) => void;
+}
+
+/** 单次补全请求的统一结果 */
+interface CompletionResult {
+  status: number;
+  text: string;
+  errorMessage: string;
+}
+
+/**
+ * 发起一次 DeepSeek 补全请求并解析文本。
+ * 推理模型 content 为空时回退到 reasoning_content。
+ */
+async function requestCompletion(
+  baseUrl: string,
+  model: string,
+  apiKey: string,
+  prompt: string,
+): Promise<CompletionResult> {
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.9,
+      max_tokens: 16384,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = (await response.json().catch(() => null)) as {
+      error?: { message?: string };
+    } | null;
+    return {
+      status: response.status,
+      text: '',
+      errorMessage: errorData?.error?.message ?? 'API 请求失败',
+    };
+  }
+
+  const data = (await response.json()) as {
+    choices?: Array<{
+      message?: { content?: string | null; reasoning_content?: string | null };
+    }>;
+  };
+  const message = data.choices?.[0]?.message;
+  const text = (message?.content ?? message?.reasoning_content ?? '').trim();
+  return { status: 200, text, errorMessage: '' };
 }
 
 /**
@@ -50,40 +106,25 @@ function calculateBackoff(attempt: number): number {
 }
 
 /**
- * Test if Gemini API key is valid with retry
+ * Test if an API key is valid with retry
  */
-export async function testGeminiKey(apiKey: string, apiUrl?: string): Promise<boolean> {
+export async function testApiKey(apiKey: string, apiUrl?: string): Promise<boolean> {
   // Use fewer retries for test (2 retries max)
   const maxRetries = 2;
-  const baseUrl = apiUrl || 'https://generativelanguage.googleapis.com';
+  const baseUrl = apiUrl || DEEPSEEK_BASE_URL;
+  const model = DEEPSEEK_MODEL;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      const response = await fetch(
-        `${baseUrl}/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [{ text: '测试' }],
-              },
-            ],
-          }),
-        }
-      );
-
-      if (response.ok) {
+      const { status } = await requestCompletion(baseUrl, model, apiKey, '测试');
+      if (status === 200) {
         return true;
       }
 
       // If error is retryable and we have attempts left
-      if (isRetryableError(response.status) && attempt < maxRetries) {
+      if (isRetryableError(status) && attempt < maxRetries) {
         const delay = calculateBackoff(attempt);
-        console.warn(`API 密钥测试失败 (${response.status}), 重试 ${attempt + 1}/${maxRetries}，等待 ${delay}ms...`);
+        console.warn(`API 密钥测试失败 (${status}), 重试 ${attempt + 1}/${maxRetries}，等待 ${delay}ms...`);
         await sleep(delay);
         continue; // Retry
       }
@@ -108,60 +149,37 @@ export async function testGeminiKey(apiKey: string, apiUrl?: string): Promise<bo
 }
 
 /**
- * Generate AI response using Gemini API with retry and exponential backoff
+ * Generate AI response using DeepSeek API with retry and exponential backoff
  */
 export async function getAIResponse(
   player: Player,
   gameState: GameState,
-  config: GeminiConfig,
+  config: DeepSeekConfig,
 ): Promise<string> {
   const prompt = buildPrompt(player, gameState);
-  const baseUrl = config.apiUrl || 'https://generativelanguage.googleapis.com';
-  const model = config.model ?? 'gemini-2.5-pro';
+  const baseUrl = config.apiUrl || DEEPSEEK_BASE_URL;
+  const model = config.model ?? DEEPSEEK_MODEL;
 
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
     try {
-      const response = await fetch(
-        `${baseUrl}/v1beta/models/${model}:generateContent?key=${config.apiKey}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [{ text: prompt }],
-              },
-            ],
-            generationConfig: {
-              temperature: 0.9,
-            },
-          }),
-        }
+      const { status, text, errorMessage } = await requestCompletion(
+        baseUrl,
+        model,
+        config.apiKey,
+        prompt,
       );
 
-      if (!response.ok) {
-        const errorData = (await response.json()) as {
-          error?: {
-            code?: number;
-            message?: string;
-            status?: string;
-          };
-        };
-
-        const errorMessage = errorData.error?.message ?? errorData.error?.status ?? 'API 请求失败';
-
+      if (status !== 200) {
         // Check if error is retryable
-        if (isRetryableError(response.status) && attempt < RETRY_CONFIG.maxRetries) {
+        if (isRetryableError(status) && attempt < RETRY_CONFIG.maxRetries) {
           const delay = calculateBackoff(attempt);
-          const reason = `HTTP ${response.status}: ${errorMessage}`;
+          const reason = `HTTP ${status}: ${errorMessage}`;
 
           console.warn(
-            `Gemini API 请求失败 (${response.status}), 重试 ${attempt + 1}/${RETRY_CONFIG.maxRetries}，等待 ${delay}ms...`,
-            errorData
+            `API 请求失败 (${status}), 重试 ${attempt + 1}/${RETRY_CONFIG.maxRetries}，等待 ${delay}ms...`,
+            errorMessage
           );
 
           // Notify retry progress
@@ -178,22 +196,9 @@ export async function getAIResponse(
         }
 
         // Non-retryable error, throw immediately
-        console.error('Gemini API 错误响应 (不可重试):', errorData);
+        console.error('API 错误响应 (不可重试):', errorMessage);
         throw new Error(errorMessage);
       }
-
-      const data = (await response.json()) as {
-        candidates?: Array<{
-          content?: {
-            parts?: Array<{ text?: string }>;
-          };
-        }>;
-        usageMetadata?: unknown;
-      };
-
-      // Extract text from response
-      const parts = data.candidates?.[0]?.content?.parts;
-      const text = parts?.map((part) => part.text).filter(Boolean).join('')?.trim();
 
       if (!text) {
         // Empty response is retryable
@@ -202,8 +207,7 @@ export async function getAIResponse(
           const reason = 'AI 响应为空';
 
           console.warn(
-            `Gemini API 响应为空, 重试 ${attempt + 1}/${RETRY_CONFIG.maxRetries}，等待 ${delay}ms...`,
-            data
+            `API 响应为空, 重试 ${attempt + 1}/${RETRY_CONFIG.maxRetries}，等待 ${delay}ms...`
           );
 
           // Notify retry progress
@@ -219,13 +223,13 @@ export async function getAIResponse(
           continue; // Retry
         }
 
-        console.error('Gemini API 响应为空 (重试已耗尽):', data);
+        console.error('API 响应为空 (重试已耗尽)');
         throw new Error('AI 响应为空');
       }
 
       // Success!
       if (attempt > 0) {
-        console.log(`Gemini API 请求成功 (第 ${attempt + 1} 次尝试)`);
+        console.log(`API 请求成功 (第 ${attempt + 1} 次尝试)`);
       }
       return text;
 
@@ -259,7 +263,7 @@ export async function getAIResponse(
   }
 
   // All retries failed
-  console.error('Gemini API 请求失败，所有重试已耗尽');
+  console.error('DeepSeek API 请求失败，所有重试已耗尽');
   throw lastError ?? new Error('API 请求失败');
 }
 

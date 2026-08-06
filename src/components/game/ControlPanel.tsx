@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Kbd } from '@/components/ui/kbd';
 import { useGameStore } from '@/stores/game-store';
-import { testGeminiKey } from '@/lib/gemini';
+import { testApiKey } from '@/lib/deepseek';
 import { SaveGameManager } from '@/components/game/SaveGameManager';
 import { PersonalityEditor } from '@/components/game/PersonalityEditor';
 import { GameGuide } from '@/components/game/GameGuide';
@@ -63,7 +63,7 @@ function ApiKeyInput({
 }) {
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium">Gemini API 密钥</label>
+      <label className="text-sm font-medium">DeepSeek API 密钥</label>
       <Input
         type="password"
         placeholder="请输入你的 API 密钥"
@@ -71,20 +71,11 @@ function ApiKeyInput({
         onChange={(e) => onChange(e.target.value)}
       />
       <p className="text-xs text-muted-foreground">
-        从{' '}
-        <a
-          href="https://aistudio.google.com/app/apikey"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-600 hover:underline"
-        >
-          Google AI Studio
-        </a>
-        {' '}获取你的 API 密钥
+        填写 DeepSeek RTX Pro 本地端点的 API 密钥
       </p>
       <p className="text-xs text-amber-600 flex items-center gap-1">
         <AlertTriangle className="w-3 h-3" />
-        确保 API 密钥有效且已启用 Gemini API
+        确保 API 密钥有效
       </p>
       <p className="text-xs text-green-600 flex items-center gap-1">
         <CheckCircle2 className="w-3 h-3" />
@@ -106,12 +97,12 @@ function ApiUrlInput({
       <label className="text-sm font-medium">API 基础 URL</label>
       <Input
         type="text"
-        placeholder="https://generativelanguage.googleapis.com"
+        placeholder="http://110.42.47.158:12345/deepseek-v4-rtxpro/v1"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
       <p className="text-xs text-muted-foreground">
-        默认使用 Google 官方 API，也可以填写自定义代理地址
+        默认使用 DeepSeek RTX Pro 本地端点
       </p>
     </div>
   );
@@ -830,19 +821,19 @@ export function ControlPanel() {
   const handleSaveSettings = async () => {
     const trimmedKey = apiKey.trim();
     if (!trimmedKey) {
-      alert('请输入你的 Gemini API 密钥');
+      alert('请输入你的 DeepSeek API 密钥');
       return;
     }
 
     const trimmedUrl = apiUrl.trim();
 
     setIsValidating(true);
-    const isValid = await testGeminiKey(trimmedKey, trimmedUrl);
+    const isValid = await testApiKey(trimmedKey, trimmedUrl);
     setIsValidating(false);
 
     if (!isValid) {
       alert(
-        'API 密钥验证失败！\n\n请检查：\n1. API 密钥是否正确\n2. 是否已启用 Gemini API\n3. 网络连接是否正常\n4. API URL 是否正确\n\n获取 API 密钥：https://aistudio.google.com/app/apikey',
+        'API 密钥验证失败！\n\n请检查：\n1. API 密钥是否正确\n2. DeepSeek RTX Pro 端点是否可达\n3. 网络连接是否正常\n4. API URL 是否正确',
       );
       return;
     }
@@ -858,19 +849,19 @@ export function ControlPanel() {
   const handleStart = async () => {
     const trimmedKey = apiKey.trim();
     if (!trimmedKey) {
-      alert('请输入你的 Gemini API 密钥');
+      alert('请输入你的 DeepSeek API 密钥');
       return;
     }
 
     const trimmedUrl = apiUrl.trim();
 
     setIsValidating(true);
-    const isValid = await testGeminiKey(trimmedKey, trimmedUrl);
+    const isValid = await testApiKey(trimmedKey, trimmedUrl);
     setIsValidating(false);
 
     if (!isValid) {
       alert(
-        'API 密钥验证失败！\n\n请检查：\n1. API 密钥是否正确\n2. 是否已启用 Gemini API\n3. 网络连接是否正常\n4. API URL 是否正确\n\n获取 API 密钥：https://aistudio.google.com/app/apikey',
+        'API 密钥验证失败！\n\n请检查：\n1. API 密钥是否正确\n2. DeepSeek RTX Pro 端点是否可达\n3. 网络连接是否正常\n4. API URL 是否正确',
       );
       return;
     }

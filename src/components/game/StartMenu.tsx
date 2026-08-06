@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useGameStore } from '@/stores/game-store';
-import { testGeminiKey } from '@/lib/gemini';
+import { testApiKey } from '@/lib/deepseek';
 import type { GameConfig } from '@/types/game';
 
 interface Snowflake {
@@ -49,7 +49,7 @@ export function StartMenu() {
   // Settings panel
   const [showSettings, setShowSettings] = useState(false);
   const [tempApiKey, setTempApiKey] = useState('');
-  const [tempApiUrl, setTempApiUrl] = useState('https://generativelanguage.googleapis.com');
+  const [tempApiUrl, setTempApiUrl] = useState('http://110.42.47.158:12345/deepseek-v4-rtxpro/v1');
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
 
@@ -167,7 +167,7 @@ export function StartMenu() {
     setTestResult(null);
 
     try {
-      const isValid = await testGeminiKey(tempApiKey, tempApiUrl || undefined);
+      const isValid = await testApiKey(tempApiKey, tempApiUrl || undefined);
       setTestResult(isValid ? 'success' : 'error');
       if (isValid) {
         // Auto-save if test successful
@@ -389,14 +389,14 @@ export function StartMenu() {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="apiKey" className="text-slate-700 font-serif">
-                  Gemini API 密钥
+                  DeepSeek API 密钥
                 </Label>
                 <Input
                   id="apiKey"
                   type="password"
                   value={tempApiKey}
                   onChange={(e) => setTempApiKey(e.target.value)}
-                  placeholder="输入你的 Gemini API Key"
+                  placeholder="输入你的 DeepSeek API Key"
                   className="mt-1 font-mono"
                 />
                 <p className="text-xs text-slate-500 mt-1">
@@ -422,7 +422,7 @@ export function StartMenu() {
                   type="text"
                   value={tempApiUrl}
                   onChange={(e) => setTempApiUrl(e.target.value)}
-                  placeholder="https://generativelanguage.googleapis.com"
+                  placeholder="http://110.42.47.158:12345/deepseek-v4-rtxpro/v1"
                   className="mt-1 font-mono text-sm"
                 />
                 <p className="text-xs text-slate-500 mt-1">
