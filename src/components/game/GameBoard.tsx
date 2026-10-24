@@ -1,108 +1,29 @@
 /**
- * Main game board component - orchestrates the entire game UI
+ * Game screen: backdrop · HUD · seats flanking the stage · ledger · modals.
  */
 
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useGameStore } from '@/stores/game-store';
-import { PlayerCard } from './PlayerCard';
-import { MessageFlow } from './MessageFlow';
-import { ControlPanel } from './ControlPanel';
-import { VoteTracker } from './VoteTracker';
-import { VotingProgress } from './VotingProgress';
-import { CurrentSpeaker } from './CurrentSpeaker';
+import { useBGM } from '@/hooks/useBGM';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { getNextActor, isNightScene } from '@/lib/design-tokens';
 import { StartMenu } from './StartMenu';
-import { CluesPanel } from './CluesPanel';
+import { SceneBackdrop, type SceneMood } from './SceneBackdrop';
+import { TopHud } from './TopHud';
+import { Stage, pickStageMessage } from './Stage';
+import { TravelerSeat } from './TravelerSeat';
+import { Ledger, type LedgerTab } from './Ledger';
+import { GameMenu } from './GameMenu';
 import { PhaseTransition } from './PhaseTransition';
 import { GameEndDialog } from './GameEndDialog';
 import { EmotionalStateDialog } from './EmotionalStateDialog';
 import { SecretMeetingSelector } from './SecretMeetingSelector';
-import { MessageFilter } from './MessageFilter';
-import { ADVDialogBox } from './ADVDialogBox';
-import { Mountain, Gamepad2, Moon, Sun, Users as UsersIcon, Volume2, VolumeX } from 'lucide-react';
-import type { Message } from '@/types/game';
-import { cn } from '@/lib/utils';
-import { TYPOGRAPHY, CARD_HEADER, getBorderClass, ICON, SHADOWS } from '@/lib/design-tokens';
-import { SECTION_TITLES, DECORATIVE_QUOTES } from '@/lib/latin-text';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useBGM } from '@/hooks/useBGM';
+import { PersonalityEditor } from './PersonalityEditor';
+import { PromptViewer } from './PromptViewer';
+import { GameGuide } from './GameGuide';
 
-/**
- * Get phase-specific background gradient and theme
- */
-function getPhaseTheme(phase: string) {
-  switch (phase) {
-    case 'night':
-      return {
-        gradient: 'from-slate-950 via-blue-950/50 to-slate-950',
-        border: 'border-blue-400/40',
-        icon: <Moon className="w-8 h-8 text-blue-300" />,
-        label: '夜晚',
-      };
-    case 'day':
-      return {
-        gradient: 'from-slate-900 via-slate-800 to-slate-900',
-        border: 'border-amber-400/40',
-        icon: <Sun className="w-8 h-8 text-amber-300" />,
-        label: '白天',
-      };
-    case 'voting':
-      return {
-        gradient: 'from-slate-950 via-orange-950/60 to-slate-950',
-        border: 'border-orange-400/40',
-        icon: <UsersIcon className="w-8 h-8 text-orange-300" />,
-        label: '投票阶段',
-      };
-    case 'secret_meeting':
-      return {
-        gradient: 'from-slate-950 via-purple-950/50 to-slate-950',
-        border: 'border-purple-400/40',
-        icon: <UsersIcon className="w-8 h-8 text-purple-300" />,
-        label: '密会',
-      };
-    case 'event':
-      return {
-        gradient: 'from-slate-950 via-teal-950/50 to-slate-950',
-        border: 'border-teal-400/40',
-        icon: <Mountain className="w-8 h-8 text-teal-300" />,
-        label: '事件',
-      };
-    case 'end':
-      return {
-        gradient: 'from-slate-950 via-cyan-950/40 to-slate-950',
-        border: 'border-cyan-400/40',
-        icon: <Mountain className="w-8 h-8 text-cyan-300" />,
-        label: '游戏结束',
-      };
-    case 'prologue':
-      return {
-        gradient: 'from-slate-950 via-slate-900 to-slate-950',
-        border: 'border-slate-400/40',
-        icon: <Mountain className="w-8 h-8 text-slate-300" />,
-        label: '序章',
-      };
-    case 'setup':
-      return {
-        gradient: 'from-slate-950 via-slate-900 to-slate-950',
-        border: 'border-slate-400/40',
-        icon: <Mountain className="w-8 h-8 text-slate-300" />,
-        label: '序章',
-      };
-    default:
-      return {
-        gradient: 'from-slate-950 via-purple-950/50 to-slate-950',
-        border: 'border-purple-400/40',
-        icon: <Gamepad2 className="w-8 h-8 text-purple-300" />,
-        label: '准备中',
-      };
-  }
-}
-
-// eslint-disable-next-line complexity
 export function GameBoard() {
   const {
     gameState,
@@ -120,388 +41,142 @@ export function GameBoard() {
     setSecretMeetingParticipants,
     executeSecretMeeting,
   } = useGameStore();
-  const phase = gameState?.phase || 'setup';
-  const theme = getPhaseTheme(phase);
 
-  // BGM system
-  const bgmPhase = gameState ? phase : 'menu';
-  const { volume, setVolume, isMuted, toggleMute } = useBGM(bgmPhase, true);
+  const phase = gameState?.phase ?? 'setup';
+  const bgm = useBGM(gameState ? phase : 'menu', true);
 
-  // Game end dialog state
+  const [ledgerTab, setLedgerTab] = useState<LedgerTab | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [oracleOpen, setOracleOpen] = useState(false);
+  const [travelersOpen, setTravelersOpen] = useState(false);
+  const [focusPlayerId, setFocusPlayerId] = useState<string | null>(null);
   const [showEndDialog, setShowEndDialog] = useState(false);
 
-  // Filtered messages state for game log
-  const [filteredGameMessages, setFilteredGameMessages] = useState<Message[]>([]);
-
-  // Get latest display message for ADV dialog box
-  const getLatestDisplayMessage = () => {
-    if (!gameState) return undefined;
-
-    // Find the latest message that should be displayed in ADV box
-    // Only show player messages, not narrator/system messages
-    const displayableTypes = ['speech', 'action', 'secret'];
-    const latestMessage = [...gameState.messages]
-      .reverse()
-      .find(msg =>
-        displayableTypes.includes(msg.type) &&
-        msg.from !== '叙述者'
-      );
-
-    return latestMessage;
-  };
-
-  const latestMessage = getLatestDisplayMessage();
-  const currentSpeaker = latestMessage && latestMessage.from !== '叙述者'
-    ? gameState?.players.find(p => p.name === latestMessage.from)
-    : undefined;
-
-  // Auto-open game end dialog when game ends
+  // Open the end dialog shortly after the game ends
   useEffect(() => {
     if (gameState?.phase === 'end' && gameState.winner && !showEndDialog) {
-      // Delay slightly to allow the ending message to show first
-      const timer = setTimeout(() => {
-        setShowEndDialog(true);
-      }, 2000);
+      const timer = setTimeout(() => setShowEndDialog(true), 2000);
       return () => clearTimeout(timer);
     }
   }, [gameState?.phase, gameState?.winner, showEndDialog]);
 
-  // Global keyboard shortcuts
+  // Space / Enter: next step. Esc: close the ledger.
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in input/textarea
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
-      // Space or Enter: Next step
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.code === 'Escape') setLedgerTab(null);
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
-        const canExecuteNext = gameState && !isProcessing && gameState.phase !== 'end' && !lastError;
-        if (canExecuteNext) {
-          void executeNextStep();
-        }
+        if (gameState && !isProcessing && gameState.phase !== 'end' && !lastError) void executeNextStep();
       }
     };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [gameState, isProcessing, lastError, executeNextStep]);
 
-  // Show start menu if no active game
-  if (!gameState) {
-    return <StartMenu />;
-  }
+  if (!gameState) return <StartMenu />;
+
+  const mood: SceneMood = phase === 'voting' ? 'vote' : isNightScene(phase) ? 'night' : 'day';
+  const speakerName = pickStageMessage(gameState.messages).message?.from;
+  const nextActor = getNextActor(gameState);
+  const half = Math.ceil(gameState.players.length / 2);
+
+  const openTraveler = (id: string | null) => {
+    setFocusPlayerId(id);
+    setTravelersOpen(true);
+  };
+
+  const seats = (side: 'left' | 'right') => {
+    const list = side === 'left' ? gameState.players.slice(0, half) : gameState.players.slice(half);
+    const offset = side === 'left' ? 0 : half;
+    return (
+      <aside className="flex min-h-0 flex-col gap-1.5 py-1">
+        {list.map((p, i) => (
+          <TravelerSeat
+            key={p.id}
+            player={p}
+            seat={offset + i + 1}
+            side={side}
+            speaking={p.name === speakerName}
+            next={p.id === nextActor?.id && !gameState.waitingForNextStep}
+            onSelect={() => openTraveler(p.id)}
+          />
+        ))}
+      </aside>
+    );
+  };
 
   return (
-    <>
-      {/* Phase transition animation */}
-      {showTransition && transitionPhase && (
-        <PhaseTransition
-          phase={transitionPhase}
-          round={transitionRound}
-          onComplete={completeTransition}
+    <TooltipProvider delayDuration={200}>
+      <div className="relative h-screen w-screen overflow-hidden bg-ink text-parchment">
+        <SceneBackdrop mood={mood} />
+
+        <div className="relative z-10 grid h-full grid-rows-[auto_1fr]">
+          <TopHud
+            state={gameState}
+            unreadClues={clues.filter((c) => !c.isRead).length}
+            ledgerTab={ledgerTab}
+            onLedger={(tab) => setLedgerTab((cur) => (cur === tab ? null : tab))}
+            onTravelers={() => openTraveler(null)}
+            onOracle={() => setOracleOpen(true)}
+            onMenu={() => setMenuOpen(true)}
+            bgm={bgm}
+          />
+          <main className="grid min-h-0 grid-cols-[clamp(190px,16vw,290px)_1fr_clamp(190px,16vw,290px)] gap-5 px-4 pb-4">
+            {seats('left')}
+            <Stage state={gameState} />
+            {seats('right')}
+          </main>
+        </div>
+
+        <Ledger
+          tab={ledgerTab}
+          onTabChange={setLedgerTab}
+          onClose={() => setLedgerTab(null)}
+          state={gameState}
+          clues={clues}
+          onClueRead={markClueAsRead}
         />
-      )}
-
-      <div
-        className={cn(
-          "h-screen w-screen overflow-hidden flex flex-col bg-gradient-to-br transition-all duration-1000 ease-in-out",
-          theme.gradient
-        )}
-      >
-      {/* Fixed Header */}
-      <header className={cn("flex-shrink-0 backdrop-blur-sm bg-background/10", getBorderClass('b', 'border', 'divider'), SHADOWS.card)}>
-        <div className="px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Mountain className={cn(ICON.lg, "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]")} />
-            <div>
-              <h1 className={TYPOGRAPHY.h1}>
-                白烬山口
-                <span className="block text-[10px] text-muted-foreground font-serif italic tracking-wider opacity-50 mt-0.5">
-                  {DECORATIVE_QUOTES.mountain}
-                </span>
-              </h1>
-              <p className="text-xs text-muted-foreground font-serif">
-                1913年深冬 · {DECORATIVE_QUOTES.lodge} · {DECORATIVE_QUOTES.harvest} vs {DECORATIVE_QUOTES.lamb}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            {/* BGM Volume Control */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 hover:bg-background/20"
-                  onClick={(e) => {
-                    // Toggle mute on right click
-                    if (e.button === 2) {
-                      e.preventDefault();
-                      toggleMute();
-                    }
-                  }}
-                >
-                  {isMuted ? (
-                    <VolumeX className={cn(ICON.sm, "text-muted-foreground")} />
-                  ) : (
-                    <Volume2 className={cn(ICON.sm, "text-foreground")} />
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48" align="end">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">BGM音量</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={toggleMute}
-                    >
-                      {isMuted ? (
-                        <VolumeX className="w-3 h-3" />
-                      ) : (
-                        <Volume2 className="w-3 h-3" />
-                      )}
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <VolumeX className="w-3 h-3 text-muted-foreground" />
-                    <Slider
-                      value={[volume * 100]}
-                      onValueChange={(value) => setVolume(value[0] / 100)}
-                      max={100}
-                      step={1}
-                      className="flex-1"
-                      disabled={isMuted}
-                    />
-                    <Volume2 className="w-3 h-3 text-muted-foreground" />
-                  </div>
-                  <div className="text-xs text-center text-muted-foreground">
-                    {isMuted ? '静音' : `${Math.round(volume * 100)}%`}
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            {gameState && (
-              <div className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-full border-2 backdrop-blur-md bg-background/20 shadow-glow-amber",
-                theme.border
-              )}>
-                {theme.icon}
-                <div>
-                  <div className="text-sm font-bold text-foreground font-cinzel">{theme.label}</div>
-                  <div className="text-xs text-muted-foreground font-serif">第 {gameState.round} 回合</div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content Area - No Scroll */}
-      <div className="flex-1 flex gap-4 p-4 overflow-hidden">
-        {/* Left Sidebar - Players & Controls */}
-        <div className="w-96 flex flex-col gap-4 overflow-hidden">
-          {/* Players List - Scrollable */}
-          <div className="flex-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border shadow-xl shadow-inner-glow overflow-hidden flex flex-col">
-            <div className={CARD_HEADER}>
-              <h2 className={TYPOGRAPHY.h2}>
-                {SECTION_TITLES.travelers.title}
-                <span className={cn("block mt-0.5", TYPOGRAPHY.subtitle)}>
-                  {SECTION_TITLES.travelers.latin}
-                </span>
-              </h2>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {gameState ? (
-                gameState.players.map((player, index) => {
-                  // Determine if this player is currently speaking
-                  // No current player during prologue/setup/secret_meeting/event phases
-                  const isCurrent =
-                    gameState.phase !== 'prologue' &&
-                    gameState.phase !== 'setup' &&
-                    gameState.phase !== 'secret_meeting' &&
-                    gameState.phase !== 'event' &&
-                    !gameState.waitingForNextStep &&
-                    index === gameState.currentPlayerIndex &&
-                    player.isAlive;
-
-                  return (
-                    <PlayerCard
-                      key={player.id}
-                      player={player}
-                      showRole={true}
-                      isCurrent={isCurrent}
-                    />
-                  );
-                })
-              ) : (
-                <div className="text-center text-muted-foreground py-8">
-                  <p>暂无进行中的游戏</p>
-                  <p className="text-sm mt-2">开始新游戏以开始</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Voting Progress */}
-          {gameState && (
-            <div className="flex-shrink-0">
-              <VotingProgress gameState={gameState} />
-            </div>
-          )}
-
-          {/* Control Panel - Fixed */}
-          <div className="flex-shrink-0">
-            <ControlPanel />
-          </div>
-        </div>
-
-        {/* Right Main Area - Game Log & Sidebar */}
-        <div className="flex-1 flex gap-4 overflow-hidden">
-          {/* Game Log with Tabs and ADV Dialog */}
-          <div className="flex-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border shadow-xl shadow-inner-glow overflow-hidden flex flex-col">
-            <div className={CARD_HEADER}>
-              <h2 className={TYPOGRAPHY.h2}>
-                {SECTION_TITLES.gameLog.title}
-                <span className={cn("block mt-0.5", TYPOGRAPHY.subtitle)}>
-                  {SECTION_TITLES.gameLog.latin}
-                </span>
-              </h2>
-            </div>
-
-            {/* Message History Section */}
-            <div className="flex-1 overflow-hidden min-h-0">
-              {gameState ? (
-                <Tabs defaultValue="game" className="h-full flex flex-col">
-                  <TabsList className="flex-shrink-0 w-full justify-start rounded-none border-b bg-background/50">
-                    <TabsTrigger value="game">游戏记录</TabsTrigger>
-                    <TabsTrigger value="thinking">内心独白</TabsTrigger>
-                    <TabsTrigger value="prompt">神谕指引</TabsTrigger>
-                  </TabsList>
-
-                  {/* Shared Message Filter - applies to all tabs */}
-                  <div className="flex-shrink-0">
-                    <MessageFilter
-                      messages={gameState.messages}
-                      players={gameState.players}
-                      onFilterChange={setFilteredGameMessages}
-                    />
-                  </div>
-
-                  <TabsContent value="game" className="flex-1 overflow-hidden m-0">
-                    <MessageFlow
-                      messages={filteredGameMessages.length > 0 ? filteredGameMessages : gameState.messages}
-                      players={gameState.players}
-                      filterTypes={['system', 'speech', 'vote', 'death', 'action', 'secret']}
-                    />
-                  </TabsContent>
-                  <TabsContent value="thinking" className="flex-1 overflow-hidden m-0">
-                    <MessageFlow
-                      messages={filteredGameMessages.length > 0 ? filteredGameMessages : gameState.messages}
-                      players={gameState.players}
-                      filterTypes={['thinking']}
-                    />
-                  </TabsContent>
-                  <TabsContent value="prompt" className="flex-1 overflow-hidden m-0">
-                    <MessageFlow
-                      messages={filteredGameMessages.length > 0 ? filteredGameMessages : gameState.messages}
-                      players={gameState.players}
-                      filterTypes={['prompt']}
-                    />
-                  </TabsContent>
-                </Tabs>
-              ) : (
-                <div className="flex h-full items-center justify-center text-muted-foreground">
-                  <div className="text-center">
-                    <Gamepad2 className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg font-semibold mb-2">准备好开始了吗？</p>
-                    <p className="text-sm">
-                      输入你的 Gemini API 密钥并开始新游戏
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* ADV-style Dialog Box */}
-            <div className="flex-shrink-0">
-              <ADVDialogBox
-                currentMessage={latestMessage}
-                currentPlayer={currentSpeaker}
-              />
-            </div>
-          </div>
-
-          {/* Right Sidebar - Current Speaker & Tabs (Vote Tracker / Clues) */}
-          {gameState && (
-            <div className="w-80 flex flex-col gap-4 overflow-hidden">
-              {/* Current Speaker - Upper section */}
-              <div className="flex-shrink-0 rounded-lg bg-card/90 backdrop-blur-sm border border-border shadow-xl shadow-inner-glow">
-                <CurrentSpeaker gameState={gameState} />
-              </div>
-
-              {/* Tabs - Lower section (Vote Tracker / Clues Panel) */}
-              <div className="flex-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border shadow-xl shadow-inner-glow overflow-hidden flex flex-col">
-                <Tabs defaultValue="votes" className="h-full flex flex-col">
-                  <TabsList className="flex-shrink-0 w-full justify-start rounded-none border-b bg-background/50">
-                    <TabsTrigger value="votes">投票记录</TabsTrigger>
-                    <TabsTrigger value="clues" className="relative">
-                      线索收集
-                      {clues.filter((c) => !c.isRead).length > 0 && (
-                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-white text-[10px] rounded-full flex items-center justify-center">
-                          {clues.filter((c) => !c.isRead).length}
-                        </span>
-                      )}
-                    </TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="votes" className="flex-1 overflow-hidden m-0">
-                    <VoteTracker gameState={gameState} />
-                  </TabsContent>
-                  <TabsContent value="clues" className="flex-1 overflow-hidden m-0">
-                    <CluesPanel clues={clues} onClueRead={markClueAsRead} />
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
-    </div>
 
-      {/* Game End Dialog */}
-      {gameState && gameState.phase === 'end' && gameState.winner && (
-        <GameEndDialog
-          gameState={gameState}
-          open={showEndDialog}
-          onOpenChange={setShowEndDialog}
-        />
+      {showTransition && transitionPhase && (
+        <PhaseTransition phase={transitionPhase} round={transitionRound} onComplete={completeTransition} />
       )}
 
-      {/* Emotional State Change Dialog */}
-      {gameState && gameState.pendingStateChanges && gameState.pendingStateChanges.length > 0 && (
-        <EmotionalStateDialog
-          stateChanges={gameState.pendingStateChanges}
-          onComplete={clearPendingStateChanges}
-        />
+      <GameMenu
+        open={menuOpen}
+        onOpenChange={setMenuOpen}
+        onOpenGuide={() => {
+          setMenuOpen(false);
+          setGuideOpen(true);
+        }}
+      />
+      <GameGuide open={guideOpen} onOpenChange={setGuideOpen} />
+      <PromptViewer open={oracleOpen} onOpenChange={setOracleOpen} />
+      <PersonalityEditor open={travelersOpen} onOpenChange={setTravelersOpen} focusPlayerId={focusPlayerId} />
+
+      {gameState.phase === 'end' && gameState.winner && (
+        <GameEndDialog gameState={gameState} open={showEndDialog} onOpenChange={setShowEndDialog} />
       )}
 
-      {/* Secret Meeting Selector - Only show when explicitly opened */}
-      {gameState && gameState.phase === 'secret_meeting' && gameState.pendingSecretMeeting && !gameState.pendingSecretMeeting.selectedParticipants && showSecretMeetingSelector && (
-        <SecretMeetingSelector
-          players={gameState.players}
-          timing={gameState.pendingSecretMeeting.timing}
-          onConfirm={(participants) => {
-            setSecretMeetingParticipants(participants);
-            void executeSecretMeeting();
-          }}
-        />
+      {gameState.pendingStateChanges?.length > 0 && (
+        <EmotionalStateDialog stateChanges={gameState.pendingStateChanges} onComplete={clearPendingStateChanges} />
       )}
-    </>
+
+      {gameState.phase === 'secret_meeting' &&
+        gameState.pendingSecretMeeting &&
+        !gameState.pendingSecretMeeting.selectedParticipants &&
+        showSecretMeetingSelector && (
+          <SecretMeetingSelector
+            players={gameState.players}
+            timing={gameState.pendingSecretMeeting.timing}
+            onConfirm={(participants) => {
+              setSecretMeetingParticipants(participants);
+              void executeSecretMeeting();
+            }}
+          />
+        )}
+    </TooltipProvider>
   );
 }

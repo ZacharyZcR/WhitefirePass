@@ -1,24 +1,14 @@
 /**
- * Game end dialog - shows game results and statistics
+ * Game end dialog - verdict, statistics and the full reveal.
  */
-
-/* eslint-disable react/no-unescaped-entities */
 
 'use client';
 
-import type { GameState } from '@/types/game';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Skull, Heart, Moon, Users, Eye, Flame } from 'lucide-react';
+import type { GameState, Player } from '@/types/game';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { isHarvest, roleInfo, toHanzi } from '@/lib/design-tokens';
+import { Portrait } from './Portrait';
 
 interface GameEndDialogProps {
   gameState: GameState;
@@ -26,234 +16,88 @@ interface GameEndDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+function Stat({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="border border-brass/15 bg-black/25 px-3 py-2 text-center">
+      <div className="font-serif text-[10px] tracking-[0.3em] text-frost-dim">{label}</div>
+      <div className="font-cinzel text-2xl text-parchment">{value}</div>
+    </div>
+  );
+}
+
+function RevealGrid({ title, players, tone }: { title: string; players: Player[]; tone: string }) {
+  return (
+    <section>
+      <h3 className={cn('mb-2 font-serif text-xs tracking-[0.4em]', tone)}>{title}</h3>
+      <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+        {players.map((p) => (
+          <div key={p.id} className="relative overflow-hidden rounded-sm border border-brass/20" title={p.name}>
+            <Portrait name={p.name} dead={!p.isAlive} zoom={1.5} className="aspect-[832/1216] w-full" />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 to-transparent px-1.5 pb-1 pt-4">
+              <div className={cn('truncate font-serif text-[11px] text-parchment', !p.isAlive && 'line-through opacity-60')}>{p.name}</div>
+              <div className="text-[9px]" style={{ color: roleInfo(p.role).color }}>{roleInfo(p.role).name}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Verdicts({ title, items }: { title: string; items: { round: number; target: string; isClean: boolean }[] }) {
+  if (items.length === 0) return null;
+  return (
+    <div>
+      <div className="mb-1.5 font-serif text-[11px] tracking-[0.3em] text-frost-dim">{title}</div>
+      <div className="flex flex-wrap gap-1.5">
+        {items.map((c, i) => (
+          <span key={i} className="border border-brass/15 bg-black/25 px-2 py-1 font-serif text-xs text-parchment">
+            第{toHanzi(c.round)}夜 · {c.target} · <span className={c.isClean ? 'text-frost' : 'text-seal-light'}>{c.isClean ? '清白' : '污秽'}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function GameEndDialog({ gameState, open, onOpenChange }: GameEndDialogProps) {
   const { winner, players, round, voteHistory, nightVoteHistory, listenerChecks, coronerReports } = gameState;
-
   if (!winner) return null;
 
-  // Calculate statistics
-  const alivePlayers = players.filter(p => p.isAlive);
-  const deadPlayers = players.filter(p => !p.isAlive);
-  const markedPlayers = players.filter(p => p.role === 'marked' || p.role === 'heretic');
-  const lambPlayers = players.filter(p => p.role !== 'marked' && p.role !== 'heretic');
-
-  // Role name mapping
-  const roleNames: Record<string, string> = {
-    marked: '烙印者',
-    heretic: '背誓者',
-    listener: '聆心者',
-    guard: '设闩者',
-    coroner: '食灰者',
-    twin: '共誓者',
-    villager: '羔羊',
-    innocent: '无知者',
-  };
+  const harvestWon = winner === 'marked';
+  const alive = players.filter((p) => p.isAlive);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="text-2xl font-cinzel tracking-wide">
-            {winner === 'marked' ? (
-              <div className="flex items-center gap-2 text-red-400">
-                <Moon className="w-6 h-6" />
-                收割阵营获胜
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 text-amber-400">
-                <Heart className="w-6 h-6" />
-                羔羊阵营获胜
-              </div>
-            )}
+      <DialogContent className="flex max-h-[88vh] max-w-3xl flex-col overflow-hidden">
+        <DialogHeader className="items-center text-center sm:text-center">
+          <div className="font-latin text-sm italic tracking-[0.4em] text-brass/60">Finis</div>
+          <DialogTitle className={cn('font-serif text-3xl font-black tracking-[0.4em]', harvestWon ? 'text-seal-light' : 'text-frost')}>
+            {harvestWon ? '收割阵营获胜' : '羔羊阵营获胜'}
           </DialogTitle>
-          <DialogDescription className="text-base">
-            {winner === 'marked'
-              ? '山灵的收割已然完成，永夜吞噬了白烬山口'
-              : '黎明的光芒刺破了永夜，诅咒终于被打破'}
+          <DialogDescription className="font-serif tracking-widest">
+            {harvestWon ? '山灵的收割已然完成，永夜吞噬了白烬山口' : '黎明的光芒刺破了永夜，诅咒终于被打破'}
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[calc(85vh-180px)] pr-4 -mr-4 mt-4">
-          <div className="space-y-6">
-            {/* Game Overview */}
-            <div>
-              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                游戏概况
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg border bg-card p-3">
-                  <div className="text-xs text-muted-foreground">总回合数</div>
-                  <div className="text-2xl font-bold">{round}</div>
-                </div>
-                <div className="rounded-lg border bg-card p-3">
-                  <div className="text-xs text-muted-foreground">幸存者</div>
-                  <div className="text-2xl font-bold">{alivePlayers.length}/{players.length}</div>
-                </div>
-                <div className="rounded-lg border bg-card p-3">
-                  <div className="text-xs text-muted-foreground">献祭投票</div>
-                  <div className="text-2xl font-bold">{voteHistory.length}</div>
-                </div>
-                <div className="rounded-lg border bg-card p-3">
-                  <div className="text-xs text-muted-foreground">夜间猎杀</div>
-                  <div className="text-2xl font-bold">{nightVoteHistory.length}</div>
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Death List */}
-            {deadPlayers.length > 0 && (
-              <>
-                <Separator />
-                <div>
-                  <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    <Skull className="w-4 h-4" />
-                    逝者名单
-                  </h3>
-                  <div className="rounded-lg border bg-card/50 p-3">
-                    <div className="space-y-2">
-                      {deadPlayers.map(player => (
-                        <div key={player.name} className="flex items-center justify-between text-sm">
-                          <span className="line-through opacity-60">{player.name}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {roleNames[player.role] || player.role}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-
-            <Separator />
-
-            {/* Player Roles */}
-            <div>
-              <h3 className="text-sm font-semibold mb-3">玩家身份揭示</h3>
-              <div className="space-y-3">
-                {/* Marked Camp */}
-                <div>
-                  <div className="text-xs text-red-400 font-semibold mb-2">收割阵营</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {markedPlayers.map(player => (
-                      <div
-                        key={player.name}
-                        className={cn(
-                          'rounded border p-2 text-sm flex items-center justify-between',
-                          player.isAlive
-                            ? 'bg-red-950/30 border-red-500/30'
-                            : 'bg-stone-950/30 border-stone-500/30 opacity-60',
-                        )}
-                      >
-                        <span className={player.isAlive ? '' : 'line-through'}>{player.name}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {roleNames[player.role]}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Lamb Camp */}
-                <div>
-                  <div className="text-xs text-sky-400 font-semibold mb-2">羔羊阵营</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {lambPlayers.map(player => (
-                      <div
-                        key={player.name}
-                        className={cn(
-                          'rounded border p-2 text-sm flex items-center justify-between',
-                          player.isAlive
-                            ? 'bg-sky-950/30 border-sky-500/30'
-                            : 'bg-stone-950/30 border-stone-500/30 opacity-60',
-                        )}
-                      >
-                        <span className={player.isAlive ? '' : 'line-through'}>{player.name}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {roleNames[player.role]}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Special Actions */}
-            {(listenerChecks.length > 0 || coronerReports.length > 0) && (
-              <>
-                <Separator />
-                <div>
-                  <h3 className="text-sm font-semibold mb-3">特殊行动记录</h3>
-                  <div className="space-y-3">
-                    {/* Listener Checks */}
-                    {listenerChecks.length > 0 && (
-                      <div>
-                        <div className="text-xs text-purple-400 font-semibold mb-2 flex items-center gap-1">
-                          <Eye className="w-3 h-3" />
-                          聆心者查验
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          {listenerChecks.map((check, idx) => (
-                            <div
-                              key={idx}
-                              className="rounded bg-purple-950/30 border border-purple-500/30 p-2 text-xs"
-                            >
-                              <div className="flex items-center justify-between">
-                                <span>R{check.round} - {check.target}</span>
-                                <Badge
-                                  className={cn(
-                                    'text-xs h-4 px-1',
-                                    check.isClean ? 'bg-sky-600' : 'bg-red-600',
-                                  )}
-                                >
-                                  {check.isClean ? '清白' : '污秽'}
-                                </Badge>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Coroner Reports */}
-                    {coronerReports.length > 0 && (
-                      <div>
-                        <div className="text-xs text-cyan-400 font-semibold mb-2 flex items-center gap-1">
-                          <Flame className="w-3 h-3" />
-                          食灰者验尸
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          {coronerReports.map((report, idx) => (
-                            <div
-                              key={idx}
-                              className="rounded bg-cyan-950/30 border border-cyan-500/30 p-2 text-xs"
-                            >
-                              <div className="flex items-center justify-between">
-                                <span>R{report.round} - {report.target}</span>
-                                <Badge
-                                  className={cn(
-                                    'text-xs h-4 px-1',
-                                    report.isClean ? 'bg-sky-600' : 'bg-red-600',
-                                  )}
-                                >
-                                  {report.isClean ? '清白' : '污秽'}
-                                </Badge>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
+        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-2">
+          <div className="grid grid-cols-4 gap-2">
+            <Stat label="回合" value={round} />
+            <Stat label="幸存" value={`${alive.length}/${players.length}`} />
+            <Stat label="献祭票" value={voteHistory.length} />
+            <Stat label="夜猎票" value={nightVoteHistory.length} />
           </div>
-        </ScrollArea>
+
+          <RevealGrid title="收割阵营" players={players.filter((p) => isHarvest(p.role))} tone="text-seal-light" />
+          <RevealGrid title="羔羊阵营" players={players.filter((p) => !isHarvest(p.role))} tone="text-frost" />
+
+          {(listenerChecks.length > 0 || coronerReports.length > 0) && (
+            <section className="space-y-3 border-t border-brass/15 pt-4">
+              <Verdicts title="聆心者查验" items={listenerChecks} />
+              <Verdicts title="食灰者验尸" items={coronerReports} />
+            </section>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

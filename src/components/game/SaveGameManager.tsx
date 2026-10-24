@@ -6,7 +6,6 @@
 
 import { useState } from 'react';
 import { useGameStore } from '@/stores/game-store';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -76,20 +75,10 @@ export function SaveGameManager() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Save className="w-5 h-5" />
-          存档管理
-        </CardTitle>
-        <CardDescription>
-          保存和加载游戏进度
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="space-y-4">
         {/* Save current game */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">保存当前游戏</label>
+          <label className="text-sm tracking-widest text-parchment">保存当前游戏</label>
           <div className="flex gap-2">
             <Input
               placeholder="输入存档名称..."
@@ -116,7 +105,7 @@ export function SaveGameManager() {
             </Button>
           </div>
           {saveError && (
-            <div className="flex items-center gap-2 text-xs text-red-600">
+            <div className="flex items-center gap-2 text-xs text-seal-light">
               <AlertCircle className="w-3 h-3" />
               {saveError}
             </div>
@@ -130,14 +119,14 @@ export function SaveGameManager() {
 
         {/* Saved games list */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">已保存的游戏</label>
+          <label className="text-sm tracking-widest text-parchment">已保存的游戏</label>
           {savedGames.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <p className="text-sm">暂无存档</p>
               <p className="text-xs mt-1">保存游戏后会显示在这里</p>
             </div>
           ) : (
-            <ScrollArea className="h-[300px] rounded-md border">
+            <ScrollArea className="h-[300px] rounded-sm border border-brass/15">
               <div className="p-4 space-y-2">
                 {savedGames
                   .sort((a, b) => b.savedAt - a.savedAt)
@@ -149,13 +138,13 @@ export function SaveGameManager() {
                       <div
                         key={save.id}
                         className={cn(
-                          'rounded-lg border p-3 space-y-2 transition-colors',
+                          'rounded-sm border border-brass/15 bg-black/20 p-3 space-y-2 transition-colors',
                           'hover:bg-accent/50',
                         )}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h3 className="font-semibold text-sm">{save.name}</h3>
+                            <h3 className="font-serif text-sm font-semibold text-parchment">{save.name}</h3>
                             <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                               <Clock className="w-3 h-3" />
                               {formatDate(save.savedAt)}
@@ -175,7 +164,7 @@ export function SaveGameManager() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleDelete(save.id)}
-                              className="text-red-600 hover:bg-red-50 hover:border-red-300"
+                              className="text-seal-light hover:border-seal-light"
                             >
                               <Trash2 className="w-3 h-3" />
                             </Button>
@@ -202,7 +191,6 @@ export function SaveGameManager() {
             </ScrollArea>
           )}
         </div>
-      </CardContent>
-    </Card>
+    </div>
   );
 }

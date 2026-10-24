@@ -2,155 +2,156 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * 白烬山口 — 1913 冬。暗木、黄铜、羊皮纸、雪光与苍白火焰。
+ * 只有一套深色主题，所有 shadcn 变量都映射到这套色板。
+ */
 @layer base {
-  :root {
-    /* Stone theme - Light mode */
-    --background: 0 0% 100%;
-    --foreground: 20 14.3% 4.1%; /* stone-950 */
-    --card: 60 9.1% 97.8%; /* stone-50 */
-    --card-foreground: 20 14.3% 4.1%; /* stone-950 */
-    --popover: 0 0% 100%;
-    --popover-foreground: 20 14.3% 4.1%;
-    --primary: 24 9.8% 10%; /* stone-900 */
-    --primary-foreground: 60 9.1% 97.8%; /* stone-50 */
-    --secondary: 60 4.8% 95.9%; /* stone-100 */
-    --secondary-foreground: 24 9.8% 10%;
-    --muted: 60 4.8% 95.9%; /* stone-100 */
-    --muted-foreground: 25 5.3% 44.7%; /* stone-600 */
-    --accent: 60 4.8% 95.9%; /* stone-100 */
-    --accent-foreground: 24 9.8% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 60 9.1% 97.8%;
-    --border: 20 5.9% 90%; /* stone-200 */
-    --input: 20 5.9% 90%; /* stone-200 */
-    --ring: 24 5.7% 82.9%; /* stone-400 */
-    --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-  }
-
+  :root,
   .dark {
-    /* Whitefire Pass theme - Ice, fire and ash */
-    --background: 210 20% 8%; /* Cold dark blue-gray */
-    --foreground: 210 15% 95%; /* Icy white */
-    --card: 215 25% 12%; /* Deep cold slate */
-    --card-foreground: 210 15% 95%; /* Icy white */
-    --popover: 215 25% 12%;
-    --popover-foreground: 210 15% 95%;
-    --primary: 28 90% 55%; /* Bright fire amber */
-    --primary-foreground: 210 20% 8%;
-    --secondary: 215 20% 18%; /* Cold dark slate */
-    --secondary-foreground: 210 15% 95%;
-    --muted: 215 20% 18%; /* Cold dark slate */
-    --muted-foreground: 210 15% 70%; /* Cold gray */
-    --accent: 200 80% 45%; /* Icy blue accent */
-    --accent-foreground: 210 15% 95%;
-    --destructive: 0 75% 55%; /* Crimson blood */
-    --destructive-foreground: 210 15% 95%;
-    --border: 215 25% 20%; /* Cold border */
-    --input: 215 25% 20%;
-    --ring: 28 90% 55%; /* Fire amber ring */
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --background: 216 29% 6%;        /* ink */
+    --foreground: 40 38% 88%;        /* parchment */
+    --card: 214 27% 9%;
+    --card-foreground: 40 38% 88%;
+    --popover: 214 27% 9%;
+    --popover-foreground: 40 38% 88%;
+    --primary: 38 36% 53%;           /* brass */
+    --primary-foreground: 216 29% 6%;
+    --secondary: 213 22% 14%;
+    --secondary-foreground: 40 38% 88%;
+    --muted: 213 22% 13%;
+    --muted-foreground: 206 16% 62%; /* frost dim */
+    --accent: 36 22% 16%;            /* brass-tinted shadow, used for hover */
+    --accent-foreground: 40 52% 80%;
+    --destructive: 0 54% 36%;        /* wax seal */
+    --destructive-foreground: 40 38% 92%;
+    --border: 38 26% 26%;
+    --input: 38 22% 24%;
+    --ring: 190 62% 80%;             /* white fire */
+    --radius: 0.25rem;
+    --chart-1: 38 36% 53%;
+    --chart-2: 190 62% 80%;
+    --chart-3: 0 54% 36%;
+    --chart-4: 206 16% 62%;
+    --chart-5: 40 38% 70%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-noto-serif-sc), 'Noto Serif SC', 'Source Han Serif SC',
-      'Songti SC', SimSun, serif;
+    font-family: var(--font-noto-serif-sc), 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', serif;
     letter-spacing: 0.02em;
   }
 
-  /* Gothic-style headings */
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-cinzel), 'Cinzel', Georgia, serif;
+    font-family: var(--font-cinzel), var(--font-noto-serif-sc), serif;
     letter-spacing: 0.05em;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   }
 
-  /* Enhanced text styling for atmospheric feel */
-  .text-glow {
-    text-shadow: 0 0 10px rgba(251, 191, 36, 0.5),
-                 0 0 20px rgba(251, 191, 36, 0.3),
-                 0 2px 4px rgba(0, 0, 0, 0.8);
+  ::selection {
+    background: rgba(168, 230, 240, 0.25);
   }
 
-  .text-ember {
-    background: linear-gradient(135deg, #f59e0b 0%, #dc2626 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* Light theme for start menu */
-  .light-theme {
-    --background: 0 0% 100%;
-    --foreground: 20 14.3% 4.1%;
-    --card: 0 0% 100%;
-    --card-foreground: 20 14.3% 4.1%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 20 14.3% 4.1%;
-    --primary: 28 80% 52%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 60 4.8% 95.9%;
-    --secondary-foreground: 24 9.8% 10%;
-    --muted: 60 4.8% 95.9%;
-    --muted-foreground: 25 5.3% 44.7%;
-    --accent: 60 4.8% 95.9%;
-    --accent-foreground: 24 9.8% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 20 5.9% 90%;
-    --input: 20 5.9% 90%;
-    --ring: 28 80% 52%;
-  }
-
-  /* Custom scrollbar styles - Shadcn/Stone theme */
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 6px;
+    height: 6px;
   }
-
   ::-webkit-scrollbar-track {
-    @apply bg-muted/30 rounded-full;
+    background: transparent;
   }
-
   ::-webkit-scrollbar-thumb {
-    @apply bg-border hover:bg-muted-foreground/50 rounded-full transition-colors;
+    background: rgba(180, 147, 90, 0.28);
+    border-radius: 3px;
   }
-
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/70;
+    background: rgba(180, 147, 90, 0.5);
   }
-
-  /* Firefox scrollbar */
   * {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--border)) hsl(var(--muted) / 0.3);
+    scrollbar-color: rgba(180, 147, 90, 0.3) transparent;
   }
 
-  /* 3D card flip effects for tarot cards */
   .preserve-3d {
     transform-style: preserve-3d;
   }
-
   .backface-hidden {
     backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
   }
-
   .perspective-1000 {
     perspective: 1000px;
+  }
+}
+
+@layer components {
+  /* 胶片颗粒：SVG 噪声铺满，叠加在最上层 */
+  .grain {
+    pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: overlay;
+    opacity: 0.12;
+  }
+
+  .vignette {
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.55) 85%, rgba(0, 0, 0, 0.85) 100%);
+  }
+
+  /* 黄铜细框：外描边 + 内发丝线 */
+  .brass-frame {
+    border: 1px solid rgba(180, 147, 90, 0.45);
+    box-shadow:
+      inset 0 0 0 3px rgba(10, 13, 18, 0.85),
+      inset 0 0 0 4px rgba(180, 147, 90, 0.18),
+      0 12px 40px rgba(0, 0, 0, 0.55);
+  }
+
+  /* 深色玻璃面板（对话框、记录簿） */
+  .panel-ink {
+    background:
+      linear-gradient(180deg, rgba(23, 30, 39, 0.92), rgba(10, 13, 18, 0.95));
+    backdrop-filter: blur(6px);
+  }
+
+  /* 立绘融入场景：四周羽化，下缘更早淡出 */
+  .stage-mask {
+    -webkit-mask-image: radial-gradient(ellipse 54% 64% at 50% 38%, #000 58%, transparent 100%);
+    mask-image: radial-gradient(ellipse 54% 64% at 50% 38%, #000 58%, transparent 100%);
+  }
+
+  .text-engraved {
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.9), 0 0 18px rgba(0, 0, 0, 0.6);
+  }
+
+  .text-brass-gradient {
+    background: linear-gradient(180deg, #f1dcae 0%, #c9a66a 55%, #8a6c3e 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-frost-gradient {
+    background: linear-gradient(180deg, #ffffff 0%, #d6e3ec 50%, #8ea2b2 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* 细分隔线：中间亮、两端隐去 */
+  .rule-brass {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(180, 147, 90, 0.6), transparent);
+  }
+
+  /* 死者立绘：褪色、焦边 */
+  .portrait-dead {
+    filter: grayscale(1) sepia(0.35) brightness(0.45) contrast(1.1);
+  }
+  .burn-edge {
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at center, transparent 40%, rgba(40, 18, 8, 0.55) 75%, rgba(12, 6, 3, 0.95) 100%);
   }
 }

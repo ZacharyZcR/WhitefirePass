@@ -21,13 +21,26 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-black/75 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}
   />
 ))
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
+
+/** Brass corner flourishes, shared look for every modal */
+function FrameCorners() {
+  const corner = "pointer-events-none absolute h-5 w-5 border-brass/70"
+  return (
+    <>
+      <span className={cn(corner, "left-1.5 top-1.5 border-l border-t")} />
+      <span className={cn(corner, "right-1.5 top-1.5 border-r border-t")} />
+      <span className={cn(corner, "bottom-1.5 left-1.5 border-b border-l")} />
+      <span className={cn(corner, "bottom-1.5 right-1.5 border-b border-r")} />
+    </>
+  )
+}
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
@@ -38,13 +51,14 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 brass-frame panel-ink p-6 text-parchment duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-sm",
         className
       )}
       {...props}
     >
+      <FrameCorners />
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+      <DialogPrimitive.Close className="absolute right-4 top-4 z-10 rounded-sm p-1 text-brass/70 transition-colors hover:text-brass-light focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none">
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
@@ -88,7 +102,7 @@ const DialogTitle = React.forwardRef<
   <DialogPrimitive.Title
     ref={ref}
     className={cn(
-      "text-lg font-semibold leading-none tracking-tight",
+      "font-cinzel text-lg font-semibold leading-none tracking-wider text-parchment",
       className
     )}
     {...props}
@@ -109,6 +123,7 @@ const DialogDescription = React.forwardRef<
 DialogDescription.displayName = DialogPrimitive.Description.displayName
 
 export {
+  FrameCorners,
   Dialog,
   DialogPortal,
   DialogOverlay,

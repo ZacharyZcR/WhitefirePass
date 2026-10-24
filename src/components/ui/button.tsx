@@ -23,12 +23,12 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'default', size = 'default', ...props }, ref) => {
     const baseStyles =
-      'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
+      'inline-flex items-center justify-center rounded-sm font-serif tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
 
     const variants = {
-      default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+      default: 'bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgba(255,240,210,0.35)] hover:bg-primary/90',
       outline:
-        'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+        'border border-brass/35 bg-transparent text-parchment hover:border-brass/70 hover:bg-accent hover:text-accent-foreground',
       ghost: 'hover:bg-accent hover:text-accent-foreground',
     };
 

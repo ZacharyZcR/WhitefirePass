@@ -5,6 +5,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { GameState } from '@/types/game';
+import { assetPath } from '@/lib/design-tokens';
 
 /**
  * BGM configuration for different game phases
@@ -25,7 +26,7 @@ const BGM_TRACKS = {
  * Get BGM track for current phase
  */
 function getTrackForPhase(phase: GameState['phase'] | 'menu'): string {
-  return BGM_TRACKS[phase] || BGM_TRACKS.menu;
+  return assetPath(BGM_TRACKS[phase] || BGM_TRACKS.menu);
 }
 
 /**

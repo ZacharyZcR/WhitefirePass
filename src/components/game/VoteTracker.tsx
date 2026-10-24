@@ -1,232 +1,107 @@
 /**
- * Vote tracker component - visualizes voting records and seer checks
+ * Vote tracker - day sacrifices, night hunts, listener checks, autopsies.
  */
 
 'use client';
 
-import type { GameState } from '@/types/game';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Eye, Moon, Users, Flame } from 'lucide-react';
+import type { GameState, Vote } from '@/types/game';
+import { Eye, Flame, Moon, Scale } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toHanzi } from '@/lib/design-tokens';
 
-interface VoteTrackerProps {
-  gameState: GameState;
+function groupByRound(votes: Vote[]): [number, Vote[]][] {
+  const map = new Map<number, Vote[]>();
+  votes.forEach((v) => map.set(v.round ?? 0, [...(map.get(v.round ?? 0) ?? []), v]));
+  return Array.from(map.entries()).sort((a, b) => b[0] - a[0]);
 }
 
-export function VoteTracker({ gameState }: VoteTrackerProps) {
+function tally(votes: Vote[]) {
+  const counts = new Map<string, number>();
+  votes.forEach((v) => counts.set(v.target, (counts.get(v.target) ?? 0) + 1));
+  return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+}
+
+function Section({ icon: Icon, title, tone, children }: { icon: typeof Eye; title: string; tone: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-2">
+      <h3 className={cn('flex items-center gap-2 font-serif text-xs tracking-[0.3em]', tone)}>
+        <Icon className="h-3.5 w-3.5" strokeWidth={1.5} />
+        {title}
+      </h3>
+      {children}
+    </section>
+  );
+}
+
+function TallyCard({ label, votes, bar }: { label: string; votes: Vote[]; bar: string }) {
+  const rows = tally(votes);
+  const max = rows[0]?.[1] ?? 1;
+  return (
+    <div className="rounded-sm border border-brass/15 bg-black/25 p-3">
+      <div className="mb-2 font-serif text-[11px] tracking-widest text-frost-dim">{label}</div>
+      <div className="space-y-1.5">
+        {rows.map(([target, n]) => (
+          <div key={target} className="flex items-center gap-2 font-serif text-xs">
+            <span className="w-24 truncate text-parchment">{target}</span>
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-ink-600">
+              <div className={cn('h-full', bar, n === max ? 'opacity-100' : 'opacity-50')} style={{ width: `${(n / max) * 100}%` }} />
+            </div>
+            <span className="w-8 text-right font-cinzel text-brass-light">{n}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Verdicts({ items }: { items: { round: number; target: string; isClean: boolean }[] }) {
+  return (
+    <div className="grid grid-cols-2 gap-1.5">
+      {items.map((c, i) => (
+        <div key={i} className="flex items-center justify-between rounded-sm border border-brass/15 bg-black/25 px-2.5 py-1.5 font-serif text-xs">
+          <span className="text-parchment">
+            <span className="mr-1.5 text-frost-dim">第{toHanzi(c.round)}夜</span>
+            {c.target}
+          </span>
+          <span className={c.isClean ? 'text-frost' : 'text-seal-light'}>{c.isClean ? '清白' : '污秽'}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function VoteTracker({ gameState }: { gameState: GameState }) {
   const { voteHistory = [], nightVoteHistory = [], listenerChecks = [], coronerReports = [] } = gameState;
-
-  // Group votes by round from history
-  const votesByRound = new Map<number, typeof voteHistory>();
-  voteHistory.forEach((vote) => {
-    const voteRound = vote.round ?? 0;
-    if (!votesByRound.has(voteRound)) {
-      votesByRound.set(voteRound, []);
-    }
-    votesByRound.get(voteRound)?.push(vote);
-  });
-
-  // Group night votes by round from history
-  const nightVotesByRound = new Map<number, typeof nightVoteHistory>();
-  nightVoteHistory.forEach((vote) => {
-    const voteRound = vote.round ?? 0;
-    if (!nightVotesByRound.has(voteRound)) {
-      nightVotesByRound.set(voteRound, []);
-    }
-    nightVotesByRound.get(voteRound)?.push(vote);
-  });
-
-  // Calculate vote counts
-  const calculateVoteCounts = (voteList: typeof voteHistory) => {
-    const counts = new Map<string, number>();
-    voteList.forEach((vote) => {
-      counts.set(vote.target, (counts.get(vote.target) ?? 0) + 1);
-    });
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([target, count]) => ({ target, count }));
-  };
+  const empty = !voteHistory.length && !nightVoteHistory.length && !listenerChecks.length && !coronerReports.length;
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="flex-shrink-0 pb-2 px-3 py-2 bg-gradient-to-r from-card via-card/50 to-card border-b border-border">
-        <CardTitle className="text-sm font-cinzel tracking-wide">
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            <div>
-              投票记录
-              <span className="block text-[8px] text-muted-foreground font-normal tracking-widest opacity-60">
-                VOTES
-              </span>
-            </div>
-          </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 overflow-hidden p-0">
-        <ScrollArea className="h-full px-3 pb-3">
-          <div className="space-y-3">
-            {/* Listener Checks */}
-            {listenerChecks.length > 0 && (
-              <div className="space-y-1">
-                <div className="flex items-center gap-1 text-xs font-semibold text-purple-400">
-                  <Eye className="w-3 h-3" />
-                  聆心者查验
-                </div>
-                <div className="space-y-1">
-                  {listenerChecks.map((check, idx) => (
-                    <div
-                      key={idx}
-                      className="rounded bg-purple-950/30 border border-purple-500/30 p-2"
-                    >
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-1">
-                          <span className="text-muted-foreground">R{check.round}</span>
-                          <span className="text-foreground">{check.target}</span>
-                        </div>
-                        <Badge
-                          className={cn(
-                            'text-xs h-4 px-1',
-                            !check.isClean
-                              ? 'bg-red-600'
-                              : 'bg-sky-600',
-                          )}
-                        >
-                          {check.isClean ? '清白' : '污秽'}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+    <div className="h-full space-y-6 overflow-y-auto px-6 py-4">
+      {empty && <div className="py-16 text-center font-serif text-sm tracking-widest text-frost-dim">尚无票决与查验</div>}
 
-            {/* Coroner Reports */}
-            {coronerReports.length > 0 && (
-              <div className="space-y-1">
-                <div className="flex items-center gap-1 text-xs font-semibold text-cyan-400">
-                  <Flame className="w-3 h-3" />
-                  食灰者验尸
-                </div>
-                <div className="space-y-1">
-                  {coronerReports.map((report, idx) => (
-                    <div
-                      key={idx}
-                      className="rounded bg-cyan-950/30 border border-cyan-500/30 p-2"
-                    >
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-1">
-                          <span className="text-muted-foreground">R{report.round}</span>
-                          <span className="text-foreground">{report.target}</span>
-                        </div>
-                        <Badge
-                          className={cn(
-                            'text-xs h-4 px-1',
-                            !report.isClean
-                              ? 'bg-red-600'
-                              : 'bg-sky-600',
-                          )}
-                        >
-                          {report.isClean ? '清白' : '污秽'}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Night Votes (Werewolf) */}
-            {Array.from(nightVotesByRound.entries())
-              .sort((a, b) => b[0] - a[0])
-              .map(([voteRound, roundVotes]) => {
-                const voteCounts = calculateVoteCounts(roundVotes);
-                return (
-                  <div key={`night-${voteRound}`} className="space-y-1">
-                    <div className="flex items-center gap-1 text-xs font-semibold text-red-400">
-                      <Moon className="w-3 h-3" />
-                      R{voteRound} 夜
-                    </div>
-                    <div className="space-y-1">
-                      {/* Vote counts */}
-                      {voteCounts.length > 0 && (
-                        <div className="rounded bg-red-950/30 border border-red-500/30 p-2">
-                          <div className="space-y-1">
-                            {voteCounts.map(({ target, count }) => {
-                              const maxVotes = voteCounts[0].count;
-                              const isLeader = count === maxVotes;
-
-                              return (
-                                <div key={target} className="flex items-center justify-between text-xs">
-                                  <span className="text-foreground">{target}</span>
-                                  <Badge variant="destructive" className={cn("text-xs h-4 px-1", isLeader && "bg-red-600")}>
-                                    {count}票
-                                  </Badge>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-
-            {/* Day Votes */}
-            {Array.from(votesByRound.entries())
-              .sort((a, b) => b[0] - a[0])
-              .map(([voteRound, roundVotes]) => {
-                const voteCounts = calculateVoteCounts(roundVotes);
-                return (
-                  <div key={`day-${voteRound}`} className="space-y-1">
-                    <div className="flex items-center gap-1 text-xs font-semibold text-amber-400">
-                      <Users className="w-3 h-3" />
-                      R{voteRound} 献祭
-                    </div>
-                    <div className="space-y-1">
-                      {/* Vote counts */}
-                      {voteCounts.length > 0 && (
-                        <div className="rounded bg-amber-950/30 border border-amber-500/30 p-2">
-                          <div className="space-y-1">
-                            {voteCounts.map(({ target, count }) => {
-                              const maxVotes = voteCounts[0].count;
-                              const isLeader = count === maxVotes;
-
-                              return (
-                                <div key={target} className="flex items-center justify-between text-xs">
-                                  <span className="text-foreground">{target}</span>
-                                  <Badge
-                                    className={cn(
-                                      'text-xs h-4 px-1',
-                                      isLeader
-                                        ? 'bg-orange-600'
-                                        : 'bg-stone-600',
-                                    )}
-                                  >
-                                    {count}票
-                                  </Badge>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-
-            {/* Empty state */}
-            {voteHistory.length === 0 && nightVoteHistory.length === 0 && listenerChecks.length === 0 && coronerReports.length === 0 && (
-              <div className="text-center text-muted-foreground py-4">
-                <p className="text-xs">暂无记录</p>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+      {listenerChecks.length > 0 && (
+        <Section icon={Eye} title="聆心者查验" tone="text-[#a99bd0]">
+          <Verdicts items={listenerChecks} />
+        </Section>
+      )}
+      {coronerReports.length > 0 && (
+        <Section icon={Flame} title="食灰者验尸" tone="text-pyre-soft">
+          <Verdicts items={coronerReports} />
+        </Section>
+      )}
+      {voteHistory.length > 0 && (
+        <Section icon={Scale} title="白昼献祭" tone="text-brass-light">
+          {groupByRound(voteHistory).map(([r, votes]) => (
+            <TallyCard key={r} label={`第${toHanzi(r)}日`} votes={votes} bar="bg-brass" />
+          ))}
+        </Section>
+      )}
+      {nightVoteHistory.length > 0 && (
+        <Section icon={Moon} title="烙印者夜猎" tone="text-seal-light">
+          {groupByRound(nightVoteHistory).map(([r, votes]) => (
+            <TallyCard key={r} label={`第${toHanzi(r)}夜`} votes={votes} bar="bg-seal-light" />
+          ))}
+        </Section>
+      )}
+    </div>
   );
 }

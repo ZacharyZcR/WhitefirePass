@@ -1,14 +1,13 @@
 /**
- * Phase transition animation component
- * 阶段过渡动画 - 显示1-2秒的全屏动画
+ * Phase transition - a two-second title card between phases.
  */
 
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Sun, Moon, Vote, Mountain, Users, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PHASE_LABELS } from '@/lib/latin-text';
+import { PHASE_NAME, isNightScene, toHanzi } from '@/lib/design-tokens';
 import type { GamePhase } from '@/types/game';
 
 interface PhaseTransitionProps {
@@ -17,205 +16,64 @@ interface PhaseTransitionProps {
   onComplete: () => void;
 }
 
-const phaseConfig: Record<GamePhase, {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  latin: string;
-  subtitle: string;
-  gradient: string;
-  iconColor: string;
-}> = {
-  prologue: {
-    icon: Mountain,
-    label: '序章',
-    latin: PHASE_LABELS.prologue.latin,
-    subtitle: PHASE_LABELS.prologue.subtitle,
-    gradient: 'from-slate-900 via-slate-800 to-slate-900',
-    iconColor: 'text-slate-300',
-  },
-  setup: {
-    icon: Mountain,
-    label: '序章',
-    latin: PHASE_LABELS.setup.latin,
-    subtitle: PHASE_LABELS.setup.subtitle,
-    gradient: 'from-slate-900 via-slate-800 to-slate-900',
-    iconColor: 'text-slate-300',
-  },
-  day: {
-    icon: Sun,
-    label: '白天',
-    latin: PHASE_LABELS.day.latin,
-    subtitle: PHASE_LABELS.day.subtitle,
-    gradient: 'from-amber-900 via-orange-800 to-amber-900',
-    iconColor: 'text-amber-300',
-  },
-  voting: {
-    icon: Vote,
-    label: '投票',
-    latin: PHASE_LABELS.voting.latin,
-    subtitle: PHASE_LABELS.voting.subtitle,
-    gradient: 'from-orange-900 via-red-800 to-orange-900',
-    iconColor: 'text-orange-300',
-  },
-  secret_meeting: {
-    icon: Users,
-    label: '密会',
-    latin: PHASE_LABELS.secret_meeting.latin,
-    subtitle: PHASE_LABELS.secret_meeting.subtitle,
-    gradient: 'from-purple-900 via-violet-800 to-purple-900',
-    iconColor: 'text-purple-300',
-  },
-  event: {
-    icon: Sparkles,
-    label: '事件',
-    latin: PHASE_LABELS.event.latin,
-    subtitle: PHASE_LABELS.event.subtitle,
-    gradient: 'from-teal-900 via-cyan-800 to-teal-900',
-    iconColor: 'text-teal-300',
-  },
-  night: {
-    icon: Moon,
-    label: '夜晚',
-    latin: PHASE_LABELS.night.latin,
-    subtitle: PHASE_LABELS.night.subtitle,
-    gradient: 'from-blue-950 via-indigo-900 to-blue-950',
-    iconColor: 'text-blue-300',
-  },
-  end: {
-    icon: Mountain,
-    label: '游戏结束',
-    latin: PHASE_LABELS.end.latin,
-    subtitle: PHASE_LABELS.end.subtitle,
-    gradient: 'from-slate-900 via-cyan-900 to-slate-900',
-    iconColor: 'text-cyan-300',
-  },
-};
+function titleFor(phase: GamePhase, round: number): string {
+  if (phase === 'prologue' || phase === 'setup') return '序章';
+  if (phase === 'end') return '终局';
+  if (phase === 'night') return `第${toHanzi(round)}夜`;
+  if (phase === 'day') return `第${toHanzi(round)}日`;
+  return PHASE_NAME[phase];
+}
 
 export function PhaseTransition({ phase, round, onComplete }: PhaseTransitionProps) {
-  const [isVisible, setIsVisible] = useState(true);
-  const [animationStage, setAnimationStage] = useState<'enter' | 'show' | 'exit'>('enter');
-
-  const config = phaseConfig[phase];
-  const Icon = config.icon;
+  const [stage, setStage] = useState<'enter' | 'show' | 'exit'>('enter');
+  const [done, setDone] = useState(false);
+  const night = isNightScene(phase);
+  const label = PHASE_LABELS[phase];
 
   useEffect(() => {
-    // Enter animation (0-300ms)
-    const enterTimer = setTimeout(() => {
-      setAnimationStage('show');
-    }, 300);
-
-    // Show phase (300-1800ms)
-    const showTimer = setTimeout(() => {
-      setAnimationStage('exit');
-    }, 1800);
-
-    // Exit animation (1800-2000ms)
-    const exitTimer = setTimeout(() => {
-      setIsVisible(false);
-      onComplete();
-    }, 2000);
-
-    return () => {
-      clearTimeout(enterTimer);
-      clearTimeout(showTimer);
-      clearTimeout(exitTimer);
-    };
+    const timers = [
+      setTimeout(() => setStage('show'), 300),
+      setTimeout(() => setStage('exit'), 1800),
+      setTimeout(() => {
+        setDone(true);
+        onComplete();
+      }, 2000),
+    ];
+    return () => timers.forEach(clearTimeout);
   }, [onComplete]);
 
-  if (!isVisible) return null;
+  if (done) return null;
+
+  const subtitle = phase === 'day' || phase === 'night' ? PHASE_NAME[phase] : round > 0 ? `第${toHanzi(round)}回` : '';
 
   return (
     <div
       className={cn(
-        'fixed inset-0 z-50 flex items-center justify-center',
-        'bg-black/60 backdrop-blur-sm',
-        'transition-opacity duration-300',
-        animationStage === 'enter' ? 'opacity-0' : '',
-        animationStage === 'show' ? 'opacity-100' : '',
-        animationStage === 'exit' ? 'opacity-0' : '',
+        'fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300',
+        stage === 'show' ? 'opacity-100' : 'opacity-0',
       )}
+      style={{
+        background: night
+          ? 'radial-gradient(ellipse at 50% 60%, rgba(40,70,110,0.55), rgba(3,5,10,0.96) 70%)'
+          : phase === 'voting'
+            ? 'radial-gradient(ellipse at 50% 60%, rgba(110,30,30,0.5), rgba(8,5,5,0.96) 70%)'
+            : 'radial-gradient(ellipse at 50% 40%, rgba(200,215,228,0.25), rgba(8,10,14,0.96) 70%)',
+      }}
     >
-      {/* Modal card */}
+      <div className="grain absolute inset-0" />
       <div
         className={cn(
-          'relative',
-          'rounded-2xl border-2 shadow-2xl',
-          'bg-gradient-to-br',
-          config.gradient,
-          config.iconColor.replace('text-', 'border-'),
-          'px-12 py-10',
-          'flex flex-col items-center gap-5',
-          'transition-all duration-500 ease-out',
-          animationStage === 'enter' ? 'scale-90 opacity-0' : '',
-          animationStage === 'show' ? 'scale-100 opacity-100' : '',
-          animationStage === 'exit' ? 'scale-90 opacity-0' : '',
+          'relative flex flex-col items-center gap-4 transition-all duration-700 ease-out',
+          stage === 'show' ? 'translate-y-0 opacity-100 blur-0' : 'translate-y-2 opacity-0 blur-sm',
         )}
       >
-        {/* Icon */}
-        <div
-          className={cn(
-            'relative',
-            animationStage === 'show' && 'animate-pulse',
-          )}
-        >
-          <Icon
-            className={cn(
-              'w-20 h-20 drop-shadow-xl',
-              config.iconColor,
-            )}
-          />
-          {/* Subtle glow */}
-          <div
-            className={cn(
-              'absolute inset-0 blur-2xl opacity-30',
-              config.iconColor,
-            )}
-          />
-        </div>
-
-        {/* Phase label */}
-        <div className="text-center space-y-1">
-          <h2
-            className={cn(
-              'text-4xl font-bold font-cinzel tracking-wider text-white drop-shadow-md',
-            )}
-          >
-            {config.label}
-          </h2>
-          <p
-            className={cn(
-              'text-lg font-cinzel tracking-widest text-white/70 uppercase',
-            )}
-          >
-            {config.latin}
-          </p>
-          <p
-            className={cn(
-              'text-xs font-serif tracking-wide text-white/40 italic',
-            )}
-          >
-            {config.subtitle}
-          </p>
-        </div>
-
-        {/* Round number */}
-        {round > 0 && (
-          <div
-            className={cn(
-              'px-5 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20',
-            )}
-          >
-            <span className="text-sm font-cinzel text-white/90 tracking-wider">
-              第 {round} 回合
-            </span>
-          </div>
-        )}
-
-        {/* Decorative corner elements */}
-        <div className="absolute top-3 left-3 w-3 h-3 border-l-2 border-t-2 border-white/30 rounded-tl" />
-        <div className="absolute top-3 right-3 w-3 h-3 border-r-2 border-t-2 border-white/30 rounded-tr" />
-        <div className="absolute bottom-3 left-3 w-3 h-3 border-l-2 border-b-2 border-white/30 rounded-bl" />
-        <div className="absolute bottom-3 right-3 w-3 h-3 border-r-2 border-b-2 border-white/30 rounded-br" />
+        <div className="font-latin text-lg italic tracking-[0.3em] text-brass/70">{label.latin}</div>
+        <div className="rule-brass w-64" />
+        <h2 className={cn('font-serif text-6xl font-black tracking-[0.5em]', night ? 'text-frost-gradient' : 'text-brass-gradient')}>
+          {titleFor(phase, round)}
+        </h2>
+        <div className="rule-brass w-64" />
+        {subtitle && <div className="font-serif text-sm tracking-[0.6em] text-frost-dim">{subtitle}</div>}
       </div>
     </div>
   );

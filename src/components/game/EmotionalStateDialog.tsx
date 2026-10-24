@@ -19,6 +19,7 @@ import { Heart, Flame, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getStateChangeDescription } from '@/lib/emotional-prompts';
 import { getRelationshipLabel } from '@/lib/relationships';
+import { Portrait } from './Portrait';
 
 interface EmotionalStateDialogProps {
   stateChanges: EmotionalStateChange[];
@@ -71,84 +72,43 @@ export function EmotionalStateDialog({ stateChanges, onComplete }: EmotionalStat
         onComplete();
       }
     }}>
-      <DialogContent className="max-w-2xl overflow-hidden border-2"
-        style={{
-          borderColor: isVirtue ? 'rgba(59, 130, 246, 0.5)' : 'rgba(239, 68, 68, 0.5)',
-        }}
-      >
+      <DialogContent className={cn('max-w-2xl overflow-hidden', isVirtue ? 'border-pyre/50' : 'border-seal-light/60')}>
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle className={cn(
-            'text-2xl font-cinzel tracking-wide flex items-center gap-3',
-            isVirtue ? 'text-blue-400' : 'text-red-400',
-          )}>
-            {isVirtue ? (
-              <>
-                <Heart className="w-7 h-7" />
-                心理状态变化
-              </>
-            ) : (
-              <>
-                <Flame className="w-7 h-7" />
-                心理状态变化
-              </>
-            )}
+          <DialogTitle className={cn('flex items-center gap-3 font-serif text-xl tracking-[0.4em]', isVirtue ? 'text-pyre' : 'text-seal-light')}>
+            {isVirtue ? <Heart className="h-5 w-5" /> : <Flame className="h-5 w-5" />}
+            心境异变
           </DialogTitle>
-          <DialogDescription className="text-sm text-muted-foreground flex items-center gap-2">
-            <Users className="w-4 h-4" />
+          <DialogDescription className="flex items-center gap-2 font-serif tracking-wider">
+            <Users className="h-4 w-4" />
             {currentChange.character} 的 {relationshipLabel} {currentChange.triggerCharacter} 已死亡
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          {/* State change title */}
-          <div className={cn(
-            'text-xl font-bold text-center py-3 rounded-lg border-2',
-            isVirtue
-              ? 'bg-blue-950/30 border-blue-500/50 text-blue-300'
-              : 'bg-red-950/30 border-red-500/50 text-red-300',
-          )}>
-            {title}
+        <div className="flex gap-5 py-2">
+          <div className="relative w-40 flex-shrink-0">
+            <Portrait name={currentChange.character} className="aspect-[832/1216] w-full rounded-sm brass-frame" />
+            <Portrait
+              name={currentChange.triggerCharacter}
+              dead
+              zoom={1.8}
+              className="absolute -bottom-3 -right-4 h-20 w-16 rounded-sm border border-brass/40"
+            />
           </div>
-
-          {/* State change description */}
-          <div className={cn(
-            'text-base leading-relaxed p-4 rounded-lg border',
-            isVirtue
-              ? 'bg-blue-950/20 border-blue-500/30 text-blue-100'
-              : 'bg-red-950/20 border-red-500/30 text-red-100',
-          )}>
-            {description}
-          </div>
-
-          {/* Progress indicator */}
-          {stateChanges.length > 1 && (
-            <div className="flex items-center justify-center gap-2 pt-2">
-              {stateChanges.map((_, idx) => (
-                <div
-                  key={idx}
-                  className={cn(
-                    'w-2 h-2 rounded-full transition-all',
-                    idx === currentIndex
-                      ? 'bg-foreground scale-125'
-                      : 'bg-muted-foreground/30',
-                  )}
-                />
-              ))}
+          <div className="min-w-0 flex-1 space-y-3">
+            <div className={cn('border-y py-2 text-center font-serif text-lg font-semibold tracking-[0.3em]', isVirtue ? 'border-pyre/30 text-pyre' : 'border-seal/50 text-seal-light')}>
+              {title}
             </div>
-          )}
+            <p className="max-h-64 overflow-y-auto font-serif text-sm leading-loose text-parchment">{description}</p>
+          </div>
         </div>
 
-        {/* Action buttons */}
-        <div className="flex justify-end gap-3 pt-2">
-          <Button
-            onClick={handleNext}
-            className={cn(
-              'font-semibold',
-              isVirtue
-                ? 'bg-blue-600 hover:bg-blue-700'
-                : 'bg-red-600 hover:bg-red-700',
-            )}
-          >
+        <div className="flex items-center justify-between pt-2">
+          <div className="flex gap-1.5">
+            {stateChanges.length > 1 && stateChanges.map((_, idx) => (
+              <span key={idx} className={cn('h-1.5 w-1.5 rotate-45 transition-all', idx === currentIndex ? 'bg-brass-light' : 'bg-brass/25')} />
+            ))}
+          </div>
+          <Button onClick={handleNext}>
             {isLast ? '确认' : `下一个 (${currentIndex + 1}/${stateChanges.length})`}
           </Button>
         </div>

@@ -11,7 +11,6 @@ import {
   processNightPhase,
   processVoting,
   addMessage,
-  getAlivePlayers,
   getPlayerByName,
   handleDeathTriggers,
   initSecretMeetingPhase,
@@ -21,7 +20,9 @@ import {
   generateGameEvent,
   advancePhase,
 } from '@/lib/game-engine';
-import { getAIResponse, buildPrompt } from '@/lib/gemini';
+import { getAIResponse, buildPrompt, DEFAULT_API_URL } from '@/lib/deepseek';
+import { getActingPlayers } from '@/lib/actors';
+import { buildPrologueMessages } from '@/lib/story-text';
 import { getInitialClues } from '@/lib/clues-data';
 
 /**
@@ -93,6 +94,9 @@ interface GameStore {
   executeCurrentPlayerAction: () => Promise<void>;
 }
 
+// 本地 .env.local 里的 DeepSeek key（不进 git，线上构建没有这个值）
+const ENV_API_KEY = process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY ?? '';
+
 /**
  * Create game store with persistence
  */
@@ -101,8 +105,8 @@ export const useGameStore = create<GameStore>()(
     (set, get) => ({
   gameState: null,
   isProcessing: false,
-  apiKey: '',
-  apiUrl: 'https://generativelanguage.googleapis.com',
+  apiKey: ENV_API_KEY,
+  apiUrl: DEFAULT_API_URL,
   lastError: null,
   retryCount: 0,
   clues: [],
@@ -119,14 +123,14 @@ export const useGameStore = create<GameStore>()(
   isAutoExecuting: false,
 
   /**
-   * Set Gemini API key
+   * Set DeepSeek API key
    */
   setApiKey: (key: string) => {
     set({ apiKey: key });
   },
 
   /**
-   * Set Gemini API URL
+   * Set DeepSeek API URL
    */
   setApiUrl: (url: string) => {
     set({ apiUrl: url });
@@ -330,7 +334,8 @@ export const useGameStore = create<GameStore>()(
           });
         },
       });
-      const { thinking: thinking1, speech: speech1 } = parseAIResponse(response1);
+      const { thinking: thinking1, speech: speech1 } = response1;
+      appendTrace(promptMsg1, response1.trace);
 
       if (thinking1) {
         const thinkingMsg1 = addMessage(
@@ -376,7 +381,8 @@ export const useGameStore = create<GameStore>()(
           });
         },
       });
-      const { thinking: thinking2, speech: speech2 } = parseAIResponse(response2);
+      const { thinking: thinking2, speech: speech2 } = response2;
+      appendTrace(promptMsg2, response2.trace);
 
       if (thinking2) {
         const thinkingMsg2 = addMessage(
@@ -495,7 +501,7 @@ export const useGameStore = create<GameStore>()(
     const savedGame: SavedGame = {
       id: `save-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       name,
-      state: JSON.parse(JSON.stringify(gameState)) as GameState, // Deep clone
+      state: JSON.parse(JSON.stringify(compactForStorage(gameState))) as GameState, // Deep clone
       savedAt: Date.now(),
     };
 
@@ -583,18 +589,17 @@ export const useGameStore = create<GameStore>()(
 
     // Get the previous player (the one we want to retry)
     const previousPlayerIndex = gameState.currentPlayerIndex - 1;
-    const alivePlayers = getAlivePlayers(gameState);
-    const previousPlayer = alivePlayers[previousPlayerIndex];
+    const previousPlayer = getActingPlayers(gameState)[previousPlayerIndex];
     if (!previousPlayer) return;
 
     set({ isProcessing: true, lastError: null });
 
     // Remove last AI messages (thinking, speech/vote, prompt)
     const initialMessageCount = gameState.messages.length;
-    const messagesToKeep = gameState.messages.filter(msg => {
-      // Keep all messages except the last AI player's messages
-      return msg.from !== previousPlayer.name && msg.from !== `${previousPlayer.name} (神谕)`;
-    });
+    const messagesToKeep = gameState.messages.filter(msg =>
+      // 只删这个人在本回合本阶段的消息，之前说过的话保留
+      !((msg.from === previousPlayer.name || msg.from === `${previousPlayer.name} (神谕)`) &&
+        msg.round === gameState.round && msg.phase === gameState.phase));
 
     // If no messages were removed, something is wrong
     if (messagesToKeep.length === initialMessageCount) {
@@ -771,7 +776,16 @@ export const useGameStore = create<GameStore>()(
       // Check werewolf votes for ties
       const { isTied, tiedPlayers } = processNightPhase(gameState);
 
-      if (isTied) {
+      if (isTied && gameState.revoteRound >= 2) {
+        // 分歧太久：饥饿替他们做了决定
+        const chosen = tiedPlayers[Math.floor(Math.random() * tiedPlayers.length)];
+        gameState.nightVotes = gameState.nightVotes.filter((v) => v.target === chosen);
+        gameState.messages.push(
+          addMessage(gameState, '叙述者', `争执不下的烙印者被饥饿驱使，扑向了 ${chosen}。`, 'system', 'marked'),
+        );
+      }
+
+      if (isTied && gameState.revoteRound < 2) {
         // Save night votes to history before clearing for revote
         if (gameState.nightVotes.length > 0) {
           const nightVotesWithRound = gameState.nightVotes.map((vote) => ({
@@ -818,43 +832,14 @@ export const useGameStore = create<GameStore>()(
             addMessage(gameState, '叙述者', '设闩者，选择今晚要守护的人...', 'system', 'guard'),
           );
         } else {
-          // No guard, proceed to coroner phase
-          gameState.nightPhase = 'coroner';
-          gameState.currentPlayerIndex = 0;
-          get().advanceNightPhase(); // Auto-advance coroner phase
+          // No guard - coroner is passive, resolve it and move to day
+          resolveCoroner(gameState);
+          get().advanceToNextPhase();
           return;
         }
       }
     } else if (gameState.nightPhase === 'guard') {
-      // Guard phase ended, go to coroner phase (passive ability)
-      gameState.nightPhase = 'coroner';
-      gameState.currentPlayerIndex = 0;
-
-      // Coroner is passive - auto-process and move to day
-      const coroner = gameState.players.find((p) => p.role === 'coroner' && p.isAlive);
-      if (coroner && gameState.lastSacrificedPlayer) {
-        // Add coroner report
-        const sacrificedPlayer = gameState.players.find((p) => p.name === gameState.lastSacrificedPlayer);
-        if (sacrificedPlayer) {
-          const isClean = sacrificedPlayer.role !== 'marked' && sacrificedPlayer.role !== 'heretic';
-          gameState.coronerReports.push({
-            round: gameState.round,
-            target: sacrificedPlayer.name,
-            isClean,
-          });
-          gameState.messages.push(
-            addMessage(
-              gameState,
-              '叙述者',
-              `食灰者在梦中品尝了 ${sacrificedPlayer.name} 的灵魂...`,
-              'system',
-              'coroner',
-            ),
-          );
-        }
-      }
-
-      // Proceed to day phase
+      resolveCoroner(gameState);
       get().advanceToNextPhase();
       return;
     }
@@ -881,89 +866,7 @@ export const useGameStore = create<GameStore>()(
         {} as Record<string, number>,
       );
 
-      // Add all story messages at once
-      const storyMessages = [
-        {
-          from: '叙述者',
-          content: `一份神秘的委托书，将十五个陌生人聚集在一起。
-
-有人为了钱，有人为了逃避，有人为了寻找，有人为了赎罪。他们从伦敦、爱丁堡、曼彻斯特等地出发，在1913年深冬的暴雪前夕，抵达了白烬山口。
-
-委托人承诺：完成任务，每人可得五百英镑——足以改变命运的金额。`,
-        },
-        {
-          from: '叙述者',
-          content: `第一天，他们在山口的寂静山庄集合。
-
-第二天，委托人没有出现。取而代之的是，暴风雪如约而至——一场诡异的、不合时节的暴雪，封死了下山的所有道路。
-
-第三天，他们在山庄的地窖里发现了一封遗书。`,
-        },
-        {
-          from: '叙述者',
-          content: `遗书是旧主人留下的，字迹潦草，像是在极度恐惧中写成：
-
-"山灵警告：你们之中混入了三个非人者。它们会在夜晚猎杀真正的人类。你们必须在白昼找出这三个非人者并献祭，否则所有人都会死。"
-
-"在收割与羔羊的对抗结束之前，暴风雪永远不会停止。"`,
-        },
-        {
-          from: '叙述者',
-          content: `一开始，没有人相信。
-
-有人说这是恶作剧，有人说委托人在戏弄他们。但暴风雪始终没有停止。
-
-第四天、第五天、第六天……食物越来越少，寒冷越来越深。有人开始发烧，有人开始绝望。
-
-这样下去，所有人都会饿死，或冻死。`,
-        },
-        {
-          from: '叙述者',
-          content: `今天，是第七天。
-
-在绝望与恐惧的驱使下，他们决定：按照遗书的指示，举行献祭仪式。
-
-无论这是真是假，他们已经没有别的选择。
-
-黎明到来。游戏，正式开始。`,
-        },
-        {
-          from: '叙述者',
-          content: `【身份已被烙印】
-
-收割阵营：${roleCounts['marked'] || 0}名烙印者
-羔羊阵营：${roleCounts['listener'] || 0}名聆心者、${roleCounts['coroner'] || 0}名食灰者、${roleCounts['twin'] || 0}名共誓者、${roleCounts['guard'] || 0}名设闩者、${roleCounts['innocent'] || 0}名无知者
-
-【角色说明】
-
-▸ 烙印者（收割阵营）
-  - 每晚集体投票杀死一名玩家
-  - 白天必须伪装成羔羊
-  - 目标：消灭所有羔羊
-
-▸ 聆心者（羔羊阵营）
-  - 每晚可查验一名玩家是"清白"还是"污秽"
-  - 掌握关键信息，但容易成为目标
-
-▸ 食灰者（羔羊阵营）
-  - 每次白天献祭后，当晚会得知被献祭者是"清白"还是"污秽"
-
-▸ 共誓者（羔羊阵营）
-  - 两名共誓者互相知晓身份
-  - 是彼此唯一的绝对信任
-
-▸ 设闩者（羔羊阵营）
-  - 每晚可守护一名玩家（不能是自己）
-  - 被守护者当晚不会被杀
-  - 不能连续两晚守护同一人
-
-▸ 无知者（羔羊阵营）
-  - 没有特殊能力
-  - 依靠观察和推理找出收割者
-
-天亮了。第一个白天，开始讨论...`,
-        },
-      ];
+      const storyMessages = buildPrologueMessages(roleCounts);
 
       // Add all messages
       storyMessages.forEach((msg) => {
@@ -1055,27 +958,7 @@ export const useGameStore = create<GameStore>()(
     const { gameState, apiKey, apiUrl } = get();
     if (!gameState) return;
 
-    // Get active players based on current phase
-    let alivePlayers = getAlivePlayers(gameState);
-
-    // Filter players based on night sub-phase
-    if (gameState.phase === 'night' && gameState.nightPhase) {
-      if (gameState.nightPhase === 'listener') {
-        // Only listener acts
-        alivePlayers = alivePlayers.filter((p) => p.role === 'listener');
-      } else if (gameState.nightPhase === 'marked-discuss' || gameState.nightPhase === 'marked-vote') {
-        // Only marked act
-        alivePlayers = alivePlayers.filter((p) => p.role === 'marked');
-      } else if (gameState.nightPhase === 'guard') {
-        // Only guard acts
-        alivePlayers = alivePlayers.filter((p) => p.role === 'guard');
-      }
-    }
-
-    // Filter out tied players during revote discussion
-    if (gameState.phase === 'day' && gameState.isRevote && gameState.tiedPlayers.length > 0) {
-      alivePlayers = alivePlayers.filter((p) => !gameState.tiedPlayers.includes(p.name));
-    }
+    const alivePlayers = getActingPlayers(gameState);
 
     // If all players in current phase have acted, advance to next phase
     if (gameState.currentPlayerIndex >= alivePlayers.length) {
@@ -1106,16 +989,14 @@ export const useGameStore = create<GameStore>()(
       set({ gameState: { ...gameState } });
 
       // Build and record full prompt for transparency
-      const fullPrompt = buildPrompt(currentPlayer, gameState);
-      gameState.messages.push(
-        addMessage(
-          gameState,
-          `${currentPlayer.name} (神谕)`,
-          fullPrompt,
-          'prompt',
-          { player: currentPlayer.name },
-        ),
+      const promptMsg = addMessage(
+        gameState,
+        `${currentPlayer.name} (神谕)`,
+        buildPrompt(currentPlayer, gameState),
+        'prompt',
+        { player: currentPlayer.name },
       );
+      gameState.messages.push(promptMsg);
 
       // Get AI response
       const response = await getAIResponse(currentPlayer, gameState, {
@@ -1128,8 +1009,8 @@ export const useGameStore = create<GameStore>()(
         },
       });
 
-      // Parse thinking and speech
-      const { thinking, speech } = parseAIResponse(response);
+      const { thinking, speech, target } = response;
+      appendTrace(promptMsg, response.trace);
 
       // Add thinking message (only visible to the player itself and user)
       if (thinking) {
@@ -1145,24 +1026,12 @@ export const useGameStore = create<GameStore>()(
       }
 
       // Add speech/vote message
-      if (gameState.phase === 'voting') {
-        // Add vote message with type 'vote' for voting phase
+      if (target) {
+        // 选人的一步：消息内容就是目标名字，投票记在 votes / voteHistory 里
         gameState.messages.push(
-          addMessage(gameState, currentPlayer.name, speech, 'vote', visibility),
+          addMessage(gameState, currentPlayer.name, target, gameState.phase === 'voting' ? 'vote' : 'speech', visibility),
         );
-        // Record vote using helper function (voting is stored in voteHistory, not messages)
-        recordVote(gameState, currentPlayer, speech);
-      } else if (gameState.phase === 'night' &&
-                 (gameState.nightPhase === 'listener' ||
-                  gameState.nightPhase === 'marked-vote' ||
-                  gameState.nightPhase === 'guard')) {
-        // Night phase actions (listener check, marked vote, guard protect)
-        // Add speech message
-        gameState.messages.push(
-          addMessage(gameState, currentPlayer.name, speech, 'speech', visibility),
-        );
-        // Record night action
-        recordVote(gameState, currentPlayer, speech);
+        recordAction(gameState, currentPlayer, target);
       } else {
         // Add speech message for other phases
         gameState.messages.push(
@@ -1180,7 +1049,7 @@ export const useGameStore = create<GameStore>()(
         error instanceof Error ? error.message : 'Unknown error';
 
       const { retryCount } = get();
-      const maxRetries = 10;
+      const maxRetries = 3;
 
       // Auto retry with exponential backoff (max 10 times)
       if (retryCount < maxRetries) {
@@ -1219,11 +1088,13 @@ export const useGameStore = create<GameStore>()(
       name: 'werewolf-game-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
-        gameState: state.gameState,
+        gameState: state.gameState && compactForStorage(state.gameState),
         apiKey: state.apiKey,
         clues: state.clues,
       }),
       onRehydrateStorage: () => (state) => {
+        // 换掉以前存下的 Gemini key（AIza 开头），用本地配置的 DeepSeek key
+        if (state && (!state.apiKey || state.apiKey.startsWith('AIza'))) state.apiKey = ENV_API_KEY;
         // Ensure pendingStateChanges exists in rehydrated state
         if (state?.gameState && !state.gameState.pendingStateChanges) {
           state.gameState.pendingStateChanges = [];
@@ -1234,74 +1105,20 @@ export const useGameStore = create<GameStore>()(
 );
 
 /**
- * Parse AI response into thinking and speech parts
+ * 把 AI 这次查阅档案的过程接在它的神谕后面
  */
-function parseAIResponse(response: string): {
-  thinking: string;
-  speech: string;
-} {
-  const thinkingMatch = response.match(/【思考】\s*([\s\S]*?)(?=【发言】|$)/);
-  const speechMatch = response.match(/【发言】\s*([\s\S]*?)$/);
+function appendTrace(promptMsg: Message, trace: string): void {
+  if (trace) promptMsg.content += `
 
-  const thinking = thinkingMatch?.[1]?.trim() || '';
-  const speech = speechMatch?.[1]?.trim() || response.trim();
-
-  return { thinking, speech };
+━━━━━━━━ 查阅档案 ━━━━━━━━
+${trace}`;
 }
 
 /**
- * Extract player name from AI response text
- * Tries to intelligently match player names even if AI added extra text
+ * 记录选人动作（目标已由 deepseek.ts 校验为合法）
  */
-// eslint-disable-next-line max-depth
-function extractPlayerName(text: string, allPlayers: Player[]): string | null {
-  const cleanedText = text.trim();
-
-  // Try exact match first
-  const exactMatch = allPlayers.find(p => cleanedText === p.name);
-  if (exactMatch) return exactMatch.name;
-
-  // Try to find any player name mentioned in the text
-  // Sort by name length (descending) to prioritize longer names
-  const sortedPlayers = [...allPlayers].sort((a, b) => b.name.length - a.name.length);
-
-  for (const player of sortedPlayers) {
-    if (cleanedText.includes(player.name)) {
-      return player.name;
-    }
-  }
-
-  // Try partial match (first or last name)
-  for (const player of sortedPlayers) {
-    const nameParts = player.name.split('·');
-    for (const part of nameParts) {
-      if (cleanedText.includes(part) && part.length >= 2) {
-        // Additional check: make sure this partial match uniquely identifies the player
-        const matchingPlayers = allPlayers.filter(p => p.name.includes(part));
-        // eslint-disable-next-line max-depth
-        if (matchingPlayers.length === 1) {
-          return player.name;
-        }
-      }
-    }
-  }
-
-  return null;
-}
-
-/**
- * Record vote or action based on player response
- */
-function recordVote(
-  gameState: GameState,
-  currentPlayer: Player,
-  response: string,
-): void {
-  // Try to extract player name intelligently
-  const extractedName = extractPlayerName(response, gameState.players);
-  const targetName = extractedName || response.trim();
+function recordAction(gameState: GameState, currentPlayer: Player, targetName: string): void {
   const targetPlayer = getPlayerByName(gameState, targetName);
-
   if (gameState.phase === 'voting') {
     recordDayVote(gameState, currentPlayer, targetName, targetPlayer);
   } else if (gameState.phase === 'night') {
@@ -1351,8 +1168,7 @@ function recordListenerCheck(
 ): void {
   if (!targetPlayer?.isAlive) return;
 
-  // Check if target is clean (not marked or heretic)
-  const isClean = targetPlayer.role !== 'marked' && targetPlayer.role !== 'heretic';
+  const isClean = !isTainted(targetPlayer, gameState.round);
 
   gameState.listenerChecks.push({
     round: gameState.round,
@@ -1472,6 +1288,7 @@ function handleDayVotingResult(
       const player = gameState.players.find((p) => p.id === eliminated.id);
       if (player) {
         player.isAlive = false;
+        recordDeath(gameState, player.name, 'sacrifice');
         // Record sacrificed player for coroner
         gameState.lastSacrificedPlayer = player.name;
         // Trigger emotional state changes for related characters
@@ -1497,6 +1314,7 @@ function handleNightKillResult(
     const player = gameState.players.find((p) => p.id === killedPlayer.id);
     if (player) {
       player.isAlive = false;
+      recordDeath(gameState, player.name, 'night');
       // Trigger emotional state changes for related characters
       handleDeathTriggers(gameState, player.name);
     }
@@ -1587,6 +1405,38 @@ TA 无法参与你们的夜晚狩猎，但 TA 会在白天帮助你们。
 /**
  * Helper function to enter night phase
  */
+function recordDeath(gameState: GameState, name: string, cause: 'night' | 'sacrifice'): void {
+  gameState.deathLog = [...(gameState.deathLog ?? []), { name, round: gameState.round, cause }];
+}
+
+/**
+ * 灵魂是否污秽：背誓者第 2 天才堕落，在此之前仍是清白的
+ */
+function isTainted(player: Player, round: number): boolean {
+  return player.role === 'marked' || (player.role === 'heretic' && round >= 2);
+}
+
+/**
+ * 食灰者是被动能力：夜晚结束时得知上一次被献祭者的阵营
+ */
+function resolveCoroner(gameState: GameState): void {
+  gameState.nightPhase = 'coroner';
+  gameState.currentPlayerIndex = 0;
+
+  const coroner = gameState.players.find((p) => p.role === 'coroner' && p.isAlive);
+  const sacrificed = gameState.players.find((p) => p.name === gameState.lastSacrificedPlayer);
+  if (!coroner || !sacrificed) return;
+
+  gameState.coronerReports.push({
+    round: gameState.round,
+    target: sacrificed.name,
+    isClean: !isTainted(sacrificed, gameState.round),
+  });
+  gameState.messages.push(
+    addMessage(gameState, '叙述者', `食灰者在梦中品尝了 ${sacrificed.name} 的灵魂...`, 'system', 'coroner'),
+  );
+}
+
 function enterNightPhase(gameState: GameState): void {
   gameState.phase = 'night';
   gameState.nightPhase = 'listener';
@@ -1613,29 +1463,14 @@ function enterNightPhase(gameState: GameState): void {
  */
 // eslint-disable-next-line complexity
 function cleanupFailedAttempt(gameState: GameState): void {
-  // Get current player
-  let alivePlayers = getAlivePlayers(gameState);
-  if (gameState.phase === 'night' && gameState.nightPhase) {
-    if (gameState.nightPhase === 'listener') {
-      alivePlayers = alivePlayers.filter((p) => p.role === 'listener');
-    } else if (gameState.nightPhase === 'marked-discuss' || gameState.nightPhase === 'marked-vote') {
-      alivePlayers = alivePlayers.filter((p) => p.role === 'marked');
-    } else if (gameState.nightPhase === 'guard') {
-      alivePlayers = alivePlayers.filter((p) => p.role === 'guard');
-    }
-  }
-  if (gameState.phase === 'day' && gameState.isRevote && gameState.tiedPlayers.length > 0) {
-    alivePlayers = alivePlayers.filter((p) => !gameState.tiedPlayers.includes(p.name));
-  }
-
-  const currentPlayer = alivePlayers[gameState.currentPlayerIndex];
+  const currentPlayer = getActingPlayers(gameState)[gameState.currentPlayerIndex];
   if (!currentPlayer) return;
 
   // Remove all messages from this player in current round/phase
   // Use filter to avoid index shifting issues with splice
   gameState.messages = gameState.messages.filter(msg => {
     // Keep messages that are NOT from current player in current round/phase
-    if (msg.from === currentPlayer.name &&
+    if ((msg.from === currentPlayer.name || msg.from === `${currentPlayer.name} (神谕)`) &&
         msg.round === gameState.round &&
         msg.phase === gameState.phase &&
         (msg.type === 'prompt' || msg.type === 'thinking' || msg.type === 'speech')) {
@@ -1680,6 +1515,16 @@ function cleanupFailedAttempt(gameState: GameState): void {
       gameState.lastGuardedPlayer = gameState.guardRecords[gameState.guardRecords.length - 1]?.target;
     }
   }
+}
+
+/**
+ * 写进 localStorage 前去掉往回合的完整 prompt（每条几十 KB，提示词查看器会现场重新生成）
+ */
+function compactForStorage(gameState: GameState): GameState {
+  return {
+    ...gameState,
+    messages: gameState.messages.filter((m) => m.type !== 'prompt' || m.round === gameState.round),
+  };
 }
 
 /**

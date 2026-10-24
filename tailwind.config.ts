@@ -51,7 +51,14 @@ const config: Config = {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
         },
-        // Thematic colors for Whitefire Pass
+        // 白烬山口 palette: ink night, walnut, brass, parchment, frost, white-fire, wax seal
+        ink: { DEFAULT: '#0a0d12', 800: '#10151c', 700: '#171e27', 600: '#212a35' },
+        wood: { DEFAULT: '#24180f', light: '#3a281a', dark: '#140d08' },
+        brass: { DEFAULT: '#b4935a', light: '#dcc08a', dim: '#6f5a36' },
+        parchment: { DEFAULT: '#e8dcc0', dim: '#b9aa86', dark: '#8a7a58' },
+        frost: { DEFAULT: '#d6e3ec', dim: '#8ea2b2', deep: '#4a5d6e' },
+        pyre: { DEFAULT: '#a8e6f0', soft: '#7cc7d6', dim: '#3d7480' },
+        seal: { DEFAULT: '#8e2a2a', light: '#b84a4a', dark: '#5a1616' },
         ember: {
           50: '#fef3c7',
           100: '#fde68a',
@@ -83,8 +90,9 @@ const config: Config = {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        cinzel: ['var(--font-cinzel)', 'Cinzel', 'Georgia', 'serif'],
-        serif: ['var(--font-noto-serif-sc)', 'Noto Serif SC', 'serif'],
+        cinzel: ['var(--font-cinzel)', 'var(--font-noto-serif-sc)', 'Noto Serif SC', 'serif'],
+        latin: ['var(--font-cormorant)', 'var(--font-noto-serif-sc)', 'Georgia', 'serif'],
+        serif: ['var(--font-noto-serif-sc)', 'Noto Serif SC', 'Songti SC', 'serif'],
       },
       boxShadow: {
         'glow-amber': '0 0 20px rgba(251, 191, 36, 0.3), 0 0 40px rgba(251, 191, 36, 0.1)',
@@ -96,11 +104,28 @@ const config: Config = {
       },
       animation: {
         'fade-in': 'fadeIn 1s ease-out forwards',
+        hearth: 'hearth 6s ease-in-out infinite',
+        flicker: 'flicker 3.2s ease-in-out infinite',
+        'speaker-glow': 'speakerGlow 2.4s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        hearth: {
+          '0%, 100%': { opacity: '0.75', transform: 'scale(1)' },
+          '50%': { opacity: '1', transform: 'scale(1.06)' },
+        },
+        flicker: {
+          '0%, 100%': { opacity: '1' },
+          '40%': { opacity: '0.82' },
+          '43%': { opacity: '0.95' },
+          '70%': { opacity: '0.88' },
+        },
+        speakerGlow: {
+          '0%, 100%': { boxShadow: '0 0 0 1px rgba(220,192,138,0.55), 0 0 14px rgba(168,230,240,0.12)' },
+          '50%': { boxShadow: '0 0 0 1px rgba(220,192,138,0.9), 0 0 22px rgba(168,230,240,0.28)' },
         },
       },
     },

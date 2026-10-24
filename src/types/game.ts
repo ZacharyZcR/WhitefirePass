@@ -235,6 +235,17 @@ export interface GameState {
 
   // Game events
   gameEvents: GameEventRecord[];  // History of all game events
+
+  deathLog?: DeathRecord[];  // 死亡记录（旧存档没有这个字段）
+}
+
+/**
+ * 死亡记录：第几回合，夜里被收割还是白天被献祭
+ */
+export interface DeathRecord {
+  name: string;
+  round: number;
+  cause: 'night' | 'sacrifice';
 }
 
 /**

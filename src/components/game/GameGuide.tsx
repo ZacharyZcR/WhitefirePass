@@ -57,7 +57,7 @@ export function GameGuide({ open, onOpenChange }: GameGuideProps) {
             <section>
               <h3 className="text-lg font-bold mb-3">
                 <div className="flex items-center gap-2">
-                  <Snowflake className="w-5 h-5 text-blue-400" />
+                  <Snowflake className="w-5 h-5 text-pyre" />
                   故事背景
                 </div>
                 <div className="text-[10px] text-muted-foreground font-serif italic tracking-wide opacity-60 ml-7">
@@ -74,16 +74,16 @@ export function GameGuide({ open, onOpenChange }: GameGuideProps) {
                 <p className="text-foreground">
                   第一天，他们在山庄集合。第二天，委托人未出现。第三天，一场诡异的暴风雪封锁了下山的所有道路。他们在地窖里发现了旧主人留下的遗书：
                 </p>
-                <p className="pl-4 border-l-2 border-amber-500/50 italic">
+                <p className="pl-4 border-l-2 border-brass/50 italic">
                   "山灵警告：你们之中混入了三个非人者。它们会在夜晚猎杀真正的人类。你们必须在白昼找出这三个非人者并献祭，否则所有人都会死。"
                 </p>
                 <p className="text-foreground pt-2">
                   第七天，在绝望与恐惧的驱使下，他们决定按照遗书的指示举行献祭仪式。无论真假，他们已别无选择。
                 </p>
-                <p className="text-amber-400 font-semibold">
+                <p className="text-brass-light font-semibold">
                   山灵的契约已成。收割与羔羊的博弈，正式开始。
                 </p>
-                <p className="text-red-400 font-semibold">
+                <p className="text-seal-light font-semibold">
                   这不是游戏。这是真实的生死存亡。
                 </p>
               </div>
@@ -98,19 +98,19 @@ export function GameGuide({ open, onOpenChange }: GameGuideProps) {
                 </div>
               </h3>
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-red-950/30 border border-red-500/30 rounded-lg p-3">
+                <div className="bg-seal/10 border border-red-500/30 rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <Skull className="w-4 h-4 text-red-400" />
-                    <span className="font-semibold text-red-400">收割阵营获胜</span>
+                    <Skull className="w-4 h-4 text-seal-light" />
+                    <span className="font-semibold text-seal-light">收割阵营获胜</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
                     当收割者（烙印者+背誓者）数量 ≥ 羔羊数量时，收割阵营获胜
                   </p>
                 </div>
-                <div className="bg-blue-950/30 border border-blue-500/30 rounded-lg p-3">
+                <div className="bg-pyre/5 border border-blue-500/30 rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <Shield className="w-4 h-4 text-blue-400" />
-                    <span className="font-semibold text-blue-400">羔羊阵营获胜</span>
+                    <Shield className="w-4 h-4 text-pyre" />
+                    <span className="font-semibold text-pyre">羔羊阵营获胜</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
                     当所有收割者（烙印者+背誓者）被淘汰时，羔羊阵营获胜
@@ -121,7 +121,7 @@ export function GameGuide({ open, onOpenChange }: GameGuideProps) {
 
             {/* Harvest Faction */}
             <section className="border-t pt-4">
-              <h3 className="text-lg font-bold mb-3 text-red-400">
+              <h3 className="text-lg font-bold mb-3 text-seal-light">
                 <div className="flex items-center gap-2">
                   <Skull className="w-5 h-5" />
                   {FACTION_LABELS.harvest.chinese} (4人)
@@ -139,14 +139,14 @@ export function GameGuide({ open, onOpenChange }: GameGuideProps) {
                     </div>
                     <div>
                       <h4 className="font-bold text-base">烙印者 (The Marked)</h4>
-                      <Badge className="bg-red-600 text-xs">3人</Badge>
+                      <Badge className="bg-seal text-xs">3人</Badge>
                     </div>
                   </div>
                   <ul className="text-sm space-y-1 text-muted-foreground ml-13">
                     <li>• <strong className="text-foreground">夜晚能力：</strong>每晚集体讨论并投票杀死一名玩家</li>
                     <li>• <strong className="text-foreground">白天伪装：</strong>必须伪装成羔羊，隐藏身份</li>
                     <li>• <strong className="text-foreground">队友识别：</strong>互相知道对方是烙印者，可以夜间交流</li>
-                    <li>• <strong className="text-red-400">生存威胁：</strong>如果被发现，会被献祭。那是真正的死亡。</li>
+                    <li>• <strong className="text-seal-light">生存威胁：</strong>如果被发现，会被献祭。那是真正的死亡。</li>
                   </ul>
                 </div>
 
@@ -166,7 +166,7 @@ export function GameGuide({ open, onOpenChange }: GameGuideProps) {
                     <li>• <strong className="text-foreground">孤独存在：</strong>无法参与烙印者的夜晚讨论和杀人</li>
                     <li>• <strong className="text-foreground">查验显示：</strong>被聆心者查验会显示为"污秽"（与烙印者相同）</li>
                     <li>• <strong className="text-foreground">混乱武器：</strong>只能在白天通过发言和投票帮助收割阵营</li>
-                    <li>• <strong className="text-red-400">最危险角色：</strong>比烙印者更容易被发现，更孤独，更容易死</li>
+                    <li>• <strong className="text-seal-light">最危险角色：</strong>比烙印者更容易被发现，更孤独，更容易死</li>
                   </ul>
                 </div>
               </div>
@@ -174,7 +174,7 @@ export function GameGuide({ open, onOpenChange }: GameGuideProps) {
 
             {/* Lamb Faction */}
             <section className="border-t pt-4">
-              <h3 className="text-lg font-bold mb-3 text-blue-400">
+              <h3 className="text-lg font-bold mb-3 text-pyre">
                 <div className="flex items-center gap-2">
                   <Shield className="w-5 h-5" />
                   {FACTION_LABELS.lamb.chinese} (11人)
@@ -199,7 +199,7 @@ export function GameGuide({ open, onOpenChange }: GameGuideProps) {
                     <li>• <strong className="text-foreground">夜晚能力：</strong>每晚可查验一名玩家是"清白"（羔羊）还是"污秽"（收割者）</li>
                     <li>• <strong className="text-foreground">信息优势：</strong>掌握关键信息，可以引导羔羊找出收割者</li>
                     <li>• <strong className="text-purple-400">策略抉择：</strong>公开身份获取信任，但会成为烙印者的首要目标</li>
-                    <li>• <strong className="text-red-400">生存警告：</strong>一旦暴露，明早可能就是尸体</li>
+                    <li>• <strong className="text-seal-light">生存警告：</strong>一旦暴露，明早可能就是尸体</li>
                   </ul>
                 </div>
 
@@ -237,12 +237,12 @@ export function GameGuide({ open, onOpenChange }: GameGuideProps) {
                     <li>• <strong className="text-foreground">天然认证：</strong>两名共誓者互相知晓身份，是彼此唯一的绝对信任</li>
                     <li>• <strong className="text-foreground">信任核心：</strong>可以互相验证身份，建立羔羊阵营的信任基础</li>
                     <li>• <strong className="text-teal-400">策略选择：</strong>早期公开身份建立信任，但会成为烙印者的猎杀目标</li>
-                    <li>• <strong className="text-red-400">失去同伴：</strong>如果其中一人死亡，另一人失去唯一的绝对盟友</li>
+                    <li>• <strong className="text-seal-light">失去同伴：</strong>如果其中一人死亡，另一人失去唯一的绝对盟友</li>
                   </ul>
                 </div>
 
                 {/* Guard */}
-                <div className="bg-amber-950/20 border border-amber-500/30 rounded-lg p-4">
+                <div className="bg-amber-950/20 border border-brass/30 rounded-lg p-4">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-10 h-10 bg-gradient-to-br from-amber-600 to-amber-900 rounded-full flex items-center justify-center">
                       <Shield className="w-5 h-5 text-white" />
@@ -256,8 +256,8 @@ export function GameGuide({ open, onOpenChange }: GameGuideProps) {
                     <li>• <strong className="text-foreground">夜晚能力：</strong>每晚可从外锁死一扇门，被守护者当晚不会被杀</li>
                     <li>• <strong className="text-foreground">守护限制：</strong>不能守护自己，不能连续两晚守护同一人</li>
                     <li>• <strong className="text-foreground">秘密行动：</strong>守护行为对所有人保密，只有设闩者自己知道</li>
-                    <li>• <strong className="text-amber-400">生死责任：</strong>守对了有人活下来，守错了会有人死</li>
-                    <li>• <strong className="text-red-400">无法自保：</strong>一旦被盯上且无法自保，必死无疑</li>
+                    <li>• <strong className="text-brass-light">生死责任：</strong>守对了有人活下来，守错了会有人死</li>
+                    <li>• <strong className="text-seal-light">无法自保：</strong>一旦被盯上且无法自保，必死无疑</li>
                   </ul>
                 </div>
 
@@ -269,15 +269,15 @@ export function GameGuide({ open, onOpenChange }: GameGuideProps) {
                     </div>
                     <div>
                       <h4 className="font-bold text-base">无知者 (The Unknowing)</h4>
-                      <Badge className="bg-blue-600 text-xs">6人 · 平民</Badge>
+                      <Badge className="bg-frost-deep text-xs">6人 · 平民</Badge>
                     </div>
                   </div>
                   <ul className="text-sm space-y-1 text-muted-foreground ml-13">
                     <li>• <strong className="text-foreground">真正羔羊：</strong>烙印是空白的，没有诅咒，也没有额外信息</li>
                     <li>• <strong className="text-foreground">依靠智慧：</strong>只有理智、观察和恐惧，还有献祭投票的权利</li>
-                    <li>• <strong className="text-blue-400">阵营主力：</strong>无知者是羔羊阵营的主力，投票决定胜负</li>
+                    <li>• <strong className="text-pyre">阵营主力：</strong>无知者是羔羊阵营的主力，投票决定胜负</li>
                     <li>• <strong className="text-foreground">生存策略：</strong>仔细观察发言，找出伪装者，不要引起怀疑</li>
-                    <li>• <strong className="text-red-400">脆弱存在：</strong>没有能力保护自己，随时可能成为猎物或被误献祭</li>
+                    <li>• <strong className="text-seal-light">脆弱存在：</strong>没有能力保护自己，随时可能成为猎物或被误献祭</li>
                   </ul>
                 </div>
               </div>

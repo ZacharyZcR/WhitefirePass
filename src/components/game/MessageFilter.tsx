@@ -185,11 +185,11 @@ export function MessageFilter({ messages, players, onFilterChange }: MessageFilt
   const hasActiveFilters = selectedFactions.length > 0 || selectedRoles.length > 0 || selectedPlayers.length > 0 || selectedMessageTypes.length > 0;
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 border-b bg-background/50">
+    <div className="flex min-h-[44px] items-center gap-2 border-b border-brass/10 px-6 py-2">
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-2">
-            <Filter className="w-4 h-4" />
+          <Button variant="outline" size="sm" className="h-7 gap-2 text-xs">
+            <Filter className="h-3.5 w-3.5" />
             过滤器
             {hasActiveFilters && (
               <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center">
@@ -202,7 +202,7 @@ export function MessageFilter({ messages, players, onFilterChange }: MessageFilt
           <div className="space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-sm">消息过滤器</h4>
+              <h4 className="font-serif text-sm tracking-[0.3em] text-parchment">筛选记录</h4>
               {hasActiveFilters && (
                 <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-auto p-1">
                   <X className="w-4 h-4" />
@@ -212,7 +212,7 @@ export function MessageFilter({ messages, players, onFilterChange }: MessageFilt
 
             {/* Faction Filter */}
             <div className="space-y-2">
-              <div className="text-sm font-medium">按阵营</div>
+              <div className="text-xs tracking-[0.3em] text-brass">按阵营</div>
               <div className="space-y-2">
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <Checkbox
@@ -220,7 +220,7 @@ export function MessageFilter({ messages, players, onFilterChange }: MessageFilt
                     onCheckedChange={() => toggleFaction('harvest')}
                   />
                   <span className="text-sm">收割阵营</span>
-                  <Badge className="bg-red-600 text-xs">
+                  <Badge className="bg-seal text-xs text-parchment">
                     {players.filter(p => getPlayerFaction(p.role) === 'harvest' && p.isAlive).length}
                   </Badge>
                 </label>
@@ -230,7 +230,7 @@ export function MessageFilter({ messages, players, onFilterChange }: MessageFilt
                     onCheckedChange={() => toggleFaction('lamb')}
                   />
                   <span className="text-sm">羔羊阵营</span>
-                  <Badge className="bg-blue-600 text-xs">
+                  <Badge className="bg-frost-deep text-xs text-parchment">
                     {players.filter(p => getPlayerFaction(p.role) === 'lamb' && p.isAlive).length}
                   </Badge>
                 </label>
@@ -239,7 +239,7 @@ export function MessageFilter({ messages, players, onFilterChange }: MessageFilt
 
             {/* Role Filter */}
             <div className="space-y-2">
-              <div className="text-sm font-medium">按职业</div>
+              <div className="text-xs tracking-[0.3em] text-brass">按职业</div>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {uniqueRoles.map(role => {
                   const count = players.filter(p => p.role === role && p.isAlive).length;
@@ -261,7 +261,7 @@ export function MessageFilter({ messages, players, onFilterChange }: MessageFilt
 
             {/* Player Filter */}
             <div className="space-y-2">
-              <div className="text-sm font-medium">按角色</div>
+              <div className="text-xs tracking-[0.3em] text-brass">按角色</div>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {players.map(player => (
                   <label key={player.id} className="flex items-center space-x-2 cursor-pointer">
@@ -284,7 +284,7 @@ export function MessageFilter({ messages, players, onFilterChange }: MessageFilt
 
             {/* Message Type Filter */}
             <div className="space-y-2">
-              <div className="text-sm font-medium">按消息类型</div>
+              <div className="text-xs tracking-[0.3em] text-brass">按消息类型</div>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {Object.entries(messageTypeNames).map(([type, label]) => (
                   <label key={type} className="flex items-center space-x-2 cursor-pointer">

@@ -1,194 +1,143 @@
 /**
- * ADV-style dialog box component
- * Visual novel style presentation for current speaker and dialogue
+ * ADV dialogue box: name plate, typewriter text, optional inner voice,
+ * and a footer slot for the action buttons.
  */
 
 'use client';
 
 import { useEffect, useState } from 'react';
-import { TarotCard } from './TarotCard';
+import { ChevronDown } from 'lucide-react';
+import type { Message, Player } from '@/types/game';
+import { FrameCorners } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import type { Player, Message } from '@/types/game';
-import { TYPOGRAPHY, getBorderClass, BADGE } from '@/lib/design-tokens';
+import { PHASE_NAME, roleInfo, toHanzi } from '@/lib/design-tokens';
+
+const TYPE_LABEL: Record<string, string> = {
+  speech: '发言',
+  vote: '投票',
+  action: '行动',
+  secret: '密会',
+  death: '讣告',
+  system: '叙述',
+  event: '异事',
+};
+
+const NARRATION_TYPES = ['system', 'death', 'event'];
+
+export const isNarration = (m: Message): boolean => NARRATION_TYPES.includes(m.type) || m.from === '叙述者';
+
+function useTypewriter(text: string, key: string) {
+  const [state, setState] = useState({ key, n: 0 });
+  const n = state.key === key ? state.n : 0;
+
+  useEffect(() => {
+    if (n >= text.length) return;
+    const t = setTimeout(() => setState({ key, n: Math.min(text.length, n + 2) }), 26);
+    return () => clearTimeout(t);
+  }, [key, n, text.length]);
+
+  return { shown: text.slice(0, n), done: n >= text.length, skip: () => setState({ key, n: text.length }) };
+}
+
+function NamePlate({ message, player }: { message: Message; player?: Player }) {
+  const role = player ? roleInfo(player.role) : null;
+  return (
+    <div className="absolute -top-4 left-8 z-10 flex items-stretch">
+      <div className="brass-frame panel-ink flex items-baseline gap-3 px-5 py-1.5">
+        <span className="font-serif text-lg font-semibold tracking-[0.2em] text-brass-light text-engraved">{message.from}</span>
+        {role && (
+          <span className="text-xs tracking-wider text-frost-dim">
+            <span style={{ color: role.color }}>{role.name}</span>
+            {player?.occupation && <span> · {player.occupation}</span>}
+          </span>
+        )}
+      </div>
+      <span className="ml-2 self-center rounded-sm border border-brass/30 bg-ink/80 px-2 py-0.5 text-[10px] tracking-[0.3em] text-brass/80">
+        {TYPE_LABEL[message.type] ?? message.type}
+      </span>
+    </div>
+  );
+}
+
+function InnerVoice({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mb-2 flex-shrink-0">
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
+        className="flex items-center gap-1 text-[11px] tracking-[0.3em] text-pyre-soft/80 transition-colors hover:text-pyre"
+      >
+        <ChevronDown className={cn('h-3 w-3 transition-transform', open && 'rotate-180')} />
+        心声
+      </button>
+      {open && (
+        <p className="mt-1 max-h-24 overflow-y-auto whitespace-pre-line border-l border-pyre/30 pl-3 font-serif text-sm italic leading-relaxed text-pyre/80">
+          {text}
+        </p>
+      )}
+    </div>
+  );
+}
 
 interface ADVDialogBoxProps {
-  currentMessage?: Message;
-  currentPlayer?: Player;
+  message?: Message;
+  player?: Player;
+  thinking?: string;
+  children?: React.ReactNode;
   className?: string;
 }
 
-/**
- * Role names with English/Latin subtitles
- */
-const roleNames: Record<string, { name: string; subtitle: string }> = {
-  marked: { name: '烙印者', subtitle: 'The Marked' },
-  heretic: { name: '背誓者', subtitle: 'The Heretic' },
-  listener: { name: '聆心者', subtitle: 'The Listener' },
-  coroner: { name: '食灰者', subtitle: 'Ash-Walker' },
-  twin: { name: '共誓者', subtitle: 'The Twin' },
-  guard: { name: '设闩者', subtitle: 'Guardian' },
-  innocent: { name: '无知者', subtitle: 'The Innocent' },
-};
+export function ADVDialogBox({ message, player, thinking, children, className }: ADVDialogBoxProps) {
+  const { shown, done, skip } = useTypewriter(message?.content ?? '', message?.id ?? 'empty');
+  const narration = message ? isNarration(message) : false;
 
-/**
- * Message type display names
- */
-const messageTypeNames: Record<string, string> = {
-  system: '叙述者',
-  speech: '发言',
-  thinking: '思考',
-  action: '行动',
-  death: '死亡',
-  secret: '密会',
-};
-
-function EmptyDialogState({ className }: { className?: string }) {
   return (
-    <div className={cn('relative w-full h-64 bg-gradient-to-b from-slate-900/95 to-slate-950/98 backdrop-blur-sm border-t-2 border-amber-600/30', className)}>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-amber-600/50 font-cinzel text-lg mb-2">WHITEFIRE PASS</div>
-          <div className="text-slate-500 text-sm font-serif">点击「下一步」，故事将会开始……</div>
-        </div>
-      </div>
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-600/50 to-transparent" />
-    </div>
-  );
-}
+    <div className={cn('relative', className)}>
+      {message && !narration && <NamePlate message={message} player={player} />}
 
-function CharacterPortrait({ player, isVisible }: { player: Player; isVisible: boolean }) {
-  return (
-    <div className={cn('flex-shrink-0 transition-all duration-500', isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8')}>
-      <div className="relative">
-        <div className="relative group scale-75">
-          <div className="absolute inset-0 bg-amber-600/20 blur-xl group-hover:bg-amber-600/30 transition-all" />
-          <div className="relative transform hover:scale-105 transition-transform">
-            <TarotCard player={player} isFlipped={true} size="small" />
+      <div className="brass-frame panel-ink relative flex h-full flex-col px-10 pb-3 pt-7">
+        <FrameCorners />
+        <div className="grain absolute inset-0" />
+
+        {!message ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
+            <div className="font-cinzel text-sm tracking-[0.5em] text-brass/60">WHITEFIRE PASS</div>
+            <div className="font-serif text-sm tracking-widest text-frost-dim">按下「下一步」，故事将会开始……</div>
           </div>
-        </div>
-        {!player.isAlive && (
-          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-            <span className="text-red-500 font-bold text-sm rotate-12 font-cinzel tracking-wider">DECEASED</span>
-          </div>
+        ) : (
+          <>
+            {narration && (
+              <div className="mb-2 flex flex-shrink-0 items-center justify-center gap-3 text-[11px] tracking-[0.5em] text-brass/60">
+                <span className="rule-brass w-16" />叙 述<span className="rule-brass w-16" />
+              </div>
+            )}
+            {thinking && !narration && <InnerVoice key={message.id} text={thinking} />}
+            <div onClick={skip} className="relative min-h-0 flex-1 cursor-pointer overflow-y-auto pr-2">
+              <p
+                className={cn(
+                  'whitespace-pre-line font-serif leading-[1.9] tracking-wide',
+                  narration ? 'text-center text-[15px] italic text-frost' : 'text-[16px] text-parchment',
+                )}
+              >
+                {shown}
+                {!done && <span className="ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 animate-pulse bg-brass-light" />}
+              </p>
+            </div>
+          </>
         )}
-      </div>
-    </div>
-  );
-}
 
-function DialogContent({ message, displayText, roleInfo, messageTypeName, isVisible }: {
-  message: Message;
-  displayText: string;
-  roleInfo: { name: string; subtitle: string } | null;
-  messageTypeName: string;
-  isVisible: boolean;
-}) {
-  return (
-    <div className={cn('flex-1 flex flex-col justify-between min-h-0 transition-all duration-500', isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4')}>
-      <div className="flex items-baseline gap-3 mb-3">
-        <div className="relative">
-          <h3 className={cn(TYPOGRAPHY.h2, "text-amber-100")}>{message.from}</h3>
-          <div className="absolute -bottom-1 left-0 right-0 h-px bg-gradient-to-r from-amber-600/80 via-amber-600/40 to-transparent" />
-        </div>
-        {roleInfo && (
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-amber-600/70 font-serif">{roleInfo.name}</span>
-            <span className="text-slate-500">·</span>
-            <span className="text-slate-500 italic font-serif">{roleInfo.subtitle}</span>
-          </div>
-        )}
-        <div className="ml-auto">
-          <span className={cn(BADGE.default, "rounded font-serif bg-amber-900/30 text-amber-500/80", getBorderClass('all', 'border-amber-600', 'divider'))}>
-            {messageTypeName}
+        <footer className="relative mt-2 flex flex-shrink-0 items-center justify-between gap-4 border-t border-brass/10 pt-2">
+          <span className="font-serif text-[11px] tracking-widest text-frost-dim/70">
+            {message?.round ? `第${toHanzi(message.round)}回 · ` : ''}
+            {message?.phase ? PHASE_NAME[message.phase] : '寂静山庄'}
+            {message && done && <span className="ml-3 animate-pulse text-brass/70">▼</span>}
           </span>
-        </div>
+          <div className="flex items-center gap-2">{children}</div>
+        </footer>
       </div>
-      <div className="flex-1 overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgb(120 113 108) transparent' }}>
-        <div className={cn('text-slate-200 text-base leading-relaxed font-serif', message.type === 'thinking' && 'italic text-emerald-400/90', message.type === 'system' && 'text-amber-100/90')}>
-          {displayText}
-        </div>
-      </div>
-      <div className="mt-3 pt-2 border-t border-amber-600/10">
-        <div className="flex items-center justify-between text-xs text-slate-500">
-          <span className="font-serif italic">白烬山口 · 寂静山庄</span>
-          <span className="font-mono">{new Date(message.timestamp).toLocaleTimeString('zh-CN')}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function ADVDialogBox({ currentMessage, currentPlayer, className }: ADVDialogBoxProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const [displayText, setDisplayText] = useState('');
-
-  useEffect(() => {
-    if (currentMessage) {
-      setIsVisible(false);
-      setTimeout(() => {
-        setIsVisible(true);
-        setDisplayText(currentMessage.content);
-      }, 100);
-    }
-  }, [currentMessage]);
-
-  if (!currentMessage) {
-    return <EmptyDialogState className={className} />;
-  }
-
-  const isSystemMessage = currentMessage.from === '叙述者' || currentMessage.type === 'system';
-  const roleInfo = currentPlayer ? roleNames[currentPlayer.role] : null;
-  const messageTypeName = messageTypeNames[currentMessage.type] || currentMessage.type;
-
-  return (
-    <div className={cn(
-      'relative w-full h-64 bg-gradient-to-b from-slate-900/95 to-slate-950/98 backdrop-blur-sm overflow-hidden',
-      getBorderClass('t', 'border-amber-600', 'divider', '2'),
-      className
-    )}>
-      {/* Decorative top border */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-600/50 to-transparent" />
-
-      {/* Background ornament */}
-      <div className="absolute inset-0 opacity-5">
-        <svg className="w-full h-full" viewBox="0 0 800 300">
-          <pattern id="adv-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-            <circle cx="50" cy="50" r="1" fill="currentColor" className="text-amber-600" />
-          </pattern>
-          <rect width="800" height="300" fill="url(#adv-pattern)" />
-        </svg>
-      </div>
-
-      <div className="relative h-full flex items-center gap-6 px-8 py-6">
-        {!isSystemMessage && currentPlayer && (
-          <CharacterPortrait player={currentPlayer} isVisible={isVisible} />
-        )}
-        <DialogContent
-          message={currentMessage}
-          displayText={displayText}
-          roleInfo={roleInfo}
-          messageTypeName={messageTypeName}
-          isVisible={isVisible}
-        />
-      </div>
-
-      {/* Decorative corners */}
-      <svg className="absolute top-0 left-0 w-16 h-16 text-amber-600/20 pointer-events-none">
-        <path d="M0 0 L16 0 M0 0 L0 16" stroke="currentColor" strokeWidth="2" />
-        <circle cx="0" cy="0" r="4" fill="currentColor" />
-      </svg>
-      <svg className="absolute top-0 right-0 w-16 h-16 text-amber-600/20 pointer-events-none">
-        <path d="M64 0 L48 0 M64 0 L64 16" stroke="currentColor" strokeWidth="2" />
-        <circle cx="64" cy="0" r="4" fill="currentColor" />
-      </svg>
-      <svg className="absolute bottom-0 left-0 w-16 h-16 text-amber-600/20 pointer-events-none">
-        <path d="M0 64 L16 64 M0 64 L0 48" stroke="currentColor" strokeWidth="2" />
-        <circle cx="0" cy="64" r="4" fill="currentColor" />
-      </svg>
-      <svg className="absolute bottom-0 right-0 w-16 h-16 text-amber-600/20 pointer-events-none">
-        <path d="M64 64 L48 64 M64 64 L64 48" stroke="currentColor" strokeWidth="2" />
-        <circle cx="64" cy="64" r="4" fill="currentColor" />
-      </svg>
     </div>
   );
 }

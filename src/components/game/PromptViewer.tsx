@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useGameStore } from '@/stores/game-store';
-import { buildPrompt } from '@/lib/gemini';
+import { buildPrompt } from '@/lib/deepseek';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Brain, User, Users, Skull } from 'lucide-react';
 import type { Player } from '@/types/game';
@@ -36,9 +36,9 @@ const roleNames: Record<string, { name: string; subtitle: string }> = {
  */
 function getFactionDisplay(role: string): { name: string; color: string } {
   if (role === 'marked' || role === 'heretic') {
-    return { name: '收割阵营', color: 'bg-red-600' };
+    return { name: '收割阵营', color: 'bg-seal' };
   }
-  return { name: '羔羊阵营', color: 'bg-blue-600' };
+  return { name: '羔羊阵营', color: 'bg-frost-deep' };
 }
 
 /**
@@ -61,9 +61,9 @@ function PlayerPromptDisplay({ player }: { player: Player }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {player.isAlive ? (
-            <User className="w-5 h-5 text-green-500" />
+            <User className="w-5 h-5 text-pyre-soft" />
           ) : (
-            <Skull className="w-5 h-5 text-red-500" />
+            <Skull className="w-5 h-5 text-seal-light" />
           )}
           <div>
             <h3 className="font-bold text-lg">{player.name}</h3>
@@ -118,7 +118,7 @@ function AllPlayersOverview() {
         {alivePlayers.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-green-500" />
+              <Users className="w-5 h-5 text-pyre-soft" />
               <h3 className="font-bold text-lg">存活玩家 ({alivePlayers.length})</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -129,7 +129,7 @@ function AllPlayersOverview() {
                 return (
                   <div key={player.id} className="p-3 rounded-lg border border-border bg-card">
                     <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-green-500" />
+                      <User className="w-4 h-4 text-pyre-soft" />
                       <span className="font-semibold">{player.name}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-2">
@@ -151,7 +151,7 @@ function AllPlayersOverview() {
         {deadPlayers.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <Skull className="w-5 h-5 text-red-500" />
+              <Skull className="w-5 h-5 text-seal-light" />
               <h3 className="font-bold text-lg">已死亡玩家 ({deadPlayers.length})</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -162,7 +162,7 @@ function AllPlayersOverview() {
                 return (
                   <div key={player.id} className="p-3 rounded-lg border border-border bg-card opacity-60">
                     <div className="flex items-center gap-2">
-                      <Skull className="w-4 h-4 text-red-500" />
+                      <Skull className="w-4 h-4 text-seal-light" />
                       <span className="font-semibold line-through">{player.name}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-2">

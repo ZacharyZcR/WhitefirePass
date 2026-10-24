@@ -1,347 +1,148 @@
 /**
- * Message flow component - displays game conversation
+ * Message flow - the ledger's entries, grouped by round and phase.
  */
 
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { RotateCcw } from 'lucide-react';
 import type { Message, Player } from '@/types/game';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { PHASE_LABELS, TIME_LABELS } from '@/lib/latin-text';
-import {
-  Brain,
-  MessageSquare,
-  Vote,
-  Skull,
-  Activity,
-  FileText,
-  AlertCircle,
-  RotateCcw,
-} from 'lucide-react';
+import { PHASE_LABELS } from '@/lib/latin-text';
+import { PHASE_NAME, roleInfo, toHanzi } from '@/lib/design-tokens';
 import { useGameStore } from '@/stores/game-store';
 
 interface MessageFlowProps {
   messages: Message[];
-  players?: Player[];  // Optional players list to show roles
-  filterTypes?: string[];  // Optional filter for message types
+  players?: Player[];
+  filterTypes?: string[];
 }
 
-/**
- * Message type styling - Stone theme with semantic colors and accent borders
- */
-const messageStyles: Record<string, string> = {
-  system: 'bg-muted/50 border-l-4 border-yellow-500',
-  speech: 'bg-card border-l-4 border-blue-500',
-  vote: 'bg-card border-l-4 border-orange-500',
-  death: 'bg-card border-l-4 border-red-500',
-  action: 'bg-card border-l-4 border-purple-500',
-  prompt: 'bg-secondary border-l-4 border-cyan-500',
-  thinking: 'bg-accent/30 border-l-4 border-emerald-500 italic',
-  secret: 'bg-purple-950/30 border-l-4 border-purple-400',
+const TYPE_MARK: Record<string, { label: string; tone: string }> = {
+  system: { label: '叙述', tone: 'text-frost-dim border-frost-dim/30' },
+  speech: { label: '发言', tone: 'text-brass border-brass/30' },
+  vote: { label: '投票', tone: 'text-seal-light border-seal/40' },
+  death: { label: '讣告', tone: 'text-seal-light border-seal/50' },
+  action: { label: '行动', tone: 'text-pyre-soft border-pyre/30' },
+  prompt: { label: '神谕', tone: 'text-pyre-soft border-pyre/30' },
+  thinking: { label: '独白', tone: 'text-pyre border-pyre/30' },
+  secret: { label: '密会', tone: 'text-[#b9a4d8] border-[#b9a4d8]/30' },
 };
 
-/**
- * Message type names in Chinese
- */
-const messageTypeNames: Record<string, string> = {
-  system: '叙述者',
-  speech: '发言',
-  vote: '投票',
-  death: '死亡',
-  action: '行动',
-  prompt: 'AI提示词',
-  thinking: 'AI思考',
-  secret: '密会',
-};
+const isAIMessage = (m: Message) => ['speech', 'vote', 'thinking'].includes(m.type) && m.from !== '叙述者';
 
-/**
- * Phase names in Chinese
- */
-const phaseNames: Record<string, string> = {
-  prologue: '序章',
-  setup: '序章',
-  night: '夜晚',
-  day: '白天',
-  voting: '投票',
-  secret_meeting: '密会',
-  event: '事件',
-  end: '结束',
-};
+const formatTime = (t: number) =>
+  new Date(t).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-/**
- * Format timestamp
- */
-function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString('zh-CN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
+function PhaseDivider({ round, phase }: { round?: number; phase?: Message['phase'] }) {
+  return (
+    <div className="flex items-center gap-3 py-3">
+      <span className="rule-brass flex-1" />
+      <div className="text-center leading-tight">
+        <div className="font-serif text-xs tracking-[0.3em] text-brass-light">
+          {round ? `第${toHanzi(round)}回` : ''}
+          {round && phase ? ' · ' : ''}
+          {phase ? PHASE_NAME[phase] : ''}
+        </div>
+        {phase && <div className="font-latin text-[10px] italic text-brass/50">{PHASE_LABELS[phase]?.latin}</div>}
+      </div>
+      <span className="rule-brass flex-1" />
+    </div>
+  );
 }
 
-/**
- * Get icon for message type
- */
-function getMessageIcon(type: string) {
-  switch (type) {
-    case 'system':
-      return <AlertCircle className="w-4 h-4" />;
-    case 'speech':
-      return <MessageSquare className="w-4 h-4" />;
-    case 'vote':
-      return <Vote className="w-4 h-4" />;
-    case 'death':
-      return <Skull className="w-4 h-4" />;
-    case 'action':
-      return <Activity className="w-4 h-4" />;
-    case 'prompt':
-      return <FileText className="w-4 h-4" />;
-    case 'thinking':
-      return <Brain className="w-4 h-4" />;
-    default:
-      return <MessageSquare className="w-4 h-4" />;
-  }
-}
-
-/**
- * Render message content based on type
- */
-function renderMessageContent(message: Message) {
+function MessageContent({ message }: { message: Message }) {
   if (message.type === 'prompt') {
     return (
-      <pre className="whitespace-pre-wrap font-mono text-xs bg-secondary/50 text-cyan-400 p-3 rounded overflow-x-auto border border-cyan-500/30">
+      <pre className="max-h-96 overflow-auto whitespace-pre-wrap rounded-sm border border-pyre/20 bg-black/40 p-3 font-mono text-[11px] leading-relaxed text-pyre-soft">
         {message.content}
       </pre>
     );
   }
-
-  if (message.type === 'thinking') {
-    return (
-      <div className="pl-3 border-l-2 border-emerald-500/50 flex items-start gap-2">
-        <Brain className="w-4 h-4 mt-0.5 flex-shrink-0" />
-        <span>{message.content}</span>
-      </div>
-    );
-  }
-
-  return message.content;
-}
-
-/**
- * Role names with English/Latin subtitles
- */
-const roleNames: Record<string, { name: string; subtitle: string }> = {
-  marked: { name: '烙印者', subtitle: 'The Marked' },
-  heretic: { name: '背誓者', subtitle: 'The Heretic' },
-  listener: { name: '聆心者', subtitle: 'The Listener' },
-  coroner: { name: '食灰者', subtitle: 'Ash-Walker' },
-  twin: { name: '共誓者', subtitle: 'The Twin' },
-  guard: { name: '设闩者', subtitle: 'Guardian' },
-  innocent: { name: '无知者', subtitle: 'The Innocent' },
-};
-
-/**
- * Render message badges
- */
-function MessageBadges({ message, messageTypeName, playerRole }: {
-  message: Message;
-  messageTypeName: string;
-  playerRole?: string;
-}) {
   return (
-    <>
-      {message.type !== 'system' && (
-        <>
-          <Badge variant="outline" className="text-xs flex items-center gap-1">
-            {messageTypeName}
-          </Badge>
-          {playerRole && (
-            <Badge variant="secondary" className="text-xs">
-              {roleNames[playerRole]?.name || playerRole}
-            </Badge>
-          )}
-        </>
-      )}
-    </>
-  );
-}
-
-/**
- * Phase divider component - shows when round or phase changes
- */
-function PhaseDivider({ round, phase }: { round?: number; phase?: string }) {
-  const phaseName = phase ? (phaseNames[phase] ?? phase) : '';
-  const phaseLabel = phase && PHASE_LABELS[phase as keyof typeof PHASE_LABELS]
-    ? PHASE_LABELS[phase as keyof typeof PHASE_LABELS]
-    : null;
-
-  return (
-    <div className="flex items-center gap-3 my-4">
-      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-border" />
-      <div className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-        <div className="flex flex-col items-center">
-          <span className="text-xs font-semibold text-primary font-cinzel tracking-wider">
-            {round ? `${TIME_LABELS.round.chinese} ${round}` : ''}
-            {round && phase ? ' · ' : ''}
-            {phaseName}
-          </span>
-          {phaseLabel && (
-            <span className="text-[9px] text-primary/50 font-serif italic tracking-wide">
-              {phaseLabel.latin}
-            </span>
-          )}
-        </div>
-      </div>
-      <div className="flex-1 h-px bg-gradient-to-l from-transparent via-border to-border" />
-    </div>
-  );
-}
-
-/**
- * Individual message item component
- */
-function MessageItem({ message, index, players, isLastAIMessage }: {
-  message: Message;
-  index: number;
-  players?: Player[];
-  isLastAIMessage?: boolean;
-}) {
-  const messageStyle = messageStyles[message.type] ?? 'bg-card';
-  const messageTypeName = messageTypeNames[message.type] ?? message.type;
-  const phaseName = message.phase ? (phaseNames[message.phase] ?? message.phase) : '';
-  const contentColor = message.type === 'thinking' ? 'text-emerald-400' : 'text-foreground';
-  const showPhaseInfo = Boolean(message.phase && message.round);
-  const { retryLastAIResponse, isProcessing } = useGameStore();
-
-  // Find player role (for user to see, doesn't affect game logic)
-  const playerRole = players?.find(p => p.name === message.from)?.role;
-
-  // Show retry button for AI messages (speech, vote, thinking) that are the last AI message
-  const isAIMessage = ['speech', 'vote', 'thinking'].includes(message.type) && message.from !== '叙述者';
-  const showRetryButton = isAIMessage && isLastAIMessage;
-
-  return (
-    <div
+    <p
       className={cn(
-        'rounded-lg p-3 shadow-md animate-in fade-in slide-in-from-bottom-4 duration-500',
-        messageStyle,
+        'whitespace-pre-line leading-relaxed',
+        message.type === 'thinking' && 'italic text-pyre/85',
+        message.type === 'system' && 'italic text-frost',
+        message.type === 'death' && 'text-seal-light',
       )}
-      style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
     >
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          {getMessageIcon(message.type)}
-          <span className="font-bold text-sm text-foreground">
-            {message.from}
+      {message.content}
+    </p>
+  );
+}
+
+function MessageItem({ message, players, showRetry }: { message: Message; players?: Player[]; showRetry: boolean }) {
+  const { retryLastAIResponse, isProcessing } = useGameStore();
+  const player = players?.find((p) => p.name === message.from.replace(/\s*\(神谕\)\s*$/, ''));
+  const mark = TYPE_MARK[message.type] ?? TYPE_MARK.system;
+
+  return (
+    <article className="group border-b border-brass/10 py-2.5 font-serif text-sm text-parchment animate-in fade-in slide-in-from-bottom-1 duration-300">
+      <header className="mb-1 flex items-center gap-2">
+        <span className="font-semibold tracking-wider text-brass-light">{message.from}</span>
+        {player && (
+          <span className="text-[10px]" style={{ color: roleInfo(player.role).color }}>
+            {roleInfo(player.role).name}
           </span>
-          <MessageBadges message={message} messageTypeName={messageTypeName} playerRole={playerRole} />
-        </div>
-        <div className="flex items-center gap-2">
-          {showRetryButton && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-6 px-2 text-xs gap-1"
+        )}
+        <span className={cn('rounded-[2px] border px-1 text-[9px] tracking-widest', mark.tone)}>{mark.label}</span>
+        <span className="ml-auto flex items-center gap-2">
+          {showRetry && (
+            <button
               onClick={() => void retryLastAIResponse()}
               disabled={isProcessing}
+              className="flex items-center gap-1 rounded-sm border border-brass/30 px-1.5 py-0.5 text-[10px] text-brass hover:border-brass/70 hover:text-brass-light disabled:opacity-40"
             >
-              <RotateCcw className="w-3 h-3" />
+              <RotateCcw className="h-3 w-3" />
               重试
-            </Button>
+            </button>
           )}
-          <span className="text-xs text-muted-foreground">
-            {formatTime(message.timestamp)}
-          </span>
-        </div>
-      </div>
-
-      <div className={cn("text-sm leading-relaxed", contentColor)}>
-        {renderMessageContent(message)}
-      </div>
-
-      {showPhaseInfo && (
-        <div className="mt-2 pt-2 border-t text-xs text-muted-foreground">
-          第 {message.round} 回合 • {phaseName}
-        </div>
-      )}
-    </div>
+          <span className="font-mono text-[10px] text-frost-dim/50">{formatTime(message.timestamp)}</span>
+        </span>
+      </header>
+      <MessageContent message={message} />
+    </article>
   );
 }
 
 export function MessageFlow({ messages, players, filterTypes }: MessageFlowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  // Filter messages if filterTypes is provided
-  const filteredMessages = filterTypes
-    ? messages.filter((msg) => filterTypes.includes(msg.type))
-    : messages;
+  const list = filterTypes ? messages.filter((m) => filterTypes.includes(m.type)) : messages;
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [list]);
+
+  let lastAI = -1;
+  for (let i = list.length - 1; i >= 0; i--) {
+    if (isAIMessage(list[i])) {
+      lastAI = i;
+      break;
     }
-  }, [filteredMessages]);
-
-  // Build list with dividers between round/phase changes
-  const renderMessagesWithDividers = () => {
-    const elements: JSX.Element[] = [];
-    let lastRound: number | undefined;
-    let lastPhase: string | undefined;
-
-    // Find the last AI message index
-    let lastAIMessageIndex = -1;
-    for (let i = filteredMessages.length - 1; i >= 0; i--) {
-      const msg = filteredMessages[i];
-      const isAIMessage = ['speech', 'vote', 'thinking'].includes(msg.type) && msg.from !== '叙述者';
-      if (isAIMessage) {
-        lastAIMessageIndex = i;
-        break;
-      }
-    }
-
-    filteredMessages.forEach((message, idx) => {
-      // Check if round or phase changed
-      const roundChanged = message.round !== undefined && message.round !== lastRound;
-      const phaseChanged = message.phase !== undefined && message.phase !== lastPhase;
-
-      if ((roundChanged || phaseChanged) && (message.round || message.phase)) {
-        elements.push(
-          <PhaseDivider
-            key={`divider-${message.round}-${message.phase}-${idx}`}
-            round={roundChanged ? message.round : undefined}
-            phase={message.phase}
-          />
-        );
-      }
-
-      const isLastAIMessage = idx === lastAIMessageIndex;
-      elements.push(
-        <MessageItem
-          key={message.id}
-          message={message}
-          index={idx}
-          players={players}
-          isLastAIMessage={isLastAIMessage}
-        />
-      );
-
-      lastRound = message.round;
-      lastPhase = message.phase;
-    });
-
-    return elements;
-  };
+  }
 
   return (
-    <div ref={scrollRef} className="h-full w-full overflow-y-auto p-4 space-y-3">
-      {filteredMessages.length === 0 ? (
-        <div className="flex h-full items-center justify-center text-muted-foreground">
-          <p>暂无消息。开始游戏后将显示游戏进程！</p>
+    <div ref={scrollRef} className="h-full w-full overflow-y-auto px-6 pb-6">
+      {list.length === 0 ? (
+        <div className="flex h-full items-center justify-center font-serif text-sm tracking-widest text-frost-dim">
+          此页尚无记载
         </div>
       ) : (
-        renderMessagesWithDividers()
+        list.map((m, i) => {
+          const prev = list[i - 1];
+          const roundChanged = m.round !== undefined && m.round !== prev?.round;
+          const phaseChanged = m.phase !== undefined && m.phase !== prev?.phase;
+          return (
+            <div key={m.id}>
+              {(roundChanged || phaseChanged) && (m.round || m.phase) && (
+                <PhaseDivider round={roundChanged ? m.round : undefined} phase={m.phase} />
+              )}
+              <MessageItem message={m} players={players} showRetry={i === lastAI} />
+            </div>
+          );
+        })
       )}
     </div>
   );

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import { Cinzel, Noto_Serif_SC } from 'next/font/google';
+import { Cinzel, Cormorant_Garamond, Noto_Serif_SC } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 
-// Gothic-style font for titles and headings
+// Roman capitals for engraved labels
 const cinzel = Cinzel({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
@@ -11,10 +11,19 @@ const cinzel = Cinzel({
   display: 'swap',
 });
 
-// Chinese serif font for body text
+// Edwardian italic for Latin mottos
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  style: ['normal', 'italic'],
+  variable: '--font-cormorant',
+  display: 'swap',
+});
+
+// Chinese serif body text
 const notoSerifSC = Noto_Serif_SC({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700', '900'],
   variable: '--font-noto-serif-sc',
   display: 'swap',
 });
@@ -24,19 +33,16 @@ export const metadata: Metadata = {
   description: '1913年深冬，15名旅人被困于寂静山庄，山灵的契约已成，收割与羔羊的生死博弈正式开始',
 };
 
-/**
- * Root layout component for the application
- * @param props The component props
- * @param props.children Child components to render
- * @returns The root layout with providers
- */
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>): React.ReactElement {
   return (
-    <html lang="zh-CN" className={`dark ${cinzel.variable} ${notoSerifSC.variable}`}>
+    <html
+      lang="zh-CN"
+      className={`dark ${cinzel.variable} ${cormorant.variable} ${notoSerifSC.variable}`}
+    >
       <body className="antialiased">
         <Providers>{children}</Providers>
       </body>
