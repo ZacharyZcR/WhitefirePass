@@ -12,9 +12,7 @@ import type { CharacterRelationship } from '@/types/game';
  * - 例如 virtue=0.7, vice=0.2 → 70%美德, 20%罪恶, 10%正常
  */
 export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
-  // 兄妹：托马斯 ⟷ 莉迪亚
-  // 她当掉了母亲的石榴石项链替他还债，扔了当票；他偷偷捡回来，想用这次的钱赎回。
-  // 她没收到信，长桌第十五张椅子上却别着她的名字。
+  // 兄妹关系：托马斯 ⟷ 莉迪亚
   {
     character: '莉迪亚·克劳利',
     target: '托马斯·克劳利',
@@ -33,7 +31,6 @@ export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
   },
 
   // 旧识：诺拉 ⟷ 马库斯
-  // 1910年爱丁堡讲座，他问"谁替狼说话"；雨里送她到韦弗利车站的十分钟。两人都记得，都不提。
   {
     character: '诺拉·格雷',
     target: '马库斯·霍克',
@@ -52,8 +49,6 @@ export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
   },
 
   // 前恋人：维克多 ⟷ 艾米莉
-  // 布隆方丹战地医院相识，伦敦同居数年，1905年她离开。
-  // 她换药时哼《与我同住》，他至今听不得；她口袋里留着他军装上的铜纽扣，他不知道。
   {
     character: '维克多·斯通',
     target: '艾米莉·卡特',
@@ -72,7 +67,6 @@ export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
   },
 
   // 单恋：奥利弗 → 索菲亚
-  // 她来他的药房买安眠药，他每次偷偷减量；她只觉得"药越来越不管用"。
   {
     character: '奥利弗·佩恩',
     target: '索菲亚·阿什福德',
@@ -90,8 +84,7 @@ export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
     // 10%正常
   },
 
-  // 债务：本杰明 ⟷ 亚历山大
-  // 五百镑，格里姆肖的账。亚历山大去过怀特家，替他女儿艾玛系过鞋带——本杰明最怕的一幕。
+  // 债务关系：本杰明 ⟷ 亚历山大
   {
     character: '本杰明·怀特',
     target: '亚历山大·莫里斯',
@@ -110,8 +103,6 @@ export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
   },
 
   // 情敌：伊莎贝拉 ⟷ 夏洛特
-  // 霍尔布鲁克先生先是伊莎贝拉的资助人，后转向夏洛特；伊莎贝拉的流言让他撤资，夏洛特没演成麦克白夫人。
-  // 他撤资那天外套上有紫罗兰香水味。两人都输了，各自只记得对方赢。
   {
     character: '伊莎贝拉·费尔法克斯',
     target: '夏洛特·温特斯',
@@ -129,8 +120,7 @@ export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
     // 5%正常
   },
 
-  // 母女般：艾琳 ⟷ 克莱尔
-  // 第一夜艾琳把披肩给了发抖的克莱尔。
+  // 母女般的关系：艾琳 ⟷ 克莱尔
   {
     character: '艾琳·哈钦斯',
     target: '克莱尔·沃伦',
@@ -148,8 +138,7 @@ export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
     // 10%正常
   },
 
-  // 救赎：艾琳 ⟷ 塞缪尔
-  // 艾琳请他为汤姆祷告；他引错经文，她轻声纠正。她是唯一让他觉得袍子很薄的人。
+  // 救赎关系：艾琳 ⟷ 塞缪尔
   {
     character: '艾琳·哈钦斯',
     target: '塞缪尔·布莱克伍德',
@@ -167,8 +156,7 @@ export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
     // 5%正常
   },
 
-  // 阶级：克莱尔 ⟷ 索菲亚
-  // 克莱尔在阿什福德庄园给她刷过三年靴子；索菲亚不认得她的脸。
+  // 阶级关系：克莱尔 ⟷ 索菲亚
   {
     character: '克莱尔·沃伦',
     target: '索菲亚·阿什福德',
@@ -187,7 +175,6 @@ export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
   },
 
   // 神父与罪人：塞缪尔 ⟷ 托马斯
-  // 上山的马车里，托马斯向他忏悔了当票的事。他只说："先把它赎回来。"
   {
     character: '塞缪尔·布莱克伍德',
     target: '托马斯·克劳利',
@@ -206,7 +193,6 @@ export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
   },
 
   // 军人与猎人：维克多 ⟷ 马库斯
-  // 两人夜里都查窗户，站在窗前一起抽烟，不说话。
   {
     character: '维克多·斯通',
     target: '马库斯·霍克',
@@ -225,7 +211,6 @@ export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
   },
 
   // 理性与信仰：诺拉 ⟷ 塞缪尔
-  // 诺拉听出他的拉丁文祷词每次错在同一处变格，没有说破。
   {
     character: '诺拉·格雷',
     target: '塞缪尔·布莱克伍德',
@@ -244,7 +229,6 @@ export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
   },
 
   // 医者与求助者：艾米莉 ⟷ 艾琳
-  // 艾米莉一直在留意艾琳的咳嗽，给过她一块薄荷糖，什么也没问。
   {
     character: '艾米莉·卡特',
     target: '艾琳·哈钦斯',
@@ -263,7 +247,6 @@ export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
   },
 
   // 被忽视的人：奥利弗 ⟷ 克莱尔
-  // 他给了她一罐冻疮膏。山庄里没人注意她，也没人注意他。
   {
     character: '奥利弗·佩恩',
     target: '克莱尔·沃伦',
@@ -281,8 +264,7 @@ export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
     // 10%正常
   },
 
-  // 台下的观众：奥利弗 → 夏洛特
-  // 几年前他在白教堂看她演奥菲莉亚，买了三次票，坐第三排。她记得那张脸，想不起是谁。
+  // 单恋演员：奥利弗 → 夏洛特
   {
     character: '奥利弗·佩恩',
     target: '夏洛特·温特斯',
@@ -296,17 +278,16 @@ export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
     target: '奥利弗·佩恩',
     type: 'crush',
     virtueChance: 0.80,  // 80%明星光芒（观众的死让她更耀眼）
-    viceChance: 0.10,    // 10%舞台崩塌（失去第三排那个唯一的观众）
+    viceChance: 0.10,    // 10%舞台崩塌（失去唯一真心的观众）
     // 10%正常
   },
 
-  // 旧账：伊莎贝拉 ⟷ 本杰明
-  // 1911年她在他店里赊了三件丝绸晚礼服，四十三镑，至今未付。她不记得他，他记得每一笔。
+  // 操纵关系：伊莎贝拉 ⟷ 本杰明
   {
     character: '伊莎贝拉·费尔法克斯',
     target: '本杰明·怀特',
     type: 'acquaintance',
-    virtueChance: 0.85,  // 85%胜者姿态（一张账单随他一起埋了）
+    virtueChance: 0.85,  // 85%胜者姿态（少了一个可利用的人）
     viceChance: 0.10,    // 10%魅力失效（连商人都控制不了）
     // 5%正常
   },
@@ -314,7 +295,7 @@ export const CHARACTER_RELATIONSHIPS: CharacterRelationship[] = [
     character: '本杰明·怀特',
     target: '伊莎贝拉·费尔法克斯',
     type: 'acquaintance',
-    virtueChance: 0.70,  // 70%商人的觉醒（不再对赊账的人陪笑）
+    virtueChance: 0.70,  // 70%商人的觉醒（不再被魅力迷惑）
     viceChance: 0.20,    // 20%恐惧的囚徒（失去了可以交易的对象）
     // 10%正常
   },

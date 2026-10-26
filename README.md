@@ -326,7 +326,7 @@ export const DEFAULT_ROLE_CONFIG = {
 
 ### 模型配置
 
-在 `src/lib/deepseek.ts` 中修改：`DEFAULT_MODEL`（默认 `deepseek-flash`）、`REASONING_EFFORT`（默认 `low`）、`MAX_STEPS`（一次决策最多几轮工具调用）。
+在 `src/lib/deepseek.ts` 中修改：`DEFAULT_MODEL`（默认 `deepseek-flash`）、`REASONING_EFFORT`（默认 `low`）。
 
 ## 🤝 贡献指南
 

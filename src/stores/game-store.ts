@@ -20,7 +20,8 @@ import {
   generateGameEvent,
   advancePhase,
 } from '@/lib/game-engine';
-import { getAIResponse, buildPrompt, DEFAULT_API_URL } from '@/lib/deepseek';
+import { getAIResponse, buildPrompt, DEFAULT_API_URL, type AIReply } from '@/lib/deepseek';
+import { formatSuspicion } from '@/lib/ai/view';
 import { getActingPlayers } from '@/lib/actors';
 import { buildPrologueMessages } from '@/lib/story-text';
 import { getInitialClues } from '@/lib/clues-data';
@@ -341,7 +342,7 @@ export const useGameStore = create<GameStore>()(
         const thinkingMsg1 = addMessage(
           gameState,
           player1.name,
-          thinking1,
+          noteThinking(gameState, player1, response1),
           'thinking',
           { player: player1.name },  // Thinking is private, only visible to the player themselves
         );
@@ -388,7 +389,7 @@ export const useGameStore = create<GameStore>()(
         const thinkingMsg2 = addMessage(
           gameState,
           player2.name,
-          thinking2,
+          noteThinking(gameState, player2, response2),
           'thinking',
           { player: player2.name },  // Thinking is private, only visible to the player themselves
         );
@@ -478,6 +479,7 @@ export const useGameStore = create<GameStore>()(
     // Change phase before advancing (prevent infinite loop)
     const nextPhase = advancePhase(gameState);
     gameState.phase = nextPhase;
+    if (nextPhase === 'night') enterNightPhase(gameState);
 
     // Trigger phase transition
     if (nextPhase === 'night') {
@@ -917,8 +919,10 @@ export const useGameStore = create<GameStore>()(
       const phaseBefore = gameState.phase;
       handleDayVotingResult(gameState, eliminated, isTied, tiedPlayers);
 
-      // After voting, go to secret meeting (after sacrifice)
-      if (phaseBefore === 'voting' && gameState.phase === 'voting') {
+      // 献祭之后：已分胜负就交给下一步结算，否则进入献祭后的密会 → 事件 → 夜晚
+      if (phaseBefore === 'voting' && gameState.phase === 'voting' && checkWinCondition(gameState)) {
+        gameState.phase = 'event';
+      } else if (phaseBefore === 'voting' && gameState.phase === 'voting') {
         gameState.phase = 'secret_meeting';
         initSecretMeetingPhase(gameState, 'after_sacrifice');
         get().triggerTransition('secret_meeting', gameState.round);
@@ -1018,7 +1022,7 @@ export const useGameStore = create<GameStore>()(
           addMessage(
             gameState,
             currentPlayer.name,
-            thinking,
+            noteThinking(gameState, currentPlayer, response),
             'thinking',
             { player: currentPlayer.name },
           ),
@@ -1103,6 +1107,15 @@ export const useGameStore = create<GameStore>()(
     },
   ),
 );
+
+/**
+ * 记下这次的怀疑名单（下次决策会看到），并把它接在心里话后面一起显示
+ */
+function noteThinking(gameState: GameState, player: Player, reply: AIReply): string {
+  if (!reply.suspicion.length) return reply.thinking;
+  gameState.suspicions = { ...gameState.suspicions, [player.name]: reply.suspicion };
+  return `${reply.thinking}\n\n【怀疑名单】\n${formatSuspicion(reply.suspicion)}`;
+}
 
 /**
  * 把 AI 这次查阅档案的过程接在它的神谕后面
@@ -1264,7 +1277,8 @@ function handleDayVotingResult(
       );
       // Clear last sacrificed player since no one was eliminated
       gameState.lastSacrificedPlayer = undefined;
-      enterNightPhase(gameState);
+      gameState.isRevote = false;
+      gameState.tiedPlayers = [];
     } else {
       // First tie - enter revote discussion phase
       gameState.isRevote = true;
@@ -1298,7 +1312,8 @@ function handleDayVotingResult(
       // No one eliminated - clear last sacrificed
       gameState.lastSacrificedPlayer = undefined;
     }
-    enterNightPhase(gameState);
+    gameState.isRevote = false;
+    gameState.tiedPlayers = [];
   }
 }
 

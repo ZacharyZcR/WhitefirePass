@@ -237,6 +237,16 @@ export interface GameState {
   gameEvents: GameEventRecord[];  // History of all game events
 
   deathLog?: DeathRecord[];  // 死亡记录（旧存档没有这个字段）
+  suspicions?: Record<string, SuspicionEntry[]>;  // 每个角色最近一次给出的怀疑名单
+}
+
+/**
+ * 一个角色对另一个人的判断：是收割者的可能性（0~100）和理由
+ */
+export interface SuspicionEntry {
+  name: string;
+  p: number;
+  why: string;
 }
 
 /**

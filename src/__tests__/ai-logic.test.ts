@@ -81,4 +81,12 @@ describe('prompt', () => {
     expect(prompt).not.toContain('B的秘密心声');
     expect(prompt).not.toContain('今晚杀谁');
   });
+
+  it('上一次的怀疑名单会出现在下一次的 prompt 里', () => {
+    const s = game();
+    const me = byRole(s, 'innocent');
+    const other = s.players.find((p) => p !== me)!;
+    s.suspicions = { [me.name]: [{ name: other.name, p: 75, why: '投票总跟着烙印者嫌疑人走' }] };
+    expect(buildPrompt(me, s)).toContain(`${other.name} 75%：投票总跟着烙印者嫌疑人走`);
+  });
 });

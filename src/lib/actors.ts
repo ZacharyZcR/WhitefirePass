@@ -27,7 +27,7 @@ export function getActingPlayers(state: GameState): Player[] {
     return [...speakers.slice(start), ...speakers.slice(0, start)];
   }
 
-  return alive;
+  return []; // 密会、事件等阶段没有轮流行动的人，由各自的流程推进
 }
 
 /**

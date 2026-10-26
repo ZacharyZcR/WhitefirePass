@@ -5,12 +5,13 @@
 import type { GameState, Message, Player } from '@/types/game';
 import { getActingPlayers } from '../actors';
 import {
-  APPEARANCE, deathLines, formatLog, ownNotes, privateLog, publicLog, secretLines, voteLines,
+  APPEARANCE, deathLines, formatLog, formatSuspicion, ownNotes, ownSuspicion, privateLog, publicLog, secretLines, voteLines,
 } from './view';
 
 export const CLI_HELP = `山庄档案 —— 可用命令：
   help                         显示本说明
   status                       回合、阶段、存活者、死者、本阶段的行动顺序
+  summary                      每个人一行：生死、最近两次公开发言（节选）、投过谁、被几人投过
   me                           你的身份和只有你知道的秘密
   players [名字]                所有人的外貌与生死；带名字时列出此人说过的全部公开发言和投票
   log [选项]                    你听到过的话（公开 + 你的私密），默认最近 30 条
@@ -19,7 +20,7 @@ export const CLI_HELP = `山庄档案 —— 可用命令：
       -n N    最近 N 条（默认 30，all 为全部）
   votes [-r N]                 历次献祭投票明细与得票统计
   private                      只有你（和同伴）听到的话：密会、夜谈、能力结果
-  notes                        你自己之前写下的心里话
+  notes                        你自己之前写下的心里话，以及你最新的怀疑名单
 名字可以只写名或姓（如 诺拉、克劳利 不唯一时会提示）。`;
 
 const MAX_OUTPUT = 6000;
@@ -57,6 +58,20 @@ function status(player: Player, state: GameState): string {
 存活 ${alive.length} 人：${alive.map((p) => p.name).join('、')}
 死者：${deaths.length ? `\n${deaths.join('\n')}` : '无'}
 本阶段行动顺序：${order.map((p, i) => `${i + 1}.${p.name}${p.name === player.name ? '（你）' : ''}${i < state.currentPlayerIndex ? '✓' : ''}`).join(' ')}`;
+}
+
+/**
+ * 众人立场摘要：每人最近两次公开发言的节选和投票，一眼看全场
+ */
+export function summary(state: GameState): string {
+  const said = publicLog(state);
+  return state.players.map((p) => {
+    const recent = said.filter((m) => m.from === p.name).slice(-2)
+      .map((m) => `第${m.round}回合「${m.content.replace(/\s+/g, ' ').slice(0, 70)}${m.content.length > 70 ? '…' : ''}」`);
+    const votes = state.voteHistory.filter((v) => v.from === p.name).map((v) => `R${v.round}→${v.target}`);
+    const against = state.voteHistory.filter((v) => v.target === p.name).length;
+    return `${p.isAlive ? '·' : '✝'} ${p.name}｜${recent.join(' ') || '没说过话'}｜投票：${votes.join(' ') || '无'}｜被投 ${against} 次`;
+  }).join('\n');
 }
 
 function players(player: Player, state: GameState, query?: string): string {
@@ -113,12 +128,16 @@ export function runCli(command: string, player: Player, state: GameState): strin
   const commands: Record<string, () => string> = {
     help: () => CLI_HELP,
     status: () => status(player, state),
+    summary: () => summary(state),
     me: () => secretLines(player, state).join('\n'),
     players: () => players(player, state, args.join(' ') || undefined),
     log: () => log(player, state, args),
     votes: () => votes(state, args),
     private: () => formatLog(privateLog(player, state)) || '（没有只属于你的记录）',
-    notes: () => ownNotes(player, state).map((m) => `第 ${m.round} 回合：${m.content}`).join('\n') || '（你还没写过心里话）',
+    notes: () => [
+      ownNotes(player, state).map((m) => `第 ${m.round} 回合：${m.content}`).join('\n') || '（你还没写过心里话）',
+      ownSuspicion(player, state).length ? `【最新怀疑名单】\n${formatSuspicion(ownSuspicion(player, state))}` : '',
+    ].filter(Boolean).join('\n\n'),
   };
   const run = commands[name ?? ''];
   return clip(run ? run() : `未知命令 "${name ?? ''}"。\n\n${CLI_HELP}`);

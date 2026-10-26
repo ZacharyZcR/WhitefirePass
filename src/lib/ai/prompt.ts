@@ -6,8 +6,10 @@
 import type { GameState, Player } from '@/types/game';
 import { EMOTIONAL_STATE_PROMPTS } from '../emotional-prompts';
 import { getActingPlayers, getLegalTargets } from '../actors';
-import { CLI_HELP } from './cli';
-import { deathLines, effectiveRole, formatLog, isOwnPrivate, ownNotes, privateLog, publicLog, secretLines, voteLines } from './view';
+import { CLI_HELP, summary } from './cli';
+import {
+  deathLines, effectiveRole, formatLog, formatSuspicion, isOwnPrivate, ownNotes, ownSuspicion, privateLog, publicLog, secretLines, voteLines,
+} from './view';
 
 const LINE = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
 
@@ -36,15 +38,24 @@ ${emotional ? `\n【你此刻的心境】\n${emotional}` : ''}`;
 }
 
 function strategyBlock(player: Player, state: GameState): string {
-  const common = `【怎样才能活下去】
-- 你的目标是你这一方获胜，不只是自己苟活。沉默和随大流救不了任何人。
-- 判断要有依据：谁的说法前后矛盾、谁在投票时保护了谁、谁的死对谁有利、谁急着把话题引开、谁的自称能力经不起推敲。
-- 记住别人说过的具体内容，点名回应，不要说空泛的套话。`;
+  const others = state.players.filter((p) => p.isAlive && p.name !== player.name).length;
+  const harvest = state.players.filter((p) => p.role === 'marked' || p.role === 'heretic').length;
+  const common = `【怎样推理 —— 你这一方要赢，不只是自己苟活】
+- 先算账：收割一方一共 ${harvest} 人，你身边还活着 ${others} 人。随便指一个人，他是收割者的先验概率只有大约 ${Math.round((harvest / others) * 100)}%（死去的人里若有收割者还会更低）。没有像样的证据，就不要把一个人当成怪物。
+- 证据分轻重，别把轻的当重的：
+  · 重：聆心者/食灰者的结果、与可验证事实冲突的能力声明、两人对跳同一个独一无二的能力（必有一人在撒谎）。
+  · 中：投票站队（谁和谁总投在一起、谁在关键时刻救了谁、谁在最后一刻改票跟风）、谁的死对谁有利（夜里被杀的人生前在怀疑谁）。
+  · 轻：口误、记错名字、紧张、说话难听、性格可疑。羔羊也会犯这些错，单凭这些投人，多半烧的是自己人。
+- 警惕一边倒：烙印者最爱顺着一个现成的靶子把票堆上去。当大家都在骂同一个人时，问自己：最先把火点起来、最卖力添柴的是谁？他图什么？跟风的人里谁其实没给出自己的理由？
+- 能力声明要成对看：同一个能力只有一人。有人自称聆心者，就看谁出来对跳、谁的结果和死者身份/投票对得上；第一天说自己没能力、后来又冒出能力的，要特别警觉（背誓者第 2 天才堕落）。
+- 形成你自己的判断，再看别人怎么说；不同意就说不同意，并说出理由。不要因为前面几个人都怀疑谁，你就跟着怀疑谁。`;
   const tips: Record<string, string> = {
-    marked: `- 夜里优先杀掉已经公开、或明显像聆心者/设闩者的人；也可以杀让羔羊彼此猜疑的人。
+    marked: `- 上面是羔羊会用的推理方法，你要反过来利用它：给他们一个看似"重"的假证据，比假的能力声明更有效。
+- 夜里优先杀掉已经公开、或明显像聆心者/设闩者的人；也可以杀让羔羊彼此猜疑的人。
 - 白天像羔羊一样推理和指控。可以谎称自己是聆心者并报出假的倾听结果，来对抗真正的聆心者。
 - 同伴之间不要一起出现在同一边，不要投票整齐划一；同伴快藏不住时，跟着投他也许能保住你自己。`,
-    heretic: `- 你的价值在白天：搅乱推理，替可能的烙印者开脱，把票引向有能力的羔羊。
+    heretic: `- 上面是羔羊会用的推理方法，你要反过来利用它，但小心：你第 1 天的发言已经被所有人记住了。
+- 你的价值在白天：搅乱推理，替可能的烙印者开脱，把票引向有能力的羔羊。
 - 最强的一招是抢先谎称聆心者，报一个"污秽"给真正有威胁的人。被聆心者查到你就完了，所以要先发制人。`,
     listener: `- 你的结果是羔羊最可靠的信息，死在你手里而没说出去就毫无价值。
 - 听到"污秽"时应当尽快公开，带着大家投他；结果都是清白时，可以先藏一两天，但别藏到死。
@@ -58,7 +69,7 @@ function strategyBlock(player: Player, state: GameState): string {
     innocent: `- 你没有能力，但你的票和推理和任何人一样重要。
 - 盯住那些自称有能力的人，比较他们的说法；冒充者迟早会露出马脚。`,
   };
-  return `${common}\n${tips[effectiveRole(player, state.round)] ?? ''}`;
+  return `${common}\n【你这个身份的打法】\n${tips[effectiveRole(player, state.round)] ?? ''}`;
 }
 
 // 本回合发生的事直接给出；更早的让 AI 自己用 cli 查
@@ -70,13 +81,18 @@ function nowBlock(player: Player, state: GameState): string {
     .filter((m) => m.round === state.round)
     .sort((a, b) => a.timestamp - b.timestamp);
   const lastNote = ownNotes(player, state).at(-1);
+  const suspicion = ownSuspicion(player, state);
   return `【现在】第 ${state.round} 回合，存活 ${alive.length} 人：${alive.map((p) => p.name).join('、')}
 【死者】${deaths.length ? `\n${deaths.join('\n')}` : '还没有人死去。'}
 【历次献祭投票】${votes.length ? `\n${votes.join('\n')}` : '还没有投过票。'}
 
+【众人立场摘要】（每人最近两次发言节选和投票；要看原话全文再用 cli 查）
+${summary(state)}
+
 【本回合你听到的话】
 ${formatLog(thisRound) || '（本回合还没有人开口）'}
-${lastNote ? `\n【你上一次的心里话（第 ${lastNote.round} 回合）】\n${lastNote.content}` : ''}`;
+${lastNote ? `\n【你上一次的心里话（第 ${lastNote.round} 回合）】\n${lastNote.content}` : ''}
+${suspicion.length ? `\n【你上一次的怀疑名单】（根据新情况更新它：有新证据就改，没有就别轻易推翻）\n${formatSuspicion(suspicion)}` : ''}`;
 }
 
 function taskBlock(player: Player, state: GameState): string {
@@ -144,13 +160,14 @@ export function buildPrompt(player: Player, gameState: GameState): string {
     taskBlock(player, gameState),
     `【你怎么行动】
 你有两个工具：
-1. cli(command)：查阅山庄档案。上面只给了本回合的事，之前几天谁说过什么、谁投了谁、某人的说法有没有前后矛盾，都要自己查。
-   重要决定前先查清楚，比如：players 某人（看他说过的全部话）、log -g 聆心者（找所有自称能力的话）、votes（看投票站队）。
+1. cli(command)：查阅山庄档案。上面已有本回合的话和众人立场摘要；要核对某人的原话、找前后矛盾时再查，挑最关键的一两条查，不必把每个人都翻一遍。
+   比如：players 某人（他说过的全部原话）、log -g 聆心者（所有自称能力的话）、log -r 2 -p day（某一天的全部讨论）。
 ${CLI_HELP.split('\n').map((l) => `   ${l}`).join('\n')}
-2. submit(thinking, speech, target)：查完之后提交你的决定，一次行动只提交一次。
-   - thinking：${player.name} 此刻的心里话，第一人称，150~250 字。真实地推理：你相信什么、怀疑谁、打算怎么做。只有你自己看得到。
-   - speech：别人能听到的话（要求见上）。用 ${player.name} 自己的口吻、习惯和情绪说话，1913 年的人说话的样子。
+2. submit(thinking, speech, target, suspicion)：查完之后提交你的决定，一次行动只提交一次。
+   - thinking：你的推理过程，300~500 字，只有你自己看得到。这里不用演，冷静地想：现有证据各有多重、哪些人的说法和投票对得上或对不上、谁在带节奏、你的结论和把握有多大、下一步怎么做。
+   - speech：别人能听到的话（要求见上）。这里才是 ${player.name} 开口：用 TA 的身份、处境和情绪说话，像 1913 年的人。人设里的口头禅和小动作偶尔点缀即可，不要每句都用；话的分量要落在推理和立场上。
    - target：要求见上，不需要时留空。
+   - suspicion：你对其他活着的人的怀疑名单，至少列出你最怀疑和最信任的几位，每人给出"是收割者的可能性"（0~100）和一句理由。数字要和证据的分量相称；下次行动时你会看到这份名单。
 - 不要提到"游戏""玩家""AI""狼人"这类词；山灵、烙印者、羔羊、献祭石是这个世界里的说法，可以用。
 - 永远不要在 speech 里泄露 thinking 中不打算公开的秘密。`,
   ].filter(Boolean).join('\n\n');
