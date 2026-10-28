@@ -66,9 +66,8 @@ export function toHanzi(n: number): string {
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI'];
 export const toRoman = (n: number): string => ROMAN[n - 1] ?? String(n);
 
-/** Public asset path that survives the GitHub Pages basePath */
-const BASE_PATH = process.env.NODE_ENV === 'production' ? '/WhitefirePass' : '';
-export const assetPath = (path: string): string => `${BASE_PATH}${path}`;
+/** 公开资源路径（已不再部署到 GitHub Pages 子路径，原样返回；留着这一层，以后再换部署位置只改这里） */
+export const assetPath = (path: string): string => path;
 export const portraitSrc = (name: string, harvest = false): string =>
   assetPath(harvest ? `/portraits/harvest/${encodeURIComponent(name)}.webp` : `/portraits/${encodeURIComponent(name)}.png`);
 /** 场景、事件、线索插图：artSrc('scenes/hall_day') → /images/scenes/hall_day.webp */

@@ -45,7 +45,10 @@ const isRetryable = (status: number) => status === 429 || status >= 500;
 class FatalError extends Error {}
 
 async function chat(config: LLMConfig, body: Record<string, unknown>): Promise<string> {
-  const url = `${(config.apiUrl || DEFAULT_API_URL).replace(/\/+$/, '')}/chat/completions`;
+  const base = (config.apiUrl || DEFAULT_API_URL).replace(/\/+$/, '');
+  // 浏览器里经同源的 /api/ai 由服务端转发（跨域、https 访问 http 端点都不成问题）；Node 里跑脚本时直连
+  const viaProxy = typeof window !== 'undefined';
+  const url = viaProxy ? '/api/ai' : `${base}/chat/completions`;
   let lastError: Error = new Error('API 请求失败');
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
@@ -53,7 +56,7 @@ async function chat(config: LLMConfig, body: Record<string, unknown>): Promise<s
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.apiKey}` },
-        body: JSON.stringify({ model: config.model ?? DEFAULT_MODEL, ...body }),
+        body: JSON.stringify({ ...(viaProxy ? { apiUrl: base } : {}), model: config.model ?? DEFAULT_MODEL, ...body }),
       });
 
       if (!response.ok) {

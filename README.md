@@ -2,13 +2,11 @@
 
 > **Whitefire Pass: An AI-Powered Werewolf Game**
 
-一个由 AI 驱动的狼人杀变体游戏，基于 1913 年的神秘山庄背景设定。游戏使用 DeepSeek 官方 API 驱动 15 位 AI 旅者，支持手动单步执行，让你见证 AI 角色在生死博弈中的思考过程。
+一个由 AI 驱动的狼人杀变体游戏，基于 1913 年的神秘山庄背景设定。15 位 AI 旅者由任意 OpenAI 兼容的大模型驱动（默认 Gemini 3.8 Flash），支持手动单步执行，让你见证 AI 角色在生死博弈中的思考过程。
 
-[![CI](https://github.com/ZacharyZcR/WhitefirePass/workflows/CI/badge.svg)](https://github.com/ZacharyZcR/WhitefirePass/actions)
-[![Deploy](https://github.com/ZacharyZcR/WhitefirePass/workflows/Deploy%20to%20GitHub%20Pages/badge.svg)](https://github.com/ZacharyZcR/WhitefirePass/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**🎮 [在线体验](https://zacharyzcr.github.io/WhitefirePass/)** | [项目主页](https://github.com/ZacharyZcR/WhitefirePass) | [提交问题](https://github.com/ZacharyZcR/WhitefirePass/issues)
+[项目主页](https://github.com/ZacharyZcR/WhitefirePass) | [提交问题](https://github.com/ZacharyZcR/WhitefirePass/issues)
 
 ## 🎮 游戏特色
 
@@ -17,10 +15,12 @@
 游戏共有 7 种角色，分为三个阵营：
 
 **烙印者阵营**（狼人方）
+
 - 🔥 **烙印者 (The Marked)**: 夜晚共同投票杀害旅者
 - ☽ **背誓者 (The Heretic)**: 烙印者阵营，伪装成无知者
 
 **村民阵营**
+
 - ◈ **聆心者 (The Listener)**: 每晚查验一名旅者的阵营
 - ✟ **食灰者 (Ash-Walker)**: 在旅者死亡后获得其身份信息
 - ◐◑ **共誓者 (The Twin)**: 两位旅者相互验证身份
@@ -36,7 +36,7 @@
 
 ### 🤖 AI 智能体系统
 
-- 使用 **DeepSeek V4.1 Flash** 驱动每个 AI 旅者，AI 通过工具调用查阅「山庄档案 CLI」后再做决定
+- **山灵架构**：每个旅者一段持续的会话，用自己的口吻说话（心里话 + 说出口的话），需要选人时由「山灵」统一听懂每个人的选择，规则由引擎裁决
 - 每个角色拥有独特的性格、背景和人际关系
 - **情感状态系统**: 角色会因关系网络中的死亡事件产生"美德"或"罪恶"状态
 - **完整的自传**: 每个角色都有详细的背景故事
@@ -47,7 +47,6 @@
 - **手动单步执行**: 完全控制游戏进度，观察每一步 AI 推理
 - **自动执行模式**: 一键自动运行整个阶段
 - **线索系统**: 收集和分析游戏中的各类线索
-- **密会系统**: 选择 2-3 名旅者进行秘密会谈
 - **投票追踪**: 实时记录所有投票结果
 
 ## 🚀 快速开始
@@ -56,7 +55,7 @@
 
 - **Node.js** >= 18.17.0
 - **pnpm** >= 8.0.0
-- **DeepSeek API Key** - 从 [DeepSeek 开放平台](https://platform.deepseek.com/api_keys) 获取
+- **大模型 API Key** - 任意 OpenAI 兼容服务（默认 Gemini 3.8 Flash，也可以用 DeepSeek）
 
 ### 安装
 
@@ -72,16 +71,24 @@ pnpm install
 ### 配置
 
 1. 复制环境变量配置文件：
+
 ```bash
 cp .env.example .env.local
 ```
 
-2. 编辑 `.env.local`，填入你的 DeepSeek API Key（仅本地使用的默认值，也可以在游戏里填写）：
+2. 编辑 `.env.local`，填入默认使用的服务（也可以在游戏里填写）：
+
 ```env
-NEXT_PUBLIC_DEEPSEEK_API_KEY=sk-...
+NEXT_PUBLIC_LLM_API_URL=https://your-endpoint/v1
+NEXT_PUBLIC_LLM_API_KEY=sk-...
+NEXT_PUBLIC_LLM_MODEL=gemini-3.8-flash-high
 ```
 
-> 这是纯前端静态站，浏览器直接请求 DeepSeek。`NEXT_PUBLIC_` 变量会打进前端包，不要在公开部署的构建里设置它。
+不配置时回到 DeepSeek 官方（`NEXT_PUBLIC_DEEPSEEK_API_KEY`）。浏览器的请求经同源的 `/api/ai` 由服务端转发，https 页面访问 http 端点也不会被当作混合内容拦截。
+
+> `NEXT_PUBLIC_` 变量会打进前端包，不要在公开部署的构建里设置密钥。
+
+也可以在游戏内 API 配置面板中修改端点地址和密钥。
 
 ### 运行
 
@@ -103,16 +110,19 @@ pnpm dev
 ### 2. 游戏流程
 
 **白天阶段**
+
 - 所有存活旅者依次发言
 - 讨论并分析前一晚发生的事件
 - 点击"下一步"或"自动执行"推进游戏
 
 **投票阶段**
+
 - 每位旅者投票选择要驱逐的对象
 - 得票最高者被投票出局
 - 可以选择"不投票"
 
 **夜晚阶段**
+
 - **聆心者查验**: 查看一名旅者的阵营
 - **烙印者讨论**: 烙印者们秘密商讨杀人目标
 - **烙印者投票**: 选择今夜要杀害的旅者
@@ -120,6 +130,7 @@ pnpm dev
 - **食灰者验尸**: 如有旅者死亡，获得其身份信息
 
 **特殊机制**
+
 - **密会**: 在白天可发起2-3人的秘密会谈
 - **情感触发**: 重要角色死亡可能触发其他角色的情感状态变化
 
@@ -167,24 +178,30 @@ Wolf/
 ## 🛠️ 技术栈
 
 ### 核心框架
+
 - **Next.js 15** - React 框架
 - **React 18** - UI 库
 - **TypeScript** - 类型安全
 
 ### 样式与UI
+
 - **Tailwind CSS** - 原子化 CSS
 - **shadcn/ui** - UI 组件库
 - **Radix UI** - 无障碍组件
 - **Lucide React** - 图标库
 
 ### 状态管理
+
 - **Zustand** - 轻量级状态管理
 - **TanStack Query** - 数据获取
 
 ### AI 集成
-- **DeepSeek API**（OpenAI 兼容格式）- 工具调用：`cli` 查阅档案，`submit` 提交决定
+
+- **OpenAI 兼容协议** - `/chat/completions`，经 `/api/ai` 服务端转发
+- **默认模型** - Gemini 3.8 Flash（可换成 DeepSeek 等）
 
 ### 开发工具
+
 - **ESLint** - 代码检查
 - **Prettier** - 代码格式化
 - **TypeScript** - 类型检查
@@ -219,13 +236,13 @@ pnpm test:e2e         # E2E 测试
 
 ```typescript
 // 游戏状态转换
-newState = gameEngine.processAction(currentState, action)
+newState = gameEngine.processAction(currentState, action);
 
 // 相位推进
-newState = gameEngine.advancePhase(currentState)
+newState = gameEngine.advancePhase(currentState);
 
 // 投票处理
-newState = gameEngine.processVoting(currentState)
+newState = gameEngine.processVoting(currentState);
 ```
 
 ### 状态管理
@@ -247,7 +264,7 @@ const gameStore = {
 
 ### AI 服务
 
-AI 服务负责与 DeepSeek API 交互（`src/lib/deepseek.ts`，档案 CLI 在 `src/lib/ai/cli.ts`）：
+AI 服务负责与大模型交互（`src/lib/deepseek.ts`），角色会话在 `src/lib/ai/session.ts`，山灵在 `src/lib/ai/shanling.ts`：
 
 ```typescript
 // 生成 AI 响应
@@ -255,8 +272,8 @@ const response = await aiService.generateResponse({
   player,
   gameState,
   additionalContext,
-  actionType
-})
+  actionType,
+});
 ```
 
 ## 🎨 UI/UX 设计理念
@@ -293,6 +310,7 @@ const response = await aiService.generateResponse({
 ### Git Hooks
 
 提交时自动执行：
+
 - 代码格式化
 - ESLint 检查
 - 类型检查
@@ -301,6 +319,7 @@ const response = await aiService.generateResponse({
 ### CI/CD
 
 每次提交/PR 自动运行：
+
 - ✅ 代码质量检查
 - ✅ 类型检查
 - ✅ 单元测试
@@ -314,19 +333,19 @@ const response = await aiService.generateResponse({
 
 ```typescript
 export const DEFAULT_ROLE_CONFIG = {
-  marked: 3,      // 烙印者数量
-  heretic: 1,     // 背誓者数量
-  listener: 1,    // 聆心者数量
-  coroner: 1,     // 食灰者数量
-  twin: 2,        // 共誓者数量（必须为偶数）
-  guard: 1,       // 设闩者数量
-  innocent: 6,    // 无知者数量
+  marked: 3, // 烙印者数量
+  heretic: 1, // 背誓者数量
+  listener: 1, // 聆心者数量
+  coroner: 1, // 食灰者数量
+  twin: 2, // 共誓者数量（必须为偶数）
+  guard: 1, // 设闩者数量
+  innocent: 6, // 无知者数量
 };
 ```
 
 ### 模型配置
 
-在 `src/lib/deepseek.ts` 中修改：`DEFAULT_MODEL`（默认 `deepseek-flash`）、`REASONING_EFFORT`（默认 `low`）。
+默认服务、模型由 `.env.local` 的 `NEXT_PUBLIC_LLM_*` 决定；角色开口的推理强度在 `src/lib/deepseek.ts` 的 `CHARACTER_EFFORT`（默认 `low`）。
 
 ## 🤝 贡献指南
 
@@ -361,7 +380,7 @@ chore: 其他修改
 - [ ] 支持自定义角色配置
 - [ ] 添加游戏重播功能
 - [ ] 支持多语言（英文）
-- [ ] 添加音效系统
+- [x] 添加音效系统
 - [ ] 优化移动端体验
 - [ ] 添加游戏统计和数据分析
 - [ ] 支持其他 AI 模型（Claude, GPT-4 等）
@@ -378,7 +397,6 @@ chore: 其他修改
 
 ## 🙏 致谢
 
-- 感谢 DeepSeek 提供的 API
 - 感谢 shadcn/ui 提供的优秀组件库
 - 感谢所有为本项目做出贡献的开发者
 
