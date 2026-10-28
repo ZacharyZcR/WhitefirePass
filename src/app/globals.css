@@ -155,3 +155,13 @@
       radial-gradient(ellipse at center, transparent 40%, rgba(40, 18, 8, 0.55) 75%, rgba(12, 6, 3, 0.95) 100%);
   }
 }
+
+/* 开场 CG：静帧缓慢推近 / 拉远 */
+@keyframes ken-burns-in {
+  from { transform: scale(1.0) translate(0, 0); }
+  to { transform: scale(1.05) translate(-1%, 0); }
+}
+@keyframes ken-burns-out {
+  from { transform: scale(1.05) translate(1%, 0); }
+  to { transform: scale(1.0) translate(0, 0); }
+}

@@ -26,7 +26,6 @@ const TYPE_MARK: Record<string, { label: string; tone: string }> = {
   action: { label: '行动', tone: 'text-pyre-soft border-pyre/30' },
   prompt: { label: '神谕', tone: 'text-pyre-soft border-pyre/30' },
   thinking: { label: '独白', tone: 'text-pyre border-pyre/30' },
-  secret: { label: '密会', tone: 'text-[#b9a4d8] border-[#b9a4d8]/30' },
 };
 
 const isAIMessage = (m: Message) => ['speech', 'vote', 'thinking'].includes(m.type) && m.from !== '叙述者';

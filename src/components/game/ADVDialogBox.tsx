@@ -16,7 +16,6 @@ const TYPE_LABEL: Record<string, string> = {
   speech: '发言',
   vote: '投票',
   action: '行动',
-  secret: '密会',
   death: '讣告',
   system: '叙述',
   event: '异事',
@@ -24,7 +23,8 @@ const TYPE_LABEL: Record<string, string> = {
 
 const NARRATION_TYPES = ['system', 'death', 'event'];
 
-export const isNarration = (m: Message): boolean => NARRATION_TYPES.includes(m.type) || m.from === '叙述者';
+export const isNarration = (m: Message): boolean =>
+  NARRATION_TYPES.includes(m.type) || m.from === '叙述者';
 
 function useTypewriter(text: string, key: string) {
   const [state, setState] = useState({ key, n: 0 });
@@ -32,23 +32,59 @@ function useTypewriter(text: string, key: string) {
 
   useEffect(() => {
     if (n >= text.length) return;
-    const t = setTimeout(() => setState({ key, n: Math.min(text.length, n + 2) }), 26);
+    const t = setTimeout(
+      () => setState({ key, n: Math.min(text.length, n + 2) }),
+      26
+    );
     return () => clearTimeout(t);
   }, [key, n, text.length]);
 
-  return { shown: text.slice(0, n), done: n >= text.length, skip: () => setState({ key, n: text.length }) };
+  return {
+    shown: text.slice(0, n),
+    done: n >= text.length,
+    skip: () => setState({ key, n: text.length }),
+  };
 }
 
-function NamePlate({ message, player }: { message: Message; player?: Player }) {
-  const role = player ? roleInfo(player.role) : null;
+// 只有一个人名的消息是选人动作（投票、倾听、守门、猎杀），写成一句话；顺手去掉 markdown 的 **
+function displayText(m: Message, names: string[]): string {
+  const text = m.content.replace(/\*\*/g, '');
+  if (!names.includes(text.trim())) return text;
+  const who = `「${text.trim()}」`;
+  const action =
+    m.type === 'vote'
+      ? `献祭石，落在了${who}面前。`
+      : m.visibility === 'listener'
+        ? `今夜，倾听${who}的灵魂。`
+        : m.visibility === 'guard'
+          ? `今夜，锁上${who}的房门。`
+          : m.visibility === 'marked'
+            ? `今夜的猎物——${who}。`
+            : text;
+  // 他选人时说出口的话在前，落子的那一句在后
+  return m.quote ? `${m.quote}\n\n——${action}` : action;
+}
+
+function NamePlate({
+  message,
+  player,
+  reveal,
+}: {
+  message: Message;
+  player?: Player;
+  reveal: boolean;
+}) {
+  const role = player && reveal ? roleInfo(player.role) : null;
   return (
     <div className="absolute -top-4 left-8 z-10 flex items-stretch">
       <div className="brass-frame panel-ink flex items-baseline gap-3 px-5 py-1.5">
-        <span className="font-serif text-lg font-semibold tracking-[0.2em] text-brass-light text-engraved">{message.from}</span>
-        {role && (
+        <span className="text-engraved font-serif text-lg font-semibold tracking-[0.2em] text-brass-light">
+          {message.from}
+        </span>
+        {player && (
           <span className="text-xs tracking-wider text-frost-dim">
-            <span style={{ color: role.color }}>{role.name}</span>
-            {player?.occupation && <span> · {player.occupation}</span>}
+            {role && <span style={{ color: role.color }}>{role.name} · </span>}
+            {player.occupation}
           </span>
         )}
       </div>
@@ -70,7 +106,9 @@ function InnerVoice({ text }: { text: string }) {
         }}
         className="flex items-center gap-1 text-[11px] tracking-[0.3em] text-pyre-soft/80 transition-colors hover:text-pyre"
       >
-        <ChevronDown className={cn('h-3 w-3 transition-transform', open && 'rotate-180')} />
+        <ChevronDown
+          className={cn('h-3 w-3 transition-transform', open && 'rotate-180')}
+        />
         心声
       </button>
       {open && (
@@ -86,17 +124,32 @@ interface ADVDialogBoxProps {
   message?: Message;
   player?: Player;
   thinking?: string;
+  names?: string[];
+  reveal?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
 
-export function ADVDialogBox({ message, player, thinking, children, className }: ADVDialogBoxProps) {
-  const { shown, done, skip } = useTypewriter(message?.content ?? '', message?.id ?? 'empty');
+export function ADVDialogBox({
+  message,
+  player,
+  thinking,
+  names = [],
+  reveal = true,
+  children,
+  className,
+}: ADVDialogBoxProps) {
+  const { shown, done, skip } = useTypewriter(
+    message ? displayText(message, names) : '',
+    message?.id ?? 'empty'
+  );
   const narration = message ? isNarration(message) : false;
 
   return (
     <div className={cn('relative', className)}>
-      {message && !narration && <NamePlate message={message} player={player} />}
+      {message && !narration && (
+        <NamePlate message={message} player={player} reveal={reveal} />
+      )}
 
       <div className="brass-frame panel-ink relative flex h-full flex-col px-10 pb-3 pt-7">
         <FrameCorners />
@@ -104,26 +157,40 @@ export function ADVDialogBox({ message, player, thinking, children, className }:
 
         {!message ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-            <div className="font-cinzel text-sm tracking-[0.5em] text-brass/60">WHITEFIRE PASS</div>
-            <div className="font-serif text-sm tracking-widest text-frost-dim">按下「下一步」，故事将会开始……</div>
+            <div className="font-cinzel text-sm tracking-[0.5em] text-brass/60">
+              WHITEFIRE PASS
+            </div>
+            <div className="font-serif text-sm tracking-widest text-frost-dim">
+              按下「下一步」，故事将会开始……
+            </div>
           </div>
         ) : (
           <>
             {narration && (
               <div className="mb-2 flex flex-shrink-0 items-center justify-center gap-3 text-[11px] tracking-[0.5em] text-brass/60">
-                <span className="rule-brass w-16" />叙 述<span className="rule-brass w-16" />
+                <span className="rule-brass w-16" />叙 述
+                <span className="rule-brass w-16" />
               </div>
             )}
-            {thinking && !narration && <InnerVoice key={message.id} text={thinking} />}
-            <div onClick={skip} className="relative min-h-0 flex-1 cursor-pointer overflow-y-auto pr-2">
+            {thinking && !narration && (
+              <InnerVoice key={message.id} text={thinking} />
+            )}
+            <div
+              onClick={skip}
+              className="relative min-h-0 flex-1 cursor-pointer overflow-y-auto pr-2"
+            >
               <p
                 className={cn(
                   'whitespace-pre-line font-serif leading-[1.9] tracking-wide',
-                  narration ? 'text-center text-[15px] italic text-frost' : 'text-[16px] text-parchment',
+                  narration
+                    ? 'text-center text-[15px] italic text-frost'
+                    : 'text-[16px] text-parchment'
                 )}
               >
                 {shown}
-                {!done && <span className="ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 animate-pulse bg-brass-light" />}
+                {!done && (
+                  <span className="ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 animate-pulse bg-brass-light" />
+                )}
               </p>
             </div>
           </>
@@ -133,7 +200,9 @@ export function ADVDialogBox({ message, player, thinking, children, className }:
           <span className="font-serif text-[11px] tracking-widest text-frost-dim/70">
             {message?.round ? `第${toHanzi(message.round)}回 · ` : ''}
             {message?.phase ? PHASE_NAME[message.phase] : '寂静山庄'}
-            {message && done && <span className="ml-3 animate-pulse text-brass/70">▼</span>}
+            {message && done && (
+              <span className="ml-3 animate-pulse text-brass/70">▼</span>
+            )}
           </span>
           <div className="flex items-center gap-2">{children}</div>
         </footer>

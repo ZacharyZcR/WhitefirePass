@@ -4,7 +4,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { GameState, GameConfig, Message, Player, SavedGame, Clue } from '@/types/game';
+import type { GameState, GameConfig, Message, Mourner, Player, SavedGame, Clue } from '@/types/game';
 import {
   createGame,
   checkWinCondition,
@@ -13,17 +13,14 @@ import {
   addMessage,
   getPlayerByName,
   handleDeathTriggers,
-  initSecretMeetingPhase,
-  setSecretMeetingParticipants as engineSetSecretMeetingParticipants,
-  skipSecretMeeting as engineSkipSecretMeeting,
-  completeSecretMeeting,
   generateGameEvent,
   advancePhase,
 } from '@/lib/game-engine';
-import { getAIResponse, buildPrompt, DEFAULT_API_URL, type AIReply } from '@/lib/deepseek';
+import { getAIResponse, getBatchChoices, buildPrompt, DEFAULT_API_URL, type AIReply } from '@/lib/deepseek';
 import { formatSuspicion } from '@/lib/ai/view';
-import { getActingPlayers } from '@/lib/actors';
+import { getActingPlayers, segmentKey } from '@/lib/actors';
 import { buildPrologueMessages } from '@/lib/story-text';
+import { shanlingWhisper } from '@/lib/sins';
 import { getInitialClues } from '@/lib/clues-data';
 
 /**
@@ -34,6 +31,7 @@ interface GameStore {
   isProcessing: boolean;
   apiKey: string;
   apiUrl: string;
+  model?: string;  // 不填就用 DeepSeek 默认模型；换别的 OpenAI 兼容服务时一起改
   lastError: string | null;
   retryCount: number;  // Current retry attempt count
   clues: Clue[];  // Collected clues/documents
@@ -43,8 +41,6 @@ interface GameStore {
   transitionPhase: GameState['phase'] | null;
   transitionRound: number;
 
-  // Secret meeting UI control
-  showSecretMeetingSelector: boolean;
 
   // Auto execution control
   isAutoExecuting: boolean;
@@ -52,6 +48,8 @@ interface GameStore {
   // Actions
   setApiKey: (key: string) => void;
   setApiUrl: (url: string) => void;
+  setModel: (model?: string) => void;
+  finishCutscene: () => void;
   startGame: (config: GameConfig) => void;
   resetGame: () => void;
   executeNextStep: () => Promise<void>;
@@ -79,14 +77,6 @@ interface GameStore {
   // Emotional state changes
   clearPendingStateChanges: () => void;
 
-  // Secret meeting actions
-  openSecretMeetingSelector: () => void;
-  closeSecretMeetingSelector: () => void;
-  setSecretMeetingParticipants: (participants: [string, string]) => void;
-  skipSecretMeeting: () => void;
-  executeSecretMeeting: () => Promise<void>;
-
-  // Event actions
   generateEvent: () => void;
 
   // Internal actions
@@ -96,7 +86,8 @@ interface GameStore {
 }
 
 // 本地 .env.local 里的 DeepSeek key（不进 git，线上构建没有这个值）
-const ENV_API_KEY = process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY ?? '';
+const LEGACY_DEEPSEEK_KEY = process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY ?? '';
+const ENV_API_KEY = process.env.NEXT_PUBLIC_LLM_API_KEY || LEGACY_DEEPSEEK_KEY;
 
 /**
  * Create game store with persistence
@@ -117,8 +108,6 @@ export const useGameStore = create<GameStore>()(
   transitionPhase: null,
   transitionRound: 0,
 
-  // Secret meeting UI control
-  showSecretMeetingSelector: false,
 
   // Auto execution control
   isAutoExecuting: false,
@@ -135,6 +124,18 @@ export const useGameStore = create<GameStore>()(
    */
   setApiUrl: (url: string) => {
     set({ apiUrl: url });
+  },
+
+  setModel: (model?: string) => {
+    set({ model: model || undefined });
+  },
+
+  /** 当前这段固定过场播完 */
+  finishCutscene: () => {
+    const { gameState } = get();
+    if (!gameState?.cutscenes?.length) return;
+    gameState.cutscenes = gameState.cutscenes.slice(1);
+    set({ gameState: { ...gameState } });
   },
 
   /**
@@ -230,235 +231,6 @@ export const useGameStore = create<GameStore>()(
     // Ensure pendingStateChanges exists and clear it
     gameState.pendingStateChanges = [];
     set({ gameState: { ...gameState } });
-  },
-
-  /**
-   * Open secret meeting selector UI
-   */
-  openSecretMeetingSelector: () => {
-    set({ showSecretMeetingSelector: true });
-  },
-
-  /**
-   * Close secret meeting selector UI
-   */
-  closeSecretMeetingSelector: () => {
-    set({ showSecretMeetingSelector: false });
-  },
-
-  /**
-   * Set secret meeting participants (user selected)
-   */
-  setSecretMeetingParticipants: (participants: [string, string]) => {
-    const { gameState } = get();
-    if (!gameState) return;
-    engineSetSecretMeetingParticipants(gameState, participants);
-    set({ gameState: { ...gameState } });
-  },
-
-  /**
-   * Skip secret meeting phase
-   */
-  skipSecretMeeting: () => {
-    const { gameState } = get();
-    if (!gameState || !gameState.pendingSecretMeeting) return;
-
-    // Save timing before skipping (which clears pendingSecretMeeting)
-    const meetingTiming = gameState.pendingSecretMeeting.timing;
-
-    engineSkipSecretMeeting(gameState);
-
-    // Determine next phase based on timing
-    if (meetingTiming === 'before_discussion') {
-      gameState.phase = 'day';
-      gameState.currentPlayerIndex = 0;
-      gameState.messages.push(
-        addMessage(gameState, '叙述者', '跳过密会。白天讨论开始。', 'system', 'all')
-      );
-      set({ gameState: { ...gameState }, isProcessing: false, showSecretMeetingSelector: false });
-      get().triggerTransition('day', gameState.round);
-    } else if (meetingTiming === 'after_sacrifice') {
-      gameState.phase = 'event';
-      set({ gameState: { ...gameState }, isProcessing: false, showSecretMeetingSelector: false });
-      get().triggerTransition('event', gameState.round);
-    }
-  },
-
-  /**
-   * Execute secret meeting between two players
-   */
-  executeSecretMeeting: async () => {
-    const { gameState, apiKey, apiUrl } = get();
-    if (!gameState || !gameState.pendingSecretMeeting?.selectedParticipants) return;
-
-    const [player1Name, player2Name] = gameState.pendingSecretMeeting.selectedParticipants;
-    const player1 = getPlayerByName(gameState, player1Name);
-    const player2 = getPlayerByName(gameState, player2Name);
-
-    if (!player1 || !player2) return;
-
-    set({ isProcessing: true });
-
-    const messageIds: string[] = [];
-
-    try {
-      // Add system message announcing the secret meeting
-      const meetingStartMsg = addMessage(
-        gameState,
-        '叙述者',
-        `${player1.name} 和 ${player2.name} 在暗处进行了一次私密的交谈...\n\n（此对话仅存在于两人的记忆中）`,
-        'system',
-        { secretMeeting: [player1.name, player2.name] },
-      );
-      gameState.messages.push(meetingStartMsg);
-      messageIds.push(meetingStartMsg.id);
-
-      // Build and record Player 1's prompt for transparency
-      const fullPrompt1 = buildPrompt(player1, gameState);
-      const promptMsg1 = addMessage(
-        gameState,
-        `${player1.name} (神谕)`,
-        fullPrompt1,
-        'prompt',
-        { secretMeeting: [player1.name, player2.name] },
-      );
-      gameState.messages.push(promptMsg1);
-      messageIds.push(promptMsg1.id);
-
-      // Player 1 speaks
-      const response1 = await getAIResponse(player1, gameState, {
-        apiKey,
-        apiUrl,
-        onRetry: (info) => {
-          set({
-            lastError: `${player1.name} 请求失败，正在重试 (${info.attempt}/${info.maxRetries})...\n原因: ${info.reason}\n等待 ${(info.delay / 1000).toFixed(1)}秒 后重试`,
-          });
-        },
-      });
-      const { thinking: thinking1, speech: speech1 } = response1;
-      appendTrace(promptMsg1, response1.trace);
-
-      if (thinking1) {
-        const thinkingMsg1 = addMessage(
-          gameState,
-          player1.name,
-          noteThinking(gameState, player1, response1),
-          'thinking',
-          { player: player1.name },  // Thinking is private, only visible to the player themselves
-        );
-        gameState.messages.push(thinkingMsg1);
-        messageIds.push(thinkingMsg1.id);
-      }
-
-      const speechMsg1 = addMessage(
-        gameState,
-        player1.name,
-        speech1,
-        'secret',
-        { secretMeeting: [player1.name, player2.name] },
-      );
-      gameState.messages.push(speechMsg1);
-      messageIds.push(speechMsg1.id);
-
-      // Build and record Player 2's prompt for transparency
-      const fullPrompt2 = buildPrompt(player2, gameState);
-      const promptMsg2 = addMessage(
-        gameState,
-        `${player2.name} (神谕)`,
-        fullPrompt2,
-        'prompt',
-        { secretMeeting: [player1.name, player2.name] },
-      );
-      gameState.messages.push(promptMsg2);
-      messageIds.push(promptMsg2.id);
-
-      // Player 2 responds
-      const response2 = await getAIResponse(player2, gameState, {
-        apiKey,
-        apiUrl,
-        onRetry: (info) => {
-          set({
-            lastError: `${player2.name} 请求失败，正在重试 (${info.attempt}/${info.maxRetries})...\n原因: ${info.reason}\n等待 ${(info.delay / 1000).toFixed(1)}秒 后重试`,
-          });
-        },
-      });
-      const { thinking: thinking2, speech: speech2 } = response2;
-      appendTrace(promptMsg2, response2.trace);
-
-      if (thinking2) {
-        const thinkingMsg2 = addMessage(
-          gameState,
-          player2.name,
-          noteThinking(gameState, player2, response2),
-          'thinking',
-          { player: player2.name },  // Thinking is private, only visible to the player themselves
-        );
-        gameState.messages.push(thinkingMsg2);
-        messageIds.push(thinkingMsg2.id);
-      }
-
-      const speechMsg2 = addMessage(
-        gameState,
-        player2.name,
-        speech2,
-        'secret',
-        { secretMeeting: [player1.name, player2.name] },
-      );
-      gameState.messages.push(speechMsg2);
-      messageIds.push(speechMsg2.id);
-
-      // Save timing before completing (which clears pendingSecretMeeting)
-      const meetingTiming = gameState.pendingSecretMeeting.timing;
-
-      // Complete the meeting
-      completeSecretMeeting(gameState, messageIds);
-
-      // Determine next phase based on timing
-      if (meetingTiming === 'before_discussion') {
-        gameState.phase = 'day';
-        gameState.currentPlayerIndex = 0;
-        gameState.messages.push(
-          addMessage(gameState, '叙述者', '密会结束。白天讨论开始。', 'system', 'all')
-        );
-
-        set({
-          gameState: { ...gameState },
-          isProcessing: false,
-          lastError: null,
-          showSecretMeetingSelector: false,
-        });
-
-        get().triggerTransition('day', gameState.round);
-      } else if (meetingTiming === 'after_sacrifice') {
-        gameState.phase = 'event';
-
-        set({
-          gameState: { ...gameState },
-          isProcessing: false,
-          lastError: null,
-          showSecretMeetingSelector: false,
-        });
-
-        get().triggerTransition('event', gameState.round);
-      }
-    } catch (error) {
-      console.error('Secret meeting error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
-      // Clean up failed messages
-      if (messageIds.length > 0) {
-        gameState.messages = gameState.messages.filter(
-          (m) => !messageIds.includes(m.id)
-        );
-      }
-
-      set({
-        gameState: { ...gameState },
-        isProcessing: false,
-        lastError: `密会执行失败: ${errorMessage}`,
-        // Keep selector open on error to allow retry
-      });
-    }
   },
 
   /**
@@ -561,14 +333,6 @@ export const useGameStore = create<GameStore>()(
     const { gameState, retryCount } = get();
     if (!gameState) return;
 
-    // Check if we're in secret meeting phase
-    if (gameState.phase === 'secret_meeting' && gameState.pendingSecretMeeting?.selectedParticipants) {
-      // Retry secret meeting
-      set({ gameState: { ...gameState }, lastError: null, retryCount: 0 });
-      await get().executeSecretMeeting();
-      return;
-    }
-
     // Clean up failed attempt for normal phases
     cleanupFailedAttempt(gameState);
 
@@ -598,10 +362,8 @@ export const useGameStore = create<GameStore>()(
 
     // Remove last AI messages (thinking, speech/vote, prompt)
     const initialMessageCount = gameState.messages.length;
-    const messagesToKeep = gameState.messages.filter(msg =>
-      // 只删这个人在本回合本阶段的消息，之前说过的话保留
-      !((msg.from === previousPlayer.name || msg.from === `${previousPlayer.name} (神谕)`) &&
-        msg.round === gameState.round && msg.phase === gameState.phase));
+    // 只删末尾这一次的消息：白天同一个人可能已经开过口，之前说过的话保留
+    const messagesToKeep = withoutLastTurn(gameState, previousPlayer.name);
 
     // If no messages were removed, something is wrong
     if (messagesToKeep.length === initialMessageCount) {
@@ -627,8 +389,8 @@ export const useGameStore = create<GameStore>()(
         gameState.nightVotes.splice(lastNightVoteIndex, 1);
       }
 
-      // Remove listener check
-      if (gameState.nightPhase === 'listener') {
+      // Remove listener check（只有选人那一回合才有倾听记录；第二回合是对着结果说话）
+      if (gameState.nightPhase === 'listener' && previousPlayerIndex === 0) {
         const lastCheckIndex = gameState.listenerChecks.length - 1;
         if (lastCheckIndex >= 0) {
           gameState.listenerChecks.splice(lastCheckIndex, 1);
@@ -660,7 +422,9 @@ export const useGameStore = create<GameStore>()(
   executeNextStep: async () => {
     const { gameState, isProcessing } = get();
 
-    if (!gameState || isProcessing || gameState.phase === 'end') return;
+    // 固定过场还在播：先别往下走
+    // 美德/堕落还没看完：也先别往下走，死后那几句话要在看完之后说
+    if (!gameState || isProcessing || gameState.phase === 'end' || gameState.cutscenes?.length || gameState.pendingStateChanges?.length) return;
 
     set({ isProcessing: true });
 
@@ -834,14 +598,22 @@ export const useGameStore = create<GameStore>()(
             addMessage(gameState, '叙述者', '设闩者，选择今晚要守护的人...', 'system', 'guard'),
           );
         } else {
-          // No guard - coroner is passive, resolve it and move to day
+          // 没有设闩者：直接到食灰者
           resolveCoroner(gameState);
-          get().advanceToNextPhase();
-          return;
+          if (getActingPlayers(gameState).length === 0) {
+            get().advanceToNextPhase();
+            return;
+          }
         }
       }
     } else if (gameState.nightPhase === 'guard') {
+      // 食灰者尝到灰后还要说几句；没有可尝的灰就直接天亮
       resolveCoroner(gameState);
+      if (getActingPlayers(gameState).length === 0) {
+        get().advanceToNextPhase();
+        return;
+      }
+    } else if (gameState.nightPhase === 'coroner') {
       get().advanceToNextPhase();
       return;
     }
@@ -856,6 +628,37 @@ export const useGameStore = create<GameStore>()(
   advanceToNextPhase: () => {
     const { gameState } = get();
     if (!gameState) return;
+
+    // 献祭之后：进入异事；已分胜负就交给下一步结算，不播转场
+    const toEvent = () => {
+      gameState.phase = 'event';
+      if (!checkWinCondition(gameState)) get().triggerTransition('event', gameState.round);
+    };
+
+    if (gameState.mourners?.length) {
+      // 死后每人一句说完了：献祭的接着进异事，夜里死的接着开白天的议事
+      gameState.mourners = undefined;
+      gameState.currentPlayerIndex = 0;
+      if (gameState.phase === 'voting') toEvent();
+      set({ gameState: { ...gameState } });
+      return;
+    }
+
+    if (gameState.phase === 'voting' && gameState.lastWords) {
+      // 临终的话说完了：推进白火
+      const condemned = gameState.players.find((p) => p.name === gameState.lastWords) ?? null;
+      gameState.lastWords = undefined;
+      gameState.currentPlayerIndex = 0;
+      gameState.messages.push(
+        addMessage(gameState, '叙述者', `献祭仪式完成。${condemned?.name} 被推入白蜡篝火，化为灰烬。`, 'system', 'all'),
+      );
+      handleDayVotingResult(gameState, condemned, false, []);
+      const mourners = condemned ? mournersFor(gameState, condemned.name, 'sacrifice') : [];
+      if (mourners.length) gameState.mourners = mourners;
+      else toEvent();
+      set({ gameState: { ...gameState } });
+      return;
+    }
 
     if (gameState.phase === 'prologue') {
       // Prologue: Display all story messages at once and transition to day
@@ -877,35 +680,47 @@ export const useGameStore = create<GameStore>()(
         );
       });
 
-      // Transition to secret meeting phase with animation (before first day discussion)
-      gameState.phase = 'secret_meeting';
+      gameState.phase = 'day';
       gameState.round = 1;
       gameState.currentPlayerIndex = 0;
-
-      // Initialize secret meeting phase
-      initSecretMeetingPhase(gameState, 'before_discussion');
-
-      // Trigger transition animation
-      get().triggerTransition('secret_meeting', 1);
-    } else if (gameState.phase === 'secret_meeting') {
-      // Secret meeting phase transition is handled in executeSecretMeeting
-      // This shouldn't be called during secret_meeting phase normally
-      return;
+      gameState.isGathering = true; // 第一日先轮流自我介绍
+      gameState.cutscenes = ['chosen', 'dayseven']; // 先回到第三夜，再看第七天清晨他们怎么吵到决定献祭
+      gameState.messages.push(
+        addMessage(gameState, '叙述者', '第一日。十五个人围着壁炉坐下。在决定把谁推进白火之前，先轮流说说自己是谁。', 'system', 'all'),
+      );
+      get().triggerTransition('day', 1);
+    } else if (gameState.phase === 'day' && gameState.isGathering) {
+      // 自我介绍结束：接着开第一日的议事
+      gameState.isGathering = false;
+      gameState.currentPlayerIndex = 0;
+      gameState.messages.push(
+        addMessage(gameState, '叙述者', '所有人都介绍完了。名字和来历都摆在了火光下——可谁说了真话，谁也不知道。第一日的议事开始。', 'system', 'all'),
+      );
+      get().triggerTransition('day', gameState.round);
     } else if (gameState.phase === 'day') {
-      // Day phase ended, go to voting
+      // 白天结束进入傍晚：先讨论这次把石头放给谁；平票重议刚讨论过，直接投
       gameState.phase = 'voting';
       gameState.currentPlayerIndex = 0;
       gameState.votes = [];
+      gameState.ballot = gameState.isRevote;
       gameState.messages.push(
-        addMessage(gameState, '叙述者', '讨论结束。现在开始投票！', 'system', 'all'),
+        addMessage(gameState, '叙述者', gameState.isRevote
+          ? '重议结束。献祭石再一次发到每个人手里。'
+          : '天色暗下来了。黄昏要献祭一个人——在献祭石发下来之前，每个人还能再说几句。', 'system', 'all'),
       );
 
       // Trigger transition animation
       get().triggerTransition('voting', gameState.round);
+    } else if (gameState.phase === 'voting' && !gameState.ballot) {
+      // 傍晚的讨论结束，发献祭石
+      gameState.ballot = true;
+      gameState.currentPlayerIndex = 0;
+      gameState.messages.push(
+        addMessage(gameState, '叙述者', '话说完了。献祭石发到每个人手里，冰凉。', 'system', 'all'),
+      );
     } else if (gameState.phase === 'voting') {
       // Voting phase ended, process votes and check for ties
       const { eliminated, message, isTied, tiedPlayers } = processVoting(gameState);
-      gameState.messages.push(message);
 
       // Save votes to history before processing
       if (gameState.votes.length > 0) {
@@ -916,16 +731,18 @@ export const useGameStore = create<GameStore>()(
         gameState.voteHistory.push(...votesWithRound);
       }
 
-      const phaseBefore = gameState.phase;
-      handleDayVotingResult(gameState, eliminated, isTied, tiedPlayers);
-
-      // 献祭之后：已分胜负就交给下一步结算，否则进入献祭后的密会 → 事件 → 夜晚
-      if (phaseBefore === 'voting' && gameState.phase === 'voting' && checkWinCondition(gameState)) {
-        gameState.phase = 'event';
-      } else if (phaseBefore === 'voting' && gameState.phase === 'voting') {
-        gameState.phase = 'secret_meeting';
-        initSecretMeetingPhase(gameState, 'after_sacrifice');
-        get().triggerTransition('secret_meeting', gameState.round);
+      if (eliminated && !isTied) {
+        // 石头定下来了，先不推进白火：留他几句临终的话
+        gameState.lastWords = eliminated.name;
+        gameState.currentPlayerIndex = 0;
+        gameState.messages.push(
+          addMessage(gameState, '叙述者', `献祭石最多的是 ${eliminated.name}。白火就在身后——在被推进去之前，还能说最后几句话。`, 'system', 'all'),
+        );
+      } else {
+        gameState.messages.push(message);
+        const phaseBefore = gameState.phase;
+        handleDayVotingResult(gameState, eliminated, isTied, tiedPlayers);
+        if (phaseBefore === 'voting' && gameState.phase === 'voting') toEvent();
       }
     } else if (gameState.phase === 'event') {
       // Event phase - auto-generate and complete
@@ -941,12 +758,11 @@ export const useGameStore = create<GameStore>()(
         const phaseBefore = gameState.phase;
         handleNightKillResult(gameState, killedPlayer, message);
 
-        // Trigger transition to secret meeting (before next day discussion)
         if (phaseBefore === 'night' && (gameState.phase as string) === 'day') {
-          // Instead of going directly to day, go to secret meeting first
-          gameState.phase = 'secret_meeting';
-          initSecretMeetingPhase(gameState, 'before_discussion');
-          get().triggerTransition('secret_meeting', gameState.round);
+          get().triggerTransition('day', gameState.round);
+          // 夜里死了人：情绪变了的人先每人说一句，再开议事
+          const mourners = killedPlayer ? mournersFor(gameState, killedPlayer.name, 'night') : [];
+          if (mourners.length) gameState.mourners = mourners;
         }
       }
     }
@@ -959,7 +775,7 @@ export const useGameStore = create<GameStore>()(
    */
   // eslint-disable-next-line complexity
   executeCurrentPlayerAction: async () => {
-    const { gameState, apiKey, apiUrl } = get();
+    const { gameState, apiKey, apiUrl, model } = get();
     if (!gameState) return;
 
     const alivePlayers = getActingPlayers(gameState);
@@ -975,6 +791,15 @@ export const useGameStore = create<GameStore>()(
       return;
     }
 
+    // 投票、烙印者决定猎物：所有人同时作答，山灵一次听完
+    const batch =
+      (gameState.phase === 'voting' && gameState.ballot && !gameState.lastWords && !gameState.mourners?.length) ||
+      (gameState.phase === 'night' && gameState.nightPhase === 'marked-vote');
+    if (batch && gameState.currentPlayerIndex === 0) {
+      await runBatch(gameState, alivePlayers, { apiKey, apiUrl, model }, set);
+      return;
+    }
+
     const currentPlayer = alivePlayers[gameState.currentPlayerIndex];
 
     try {
@@ -983,6 +808,8 @@ export const useGameStore = create<GameStore>()(
       if (gameState.phase === 'night') {
         if (gameState.nightPhase === 'listener' && currentPlayer.role === 'listener') {
           visibility = 'listener';  // Only listener can see their check
+        } else if (gameState.nightPhase === 'coroner') {
+          visibility = 'coroner';
         } else if (gameState.nightPhase === 'guard' && currentPlayer.role === 'guard') {
           visibility = 'guard';  // Only guard can see their guard action
         } else if (currentPlayer.role === 'marked') {
@@ -1006,6 +833,7 @@ export const useGameStore = create<GameStore>()(
       const response = await getAIResponse(currentPlayer, gameState, {
         apiKey,
         apiUrl,
+        model,
         onRetry: (info) => {
           set({
             lastError: `${currentPlayer.name} 请求失败，正在重试 (${info.attempt}/${info.maxRetries})...\n原因: ${info.reason}\n等待 ${(info.delay / 1000).toFixed(1)}秒 后重试`,
@@ -1031,16 +859,16 @@ export const useGameStore = create<GameStore>()(
 
       // Add speech/vote message
       if (target) {
-        // 选人的一步：消息内容就是目标名字，投票记在 votes / voteHistory 里
-        gameState.messages.push(
-          addMessage(gameState, currentPlayer.name, target, gameState.phase === 'voting' ? 'vote' : 'speech', visibility),
-        );
+        // 选人的一步：消息内容就是目标名字（音频和界面靠它），说出口的话记在 quote
+        const choice = addMessage(gameState, currentPlayer.name, target, gameState.phase === 'voting' ? 'vote' : 'speech', visibility);
+        if (speech) choice.quote = speech;
+        gameState.messages.push(choice);
         recordAction(gameState, currentPlayer, target);
       } else {
         // Add speech message for other phases
-        gameState.messages.push(
-          addMessage(gameState, currentPlayer.name, speech, 'speech', visibility),
-        );
+        const said = addMessage(gameState, currentPlayer.name, speech, 'speech', visibility);
+        if (gameState.phase !== 'night' || gameState.nightPhase === 'marked-discuss') said.segment = segmentKey(gameState);
+        gameState.messages.push(said);
       }
 
       // Move to next player only on success
@@ -1097,8 +925,18 @@ export const useGameStore = create<GameStore>()(
         clues: state.clues,
       }),
       onRehydrateStorage: () => (state) => {
-        // 换掉以前存下的 Gemini key（AIza 开头），用本地配置的 DeepSeek key
-        if (state && (!state.apiKey || state.apiKey.startsWith('AIza'))) state.apiKey = ENV_API_KEY;
+        // 以前存下的 Gemini 官方 key（AIza 开头）、DeepSeek key：换成本地配置的默认服务的 key
+        if (state && (!state.apiKey || state.apiKey.startsWith('AIza') || state.apiKey === LEGACY_DEEPSEEK_KEY)) state.apiKey = ENV_API_KEY;
+        // 旧存档停在已删除的密会阶段：按原本的去向接上
+        const old = state?.gameState as (GameState & { pendingSecretMeeting?: { timing: string } }) | null | undefined;
+        if (old && (old.phase as string) === 'secret_meeting') {
+          old.phase = old.pendingSecretMeeting?.timing === 'after_sacrifice' ? 'event' : 'day';
+          old.currentPlayerIndex = 0;
+        }
+        // 旧存档投票投到一半：那时还没有傍晚讨论，接着投
+        if (state?.gameState?.phase === 'voting' && state.gameState.ballot === undefined && state.gameState.votes.length > 0) {
+          state.gameState.ballot = true;
+        }
         // Ensure pendingStateChanges exists in rehydrated state
         if (state?.gameState && !state.gameState.pendingStateChanges) {
           state.gameState.pendingStateChanges = [];
@@ -1107,6 +945,43 @@ export const useGameStore = create<GameStore>()(
     },
   ),
 );
+
+/**
+ * 一批人同时作答（投票、烙印者决定猎物）：全部回来后才一起落子，失败就整批重来
+ */
+async function runBatch(
+  gameState: GameState,
+  players: Player[],
+  config: { apiKey: string; apiUrl: string; model?: string },
+  set: (partial: Partial<GameStore>) => void,
+): Promise<void> {
+  const visibility: Message['visibility'] = gameState.phase === 'voting' ? 'all' : 'marked';
+  try {
+    const replies = await getBatchChoices(players, gameState, {
+      ...config,
+      onRetry: (info) => set({ lastError: `正在重试 (${info.attempt}/${info.maxRetries})：${info.reason}` }),
+    });
+    replies.forEach((reply, i) => {
+      const player = players[i];
+      if (reply.thinking) {
+        gameState.messages.push(addMessage(gameState, player.name, reply.thinking, 'thinking', { player: player.name }));
+      }
+      if (reply.target) {
+        const choice = addMessage(gameState, player.name, reply.target, gameState.phase === 'voting' ? 'vote' : 'speech', visibility);
+        if (reply.speech) choice.quote = reply.speech;
+        gameState.messages.push(choice);
+        recordAction(gameState, player, reply.target);
+      } else if (reply.speech) {
+        // 没有表态：弃权，只留下他说的话
+        gameState.messages.push(addMessage(gameState, player.name, reply.speech, 'speech', visibility));
+      }
+    });
+    gameState.currentPlayerIndex = players.length;
+    set({ gameState: { ...gameState }, isProcessing: false, lastError: null, retryCount: 0 });
+  } catch (error) {
+    set({ gameState: { ...gameState }, isProcessing: false, lastError: `作答失败：${error instanceof Error ? error.message : String(error)}` });
+  }
+}
 
 /**
  * 记下这次的怀疑名单（下次决策会看到），并把它接在心里话后面一起显示
@@ -1390,6 +1265,10 @@ function handleNightKillResult(
           { player: hereticPlayer.name },
         ),
       );
+      // 堕落的那一刻，山灵也把真相告诉了他
+      gameState.messages.push(
+        addMessage(gameState, '山灵', shanlingWhisper(hereticPlayer.name, false), 'system', { player: hereticPlayer.name }),
+      );
 
       // Send existence notification to marked players
       gameState.messages.push(
@@ -1448,7 +1327,13 @@ function resolveCoroner(gameState: GameState): void {
     isClean: !isTainted(sacrificed, gameState.round),
   });
   gameState.messages.push(
-    addMessage(gameState, '叙述者', `食灰者在梦中品尝了 ${sacrificed.name} 的灵魂...`, 'system', 'coroner'),
+    addMessage(
+      gameState,
+      '叙述者',
+      `夜里，你在梦中尝到了 ${sacrificed.name} 的灰——${isTainted(sacrificed, gameState.round) ? '污浊的' : '干净的'}。`,
+      'system',
+      'coroner',
+    ),
   );
 }
 
@@ -1471,6 +1356,28 @@ function enterNightPhase(gameState: GameState): void {
       addMessage(gameState, '叙述者', '夜幕降临... 饥饿者的时刻到了。', 'system', 'all'),
     );
   }
+
+  // 第一夜：山灵对每个烙印者低语，告诉他谁欠了他什么
+  if (gameState.round === 1) {
+    for (const p of gameState.players.filter((x) => x.role === 'marked' && x.isAlive)) {
+      gameState.messages.push(addMessage(gameState, '山灵', shanlingWhisper(p.name), 'system', { player: p.name }));
+    }
+  }
+}
+
+/** 这个人死后情绪变了的人（每人说一句） */
+function mournersFor(gameState: GameState, dead: string, cause: Mourner['cause']): Mourner[] {
+  const names = new Set(gameState.pendingStateChanges.filter((c) => c.triggerCharacter === dead).map((c) => c.character));
+  return [...names].map((name) => ({ name, dead, cause }));
+}
+
+/** 去掉末尾属于这个人这一次行动的消息（神谕、心声、发言） */
+function withoutLastTurn(gameState: GameState, name: string): Message[] {
+  const mine = (m: Message) =>
+    (m.from === name || m.from === `${name} (神谕)`) && m.round === gameState.round && m.phase === gameState.phase;
+  let end = gameState.messages.length;
+  while (end > 0 && mine(gameState.messages[end - 1])) end -= 1;
+  return gameState.messages.slice(0, end);
 }
 
 /**
@@ -1481,20 +1388,7 @@ function cleanupFailedAttempt(gameState: GameState): void {
   const currentPlayer = getActingPlayers(gameState)[gameState.currentPlayerIndex];
   if (!currentPlayer) return;
 
-  // Remove all messages from this player in current round/phase
-  // Use filter to avoid index shifting issues with splice
-  gameState.messages = gameState.messages.filter(msg => {
-    // Keep messages that are NOT from current player in current round/phase
-    if ((msg.from === currentPlayer.name || msg.from === `${currentPlayer.name} (神谕)`) &&
-        msg.round === gameState.round &&
-        msg.phase === gameState.phase &&
-        (msg.type === 'prompt' || msg.type === 'thinking' || msg.type === 'speech')) {
-      // This message should be removed
-      return false;
-    }
-    // Keep all other messages
-    return true;
-  });
+  gameState.messages = withoutLastTurn(gameState, currentPlayer.name);
 
   // Also clean up any votes/actions that might have been recorded
   // Remove day votes from this player
@@ -1509,8 +1403,8 @@ function cleanupFailedAttempt(gameState: GameState): void {
     gameState.nightVotes.splice(nightVoteIndex, 1);
   }
 
-  // Remove listener check from this round if this player is listener
-  if (currentPlayer.role === 'listener') {
+  // Remove listener check from this round if this player is listener（第二回合是对着结果说话，不动记录）
+  if (currentPlayer.role === 'listener' && gameState.currentPlayerIndex === 0) {
     const listenerCheckIndex = gameState.listenerChecks.findLastIndex(
       (c) => c.round === gameState.round
     );

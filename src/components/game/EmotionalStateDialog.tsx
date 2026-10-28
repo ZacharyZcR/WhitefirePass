@@ -46,8 +46,9 @@ export function EmotionalStateDialog({ stateChanges, onComplete }: EmotionalStat
   const currentChange = stateChanges[currentIndex];
   if (!currentChange) return null;
 
-  const relationshipLabel = getRelationshipLabel(currentChange.relationshipType);
-  const { title, description } = getStateChangeDescription(
+  const relationshipLabel =
+    currentChange.relationshipLabel ?? getRelationshipLabel(currentChange.relationshipType);
+  const { title, description, quote } = getStateChangeDescription(
     currentChange.character,
     currentChange.triggerCharacter,
     currentChange.newState,
@@ -99,6 +100,11 @@ export function EmotionalStateDialog({ stateChanges, onComplete }: EmotionalStat
               {title}
             </div>
             <p className="max-h-64 overflow-y-auto font-serif text-sm leading-loose text-parchment">{description}</p>
+            {quote && (
+              <p className={cn('font-serif text-base italic tracking-wider', isVirtue ? 'text-pyre' : 'text-seal-light')}>
+                “{quote}”
+              </p>
+            )}
           </div>
         </div>
 

@@ -19,7 +19,7 @@ export type Role =
 /**
  * Game phases
  */
-export type GamePhase = 'prologue' | 'setup' | 'night' | 'day' | 'secret_meeting' | 'event' | 'voting' | 'end';
+export type GamePhase = 'prologue' | 'setup' | 'night' | 'day' | 'event' | 'voting' | 'end';
 
 /**
  * Night sub-phases
@@ -42,7 +42,6 @@ export type MessageType =
   | 'death'       // Death announcements
   | 'prompt'      // AI prompt
   | 'thinking'    // AI thinking process
-  | 'secret'      // Secret meeting conversation
   | 'event';      // Game event
 
 /**
@@ -68,12 +67,14 @@ export type RelationshipType =
   | 'acquaintance'; // 旧识
 
 /**
- * Character relationship definition
+ * Character relationship definition (directed: character's feeling toward target)
  */
 export interface CharacterRelationship {
   character: string;  // Character name
   target: string;     // Related character name
   type: RelationshipType;
+  label?: string;     // 这条关系本身的名字（可选，没有时显示关系类型）
+  known?: string;     // 开局时他对这个人知道什么、怎么看（第二人称，写进他的开场 prompt）
   virtueChance: number;  // 0-1: Probability of triggering virtue (美德)
   viceChance: number;    // 0-1: Probability of triggering vice (罪恶)
   // Note: virtueChance + viceChance can be < 1, remaining = stay normal
@@ -107,8 +108,7 @@ export type MessageVisibility =
   | 'coroner'       // Only 食灰者 can see (autopsy results)
   | 'guard'         // Only 设闩者 can see (guard actions)
   | 'twins'         // Only 共誓者 can see (twin communication)
-  | { player: string }  // Only specific player can see
-  | { secretMeeting: [string, string] };  // Only two specific players can see (secret meeting)
+  | { player: string };  // Only specific player can see
 
 /**
  * Game message
@@ -122,11 +122,23 @@ export interface Message {
   round?: number;
   phase?: GamePhase;
   visibility: MessageVisibility;  // Who can see this message
+  quote?: string;  // 投票、选人时说出口的那句话（content 仍是目标名字）
+  segment?: string;  // 白天发言属于哪一段议事（见 actors.segmentKey），发言队列从这里重建
 }
 
 /**
  * Vote record
  */
+/** 固定过场：第三夜（三人被选中）、第七天（吵到决定献祭） */
+export type Cutscene = 'chosen' | 'dayseven';
+
+/** 死后情绪变了、要开口说一句的人 */
+export interface Mourner {
+  name: string;
+  dead: string;
+  cause: 'sacrifice' | 'night';
+}
+
 export interface Vote {
   from: string;
   target: string;
@@ -183,6 +195,7 @@ export interface EmotionalStateChange {
   character: string;      // Character who changes state
   triggerCharacter: string; // Character whose death triggered this
   relationshipType: RelationshipType;
+  relationshipLabel?: string;
   newState: EmotionalState;
   reason: string;         // Description of why this happened
 }
@@ -226,17 +239,15 @@ export interface GameState {
   // Emotional state changes
   pendingStateChanges: EmotionalStateChange[];  // Queue of state changes to show to user
 
-  // Secret meetings
-  secretMeetings: SecretMeeting[];  // History of all secret meetings
-  pendingSecretMeeting?: {
-    timing: 'before_discussion' | 'after_sacrifice';
-    selectedParticipants?: [string, string];  // User-selected participants
-  };
-
   // Game events
   gameEvents: GameEventRecord[];  // History of all game events
 
-  deathLog?: DeathRecord[];  // 死亡记录（旧存档没有这个字段）
+  deathLog?: DeathRecord[];
+  isGathering?: boolean;  // 第一日正式议事前的自我介绍：每人按座次说一轮，不投票
+  ballot?: boolean;
+  lastWords?: string;  // 献祭石定下来、还没推进白火的那个人：先留他几句临终的话
+  mourners?: Mourner[];  // 有人死后情绪变了的人：每人说一句，说完才往下走
+  cutscenes?: Cutscene[];  // 还没播的固定过场，按顺序播完才往下走（新局才有；旧存档没有这个字段，不播）  // 傍晚的讨论结束、献祭石已经发下去：此时的 voting 才是真正投票
   suspicions?: Record<string, SuspicionEntry[]>;  // 每个角色最近一次给出的怀疑名单
 }
 
@@ -299,16 +310,6 @@ export interface Clue {
     date?: string;
     text: string;
   }>;  // Full content (supports multi-page like diary)
-}
-
-/**
- * Secret meeting record
- */
-export interface SecretMeeting {
-  round: number;
-  participants: [string, string];  // Two participants
-  messageIds: string[];  // Messages exchanged in this meeting
-  timing: 'before_discussion' | 'after_sacrifice';  // When the meeting occurred
 }
 
 /**

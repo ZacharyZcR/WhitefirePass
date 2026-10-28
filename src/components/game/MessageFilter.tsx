@@ -42,7 +42,6 @@ const messageTypeNames: Record<string, string> = {
   vote: '投票',
   death: '死亡',
   action: '行动',
-  secret: '密会',
 };
 
 /**
@@ -88,7 +87,7 @@ export function MessageFilter({ messages, players, onFilterChange }: MessageFilt
     } else {
       // Default: show all game-relevant messages
       filtered = filtered.filter(msg =>
-        ['system', 'speech', 'death', 'action', 'secret', 'thinking', 'prompt', 'vote'].includes(msg.type)
+        ['system', 'speech', 'death', 'action', 'thinking', 'prompt', 'vote'].includes(msg.type)
       );
     }
 

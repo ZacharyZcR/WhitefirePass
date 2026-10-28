@@ -4,6 +4,7 @@
  */
 
 import type { GamePhase, GameState, NightPhase, Player, Role } from '@/types/game';
+import { getActingPlayers } from './actors';
 
 export interface RoleInfo {
   name: string;
@@ -27,13 +28,14 @@ export function roleInfo(role: string): RoleInfo {
 }
 
 export const isHarvest = (role: string): boolean => role === 'marked' || role === 'heretic';
+/** 此刻已经站在收割一边：烙印者从开局起，背誓者从第二天堕落起 */
+export const isHarvestNow = (role: string, round: number): boolean => role === 'marked' || (role === 'heretic' && round >= 2);
 
 export const PHASE_NAME: Record<GamePhase, string> = {
   prologue: '序章',
   setup: '序章',
   day: '白昼议事',
-  voting: '献祭投票',
-  secret_meeting: '密会',
+  voting: '黄昏献祭',
   event: '异事',
   night: '长夜',
   end: '终局',
@@ -49,7 +51,7 @@ export const NIGHT_PHASE_NAME: Record<NightPhase, string> = {
 
 /** Night-toned scenes: deep blue + pale fire */
 export const isNightScene = (phase: GamePhase): boolean =>
-  phase === 'night' || phase === 'secret_meeting' || phase === 'end';
+  phase === 'night' || phase === 'end';
 
 const HANZI = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
 
@@ -67,29 +69,13 @@ export const toRoman = (n: number): string => ROMAN[n - 1] ?? String(n);
 /** Public asset path that survives the GitHub Pages basePath */
 const BASE_PATH = process.env.NODE_ENV === 'production' ? '/WhitefirePass' : '';
 export const assetPath = (path: string): string => `${BASE_PATH}${path}`;
-export const portraitSrc = (name: string): string => assetPath(`/portraits/${encodeURIComponent(name)}.png`);
+export const portraitSrc = (name: string, harvest = false): string =>
+  assetPath(harvest ? `/portraits/harvest/${encodeURIComponent(name)}.webp` : `/portraits/${encodeURIComponent(name)}.png`);
+/** 场景、事件、线索插图：artSrc('scenes/hall_day') → /images/scenes/hall_day.webp */
+export const artSrc = (path: string): string => assetPath(`/images/${path}.webp`);
 
-/**
- * Players who act in the current step — mirrors the selection in the store,
- * used only to show "next to act" and progress in the HUD.
- */
-export function getActingPlayers(state: GameState): Player[] {
-  const alive = state.players.filter((p) => p.isAlive);
-  if (state.phase === 'night') {
-    const roleFor: Partial<Record<NightPhase, Role>> = {
-      listener: 'listener',
-      'marked-discuss': 'marked',
-      'marked-vote': 'marked',
-      guard: 'guard',
-    };
-    const role = state.nightPhase && roleFor[state.nightPhase];
-    return role ? alive.filter((p) => p.role === role) : alive;
-  }
-  if (state.phase === 'day' && state.isRevote && state.tiedPlayers.length > 0) {
-    return alive.filter((p) => !state.tiedPlayers.includes(p.name));
-  }
-  return alive;
-}
+/** HUD 的"下一个行动"和进度，和 store 用同一份规则 */
+export { getActingPlayers };
 
 const SPEAKING_PHASES: GamePhase[] = ['day', 'voting', 'night'];
 

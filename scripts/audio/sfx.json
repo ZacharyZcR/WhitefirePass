@@ -1,0 +1,181 @@
+{
+ "_说明": "非人声音效：key → public/audio/sfx/<key>/，n 是变体条数，d 是秒数，text 是给 ElevenLabs 的英文描述，loop 做成无缝循环（环境音）。触发规则见 src/lib/audio/cues.ts",
+ "amb_blizzard": {
+  "n": 1,
+  "d": 22,
+  "loop": true,
+  "text": "Muffled blizzard howling outside an old wooden mountain lodge, heard from indoors, wind buffeting the shutters, constant and cold, no music"
+ },
+ "amb_night": {
+  "n": 1,
+  "d": 22,
+  "loop": true,
+  "text": "Night inside an old timber lodge during a snowstorm, distant low howling wind, creaking wooden beams settling, eerie stillness, no music"
+ },
+ "amb_fire": {
+  "n": 1,
+  "d": 15,
+  "loop": true,
+  "text": "A pale ghostly fire burning in a stone hearth, soft unnatural crackle with a faint cold eerie hum, no warmth, no music"
+ },
+ "stone": {
+  "n": 4,
+  "d": 1,
+  "text": "A small smooth stone placed firmly on a heavy oak table, single solid knock, quiet room"
+ },
+ "pyre": {
+  "n": 2,
+  "d": 3,
+  "text": "A pale ghostly flame suddenly roaring up from a hearth, eerie whoosh with a low ethereal choir-like hum, horror"
+ },
+ "heartbeat": {
+  "n": 2,
+  "d": 4,
+  "text": "Slow heavy human heartbeat, deep muffled thumps, tense horror atmosphere"
+ },
+ "door": {
+  "n": 3,
+  "d": 2.5,
+  "text": "Old heavy wooden door creaking open slowly in a cold empty lodge corridor"
+ },
+ "bolt": {
+  "n": 2,
+  "d": 1.2,
+  "text": "Heavy iron door bolt sliding shut, rusty metallic clunk, old wooden door"
+ },
+ "body": {
+  "n": 2,
+  "d": 1.5,
+  "text": "A body collapsing onto an old wooden floor, dull heavy thud, horror"
+ },
+ "gust": {
+  "n": 2,
+  "d": 3,
+  "text": "Sudden violent gust of blizzard wind slamming against old windows, wooden shutters rattling, mountain lodge at night"
+ },
+ "bell": {
+  "n": 2,
+  "d": 4,
+  "text": "A single low cracked bronze bell toll echoing through a snowy mountain pass at dawn, distant and mournful"
+ },
+ "howl": {
+  "n": 2,
+  "d": 4,
+  "text": "A lone wolf howling far away across a snowy mountain pass at night, wind carrying it, eerie and cold"
+ },
+ "clock": {
+  "n": 2,
+  "d": 5,
+  "text": "An old grandfather clock striking midnight in a silent wooden lodge, slow deep chimes, ominous"
+ },
+ "listen": {
+  "n": 2,
+  "d": 3,
+  "text": "Eerie glass harmonica shimmer with a faint distant heartbeat, someone listening to a soul, supernatural, quiet"
+ },
+ "steps": {
+  "n": 3,
+  "d": 3,
+  "text": "Slow careful footsteps on old creaking wooden floorboards in a dark corridor at night"
+ },
+ "ash": {
+  "n": 2,
+  "d": 3,
+  "text": "Cold embers and ash crumbling in a dead hearth, a soft dry hiss and a faint ghostly sigh"
+ },
+ "murmur": {
+  "n": 2,
+  "d": 4,
+  "text": "A tense murmur of a small crowd in a wooden hall, uneasy whispers rising, then falling silent"
+ },
+ "virtue": {
+  "n": 2,
+  "d": 3,
+  "text": "A single warm resonant bell-like chime swelling softly, resolve awakening, cold room, cinematic"
+ },
+ "vice": {
+  "n": 2,
+  "d": 3,
+  "text": "A dissonant cracking sound like ice breaking with a low distorted string swell, despair, horror sting"
+ },
+ "cooking": {
+  "n": 1,
+  "d": 5,
+  "text": "A small iron pot simmering on an old stove, spoons clinking against tin bowls, quiet voices out of focus, warm kitchen"
+ },
+ "snowslide": {
+  "n": 1,
+  "d": 4,
+  "text": "Loose snow and rocks sliding down a steep mountain edge, a rope pulled taut, heavy breathing, wind"
+ },
+ "crackle": {
+  "n": 1,
+  "d": 5,
+  "text": "A quiet hearth fire crackling softly late at night, logs settling, intimate and calm"
+ },
+ "cards": {
+  "n": 1,
+  "d": 3,
+  "text": "An old deck of playing cards being shuffled and dealt onto a wooden table"
+ },
+ "hammer": {
+  "n": 1,
+  "d": 4,
+  "text": "Hammering nails into wooden boards to repair a window, planks being dragged, wind outside"
+ },
+ "piano": {
+  "n": 1,
+  "d": 8,
+  "text": "A slow melancholic melody on an old out-of-tune upright piano in a cold empty lodge, a little reverb"
+ },
+ "prayer": {
+  "n": 1,
+  "d": 6,
+  "text": "Several people murmuring a quiet prayer together in candlelight, indistinct low voices, solemn"
+ },
+ "crates": {
+  "n": 1,
+  "d": 4,
+  "text": "Old wooden crates being pried open with a crowbar in a stone cellar, tins clattering"
+ },
+ "cupboard": {
+  "n": 1,
+  "d": 3,
+  "text": "An old wooden pantry cupboard creaking open, empty shelves, a tin rolling, someone gasps"
+ },
+ "argument": {
+  "n": 1,
+  "d": 5,
+  "text": "A heated argument between several people heard through a wooden wall, muffled indistinct shouting, a fist hitting a table"
+ },
+ "whispers": {
+  "n": 1,
+  "d": 5,
+  "text": "Soft hushed whispering of a few people in a quiet dark room, gossip spreading, close and intimate, low volume, unsettling"
+ },
+ "dream": {
+  "n": 1,
+  "d": 5,
+  "text": "A hazy dreamlike swell, distant bells under water, soft reversed wind, eerie and surreal"
+ },
+ "fire_whisper": {
+  "n": 2,
+  "d": 5,
+  "text": "Low ghostly whispering voices rising out of a pale crackling fire in a dark stone cellar, breathy, wordless, cold and supernatural, close to the ear, no music"
+ },
+ "brand": {
+  "n": 2,
+  "d": 3,
+  "text": "Red-hot iron brand pressed onto skin, sharp sizzling hiss of burning flesh, short and intense, no screaming, no music"
+ },
+ "slam": {
+  "n": 2,
+  "d": 1.2,
+  "text": "Fist slamming down hard on a heavy oak table in a large wooden hall, single loud thud, cups rattling, no music"
+ },
+ "chair": {
+  "n": 3,
+  "d": 2,
+  "text": "Heavy wooden chair dragged across a stone floor, then someone sits down heavily, creak, quiet hall, no music"
+ }
+}

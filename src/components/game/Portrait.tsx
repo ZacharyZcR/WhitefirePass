@@ -16,10 +16,14 @@ interface PortraitProps {
   zoom?: number;
   className?: string;
   imgClassName?: string;
+  /** 收割之相：邪恶癫狂的那一张，没有就退回普通立绘 */
+  harvest?: boolean;
 }
 
-export function Portrait({ name, dead = false, zoom = 1, className, imgClassName }: PortraitProps) {
+export function Portrait({ name, dead = false, zoom = 1, className, imgClassName, harvest = false }: PortraitProps) {
   const [failed, setFailed] = useState(false);
+  const [noHarvest, setNoHarvest] = useState(false);
+  const showHarvest = harvest && !noHarvest;
 
   return (
     <div className={cn('relative overflow-hidden', className)}>
@@ -30,10 +34,10 @@ export function Portrait({ name, dead = false, zoom = 1, className, imgClassName
       ) : (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={portraitSrc(name)}
+          src={portraitSrc(name, showHarvest)}
           alt={name}
           draggable={false}
-          onError={() => setFailed(true)}
+          onError={() => (showHarvest ? setNoHarvest(true) : setFailed(true))}
           className={cn(
             'absolute inset-0 h-full w-full select-none object-cover object-top transition-[filter] duration-700',
             dead && 'portrait-dead',

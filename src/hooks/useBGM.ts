@@ -4,28 +4,30 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import type { GameState } from '@/types/game';
+import type { Cutscene, GameState } from '@/types/game';
 import { assetPath } from '@/lib/design-tokens';
+import { useGameStore } from '@/stores/game-store';
 
 /**
  * BGM configuration for different game phases
  */
 const BGM_TRACKS = {
-  menu: '/bgm/day.mp3',          // Main menu
-  setup: '/bgm/day.mp3',         // Setup phase
-  day: '/bgm/day.mp3',           // Day phase
-  voting: '/bgm/day.mp3',        // Voting phase (same as day)
-  secret_meeting: '/bgm/night.mp3', // Secret meeting (mysterious)
-  event: '/bgm/day.mp3',         // Event (same as day)
-  night: '/bgm/night.mp3',       // Night phase
-  end: '/bgm/night.mp3',         // Game end (same as night)
-  prologue: '/bgm/day.mp3',      // Prologue (same as day)
+  menu: '/audio/music/title.ogg',
+  prologue: '/audio/music/opening.ogg', // opening cinematic: plays once, not looped
+  setup: '/audio/music/title.ogg',
+  day: '/audio/music/day.ogg',
+  event: '/audio/music/day.ogg',
+  voting: '/audio/music/voting.ogg',
+  night: '/audio/music/night.ogg',
+  end: '/audio/music/night.ogg', // until the winner is known
 } as const;
 
 /**
- * Get BGM track for current phase
+ * Get BGM track for current phase; the ending theme depends on who won, and a cutscene has its own track
  */
-function getTrackForPhase(phase: GameState['phase'] | 'menu'): string {
+function getTrackForPhase(phase: GameState['phase'] | 'menu', winner?: GameState['winner'], cutscene?: Cutscene): string {
+  if (cutscene) return assetPath(`/audio/music/${cutscene}.ogg`);
+  if (phase === 'end' && winner) return assetPath(`/audio/music/end_${winner}.ogg`);
   return assetPath(BGM_TRACKS[phase] || BGM_TRACKS.menu);
 }
 
@@ -65,6 +67,8 @@ export function useBGM(phase: GameState['phase'] | 'menu' | null, enabled = true
   const [volume, setVolume] = useState(0.3); // Default volume 30%
   const [isMuted, setIsMuted] = useState(false);
   const currentTrackRef = useRef<string | null>(null);
+  const winner = useGameStore((s) => s.gameState?.winner);
+  const cutscene = useGameStore((s) => s.gameState?.cutscenes?.[0]);
 
   // Initialize audio element
   useEffect(() => {
@@ -87,7 +91,7 @@ export function useBGM(phase: GameState['phase'] | 'menu' | null, enabled = true
     if (!enabled || !phase || !audioRef.current) return;
 
     const audio = audioRef.current;
-    const newTrack = getTrackForPhase(phase);
+    const newTrack = getTrackForPhase(phase, winner, cutscene);
 
     // If track hasn't changed, just ensure it's playing
     if (currentTrackRef.current === newTrack) {
@@ -103,6 +107,7 @@ export function useBGM(phase: GameState['phase'] | 'menu' | null, enabled = true
     const switchTrack = () => {
       audio.pause();
       audio.src = newTrack;
+      audio.loop = phase !== 'prologue';
       audio.load();
       currentTrackRef.current = newTrack;
 
@@ -124,7 +129,7 @@ export function useBGM(phase: GameState['phase'] | 'menu' | null, enabled = true
       // No current track playing, switch immediately
       switchTrack();
     }
-  }, [phase, enabled, isMuted, volume]);
+  }, [phase, winner, cutscene, enabled, isMuted, volume]);
 
   // Handle volume changes
   useEffect(() => {

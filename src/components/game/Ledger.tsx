@@ -19,7 +19,7 @@ import { CluesPanel } from './CluesPanel';
 export type LedgerTab = 'log' | 'thinking' | 'prompt' | 'votes' | 'clues';
 
 const MESSAGE_TABS: { value: LedgerTab; label: string; types: string[] }[] = [
-  { value: 'log', label: '记录', types: ['system', 'speech', 'vote', 'death', 'action', 'secret'] },
+  { value: 'log', label: '记录', types: ['system', 'speech', 'vote', 'death', 'action'] },
   { value: 'thinking', label: '独白', types: ['thinking'] },
   { value: 'prompt', label: '神谕', types: ['prompt'] },
 ];

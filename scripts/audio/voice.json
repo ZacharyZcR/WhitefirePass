@@ -1,0 +1,25 @@
+{
+ "_说明": "角色 key 对应 lines.json 和 public/audio/voice/<key>/；name 是游戏里的中文名（运行时按它找声音）；why 是选这个音色的理由。换音色后跑 gen.mjs --force --only <key>",
+ "model": "eleven_v4",
+ "lang": "ja",
+ "concurrency": 4,
+ "voices": {
+  "nora":      { "name": "诺拉·格雷",           "id": "LCjxmvbOHJFuUnh87ifL", "why": "Rei：二十多岁、低而冷静的女声，克制地往前一步——学者的审视和疲惫" },
+  "marcus":    { "name": "马库斯·霍克",         "id": "3U6tYxUqUpcplL5Qep78", "why": "Shimura：略沙哑的男声，话短粗粝的猎人" },
+  "eileen":    { "name": "艾琳·哈钦斯",         "id": "ioLsi3BGjCKHDhF2fNod", "why": "Kasane：安静、庄重的中年女声，失去儿子后很少说话" },
+  "thomas":    { "name": "托马斯·克劳利",       "id": "lfG6BR3yQRoBrnUm4Z8N", "why": "Minto：明亮外放的年轻男声，用玩笑掩饰恐惧的那层壳" },
+  "lydia":     { "name": "莉迪亚·克劳利",       "id": "UwmChKysRWw5hwbzf6t6", "why": "Suisen：清楚、严肃的年轻女声，很少笑的家庭教师" },
+  "oliver":    { "name": "奥利弗·佩恩",         "id": "3VouIDzZzPEjDgmtbXBJ", "why": "Hadou：轻声细语的年轻男声，胆小、说话会结巴的药剂师" },
+  "sophia":    { "name": "索菲亚·阿什福德",     "id": "SYjaeawCEiQrxiyl1IWh", "why": "Leira：贵族小姐式的优雅女声，没落了也要高昂下巴" },
+  "samuel":    { "name": "塞缪尔·布莱克伍德",   "id": "JOcmGzB8OFjY8MhjHHEf", "why": "Jun：中老年、沉静带沙的男声，像主持过二十年弥撒的人" },
+  "claire":    { "name": "克莱尔·沃伦",         "id": "lhTvHflPVOqgSWyuWQry", "why": "Hina：很高、很嫩的萌系少女音（试音里中位基频 308/432 Hz，候选里最高），配 [nervous] [crying] 念出受惊小鸟似的胆怯。原来的 Sumire 父亲觉得太成熟" },
+  "victor":    { "name": "维克多·斯通",         "id": "YkUoVuNq2782tso28g8Q", "why": "PiropiroRX：成熟沙哑、粗砺的男声，被酒泡坏的退伍上尉" },
+  "emily":     { "name": "艾米莉·卡特",         "id": "IgiTcMDSHJPIJjnlwIdM", "why": "Kurea：温暖而成熟、表现力强的女声，手很稳的战地护士" },
+  "benjamin":  { "name": "本杰明·怀特",         "id": "KdlbMHGeafEyWqPCWkW0", "why": "Kiyo：中低音、情绪外露的男声，商人的圆滑被恐惧压垮" },
+  "isabella":  { "name": "伊莎贝拉·费尔法克斯", "id": "Y1JL3teRC0POFnlfftJe", "why": "Ayame：成熟妩媚的女声，糖里裹毒的社交名媛" },
+  "alexander": { "name": "亚历山大·莫里斯",     "id": "QBFMSBh1y6H4T4Eg1iJP", "why": "Yoshiyuki Fujisawa：四十多岁、安静低沉的男声，没有表情的收账人" },
+  "charlotte": { "name": "夏洛特·温特斯",       "id": "iTqcz0mjbxzCZAfsqojU", "why": "Nao：甜而带挑衅、爱逗人的年轻女声，贫民窟长大的红发女演员" },
+  "narrator":  { "name": "叙述者",               "id": "4oeIbMTUt5QeJy4ZX1FC", "why": "Koichi Yashiro：低沉的电影旁白男声，讲死讯和结局" },
+  "spirit":    { "name": "山灵",                 "id": "cpUQFbEcX3tjJdSSiDPb", "why": "Izayoi：神秘、空灵的耳语女声，山灵的契约与号令" }
+ }
+}

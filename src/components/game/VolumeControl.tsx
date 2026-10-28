@@ -7,6 +7,7 @@
 import { Volume2, VolumeX } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
+import { AudioSliders } from '@/components/audio/AudioSliders';
 import { HudButton } from './HudButton';
 
 interface VolumeControlProps {
@@ -39,6 +40,7 @@ export function VolumeControl({ volume, isMuted, setVolume, toggleMute }: Volume
         <div className="mt-2 text-center font-cinzel text-xs text-frost-dim">
           {isMuted ? 'SILENT' : `${Math.round(volume * 100)}%`}
         </div>
+        <AudioSliders />
       </PopoverContent>
     </Popover>
   );

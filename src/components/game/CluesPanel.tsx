@@ -7,15 +7,16 @@
 import { useState } from 'react';
 import { Archive, BookOpen, File, FileText, Scroll } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { artSrc } from '@/lib/design-tokens';
 import { StoryIntro } from './StoryIntro';
 import type { Clue, ClueCategory } from '@/types/game';
 
-const CATEGORY: Record<ClueCategory, { name: string; icon: typeof BookOpen }> = {
-  diary: { name: '日记', icon: BookOpen },
-  letter: { name: '书信', icon: Scroll },
+const CATEGORY: Record<ClueCategory, { name: string; icon: typeof BookOpen; art?: string }> = {
+  diary: { name: '日记', icon: BookOpen, art: 'clues/diary' },
+  letter: { name: '书信', icon: Scroll, art: 'clues/letter' },
   note: { name: '笔记', icon: FileText },
-  document: { name: '文档', icon: File },
-  artifact: { name: '物品', icon: Archive },
+  document: { name: '文档', icon: File, art: 'clues/plaque' },
+  artifact: { name: '物品', icon: Archive, art: 'clues/stones' },
 };
 
 interface CluesPanelProps {
@@ -45,7 +46,7 @@ export function CluesPanel({ clues, onClueRead }: CluesPanelProps) {
             </div>
           ) : (
             clues.map((clue) => {
-              const { name, icon: Icon } = CATEGORY[clue.category];
+              const { name, icon: Icon, art } = CATEGORY[clue.category];
               return (
                 <button
                   key={clue.id}
@@ -57,7 +58,11 @@ export function CluesPanel({ clues, onClueRead }: CluesPanelProps) {
                   )}
                 >
                   <div className="flex items-start gap-3">
-                    <Icon className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#6b5434]" strokeWidth={1.5} />
+                    {art ? (
+                      <img src={artSrc(art)} alt="" className="h-16 w-16 flex-shrink-0 rounded-sm object-cover shadow-[0_2px_6px_rgba(0,0,0,0.5)]" />
+                    ) : (
+                      <Icon className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#6b5434]" strokeWidth={1.5} />
+                    )}
                     <div className="min-w-0 flex-1">
                       <div className="font-serif text-sm font-semibold tracking-wider">{clue.title}</div>
                       <div className="text-[11px] text-[#6b5434]">

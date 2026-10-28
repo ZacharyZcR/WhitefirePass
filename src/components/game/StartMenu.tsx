@@ -157,7 +157,7 @@ export function StartMenu() {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-ink">
-      <SceneBackdrop mood="night" className={cn('transition-opacity duration-[2000ms]', step === 'initial' ? 'opacity-0' : 'opacity-100')} />
+      <SceneBackdrop mood="night" scene="scenes/title" className={cn('transition-opacity duration-[2000ms]', step === 'initial' ? 'opacity-0' : 'opacity-100')} />
 
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-8 text-center">
         <div className={reveal('title')}>

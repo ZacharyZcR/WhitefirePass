@@ -12,13 +12,13 @@ import type {
   GameConfig,
   TwinPair,
   EmotionalStateChange,
-  SecretMeeting,
   GameEventRecord,
 } from '@/types/game';
 import { getTriggeredStateChanges } from './relationships';
 import { EMOTIONAL_STATE_PROMPTS } from './emotional-prompts';
 import { OPENING_LINE } from './story-text';
 import { selectRandomEvent, selectRandomParticipants, formatEventDescription } from './game-events';
+import { hasBlood } from './sins';
 
 /**
  * Create initial game state
@@ -76,7 +76,6 @@ export function createGame(config: GameConfig): GameState {
     nightVoteHistory: [],
     storyProgress: 0,
     pendingStateChanges: [],
-    secretMeetings: [],
     gameEvents: [],
   };
 }
@@ -104,7 +103,7 @@ function createPlayers(roles: Role[]): Player[] {
 
 我习惯用逻辑和证据说话。在我看来，恐惧源于未知，而知识是对抗未知的唯一武器。我会仔细观察每个人的言行，记录矛盾之处，用推理而非情绪做出判断。
 
-队伍中的马库斯……我们曾在一次学术会议上见过面。他是个猎人，粗鲁但直率。我不知道他为何也在这支队伍里，但他看我的眼神让我觉得，他也记得那次会面。
+队伍中的马库斯……三年前我在爱丁堡讲课时，他坐在台下。他是个猎人，粗鲁但直率。我不知道他为何也在这支队伍里，但他看我的眼神让我觉得，他也记得那次会面。
 
 我的目标很简单：完成工作，拿到报酬，活着离开。至于山口中流传的诅咒和怪谈？那不过是无知者的迷信罢了。`,
     `【男性】我叫马库斯·霍克，三十四岁，职业猎人。我的脸上有道从眉骨斜到下巴的疤痕，是五年前在苏格兰高地猎熊时留下的。我总穿着磨损的皮夹克，腰间挂着猎刀。
@@ -141,7 +140,7 @@ function createPlayers(roles: Role[]): Player[] {
 
 我来这里是为了我哥哥。托马斯又惹上麻烦了——这次是赌债。当我听说他要去白烬山口时，我知道我必须跟着。不是因为我原谅了他挪用我的嫁妆去赌博，而是因为他是我唯一的亲人。
 
-我当了三年的家庭教师，教那些富人家的孩子拉丁语和钢琴。我学会了忍耐，学会了藏起愤怒和失望。我也学会了观察细节——谁在撒谎，谁在隐瞒，谁真的在乎这个家庭。
+我十七岁起就给人当家庭教师，教那些富人家的孩子拉丁语和钢琴。我学会了忍耐，学会了藏起愤怒和失望。我也学会了观察细节——谁在撒谎，谁在隐瞒，谁真的在乎这个家庭。
 
 这个队伍很危险。不只是因为传说中的山灵，更因为人心。我能感觉到有人在隐藏秘密，有人有不可告人的目的。但我不在乎。我只需要确保托马斯活着回去——即使我讨厌他，即使他不值得。
 
@@ -171,7 +170,7 @@ function createPlayers(roles: Role[]): Player[] {
 
     `【男性】我是塞缪尔·布莱克伍德神父，四十七岁。我穿着朴素的黑色神父袍，胸前挂着十字架。我的头发已经半白,脸上布满风霜的痕迹，但眼神依然锐利。
 
-我不是真正的神父。二十年前，我在纽卡斯尔杀了一个人——那是场争吵，一时冲动，但他死了。我逃到爱尔兰，偷了个真正神父的身份，从此以他的名字活着。
+我不是真正的神父。二十年前，我在纽卡斯尔跟着一伙人去砸一家杂货铺，有人开了枪，老店主死了。我逃到爱尔兰，偷了个真正神父的身份，从此以他的名字活着。
 
 我来白烬山口是为了赎罪。这些年我主持弥撒，聆听忏悔，安慰临终者，试图用善行洗刷罪孽。但每晚我都梦见那个人的脸。委托书说这座山能"清洗罪恶"，我知道这很可能是陷阱，但我还是来了。
 
@@ -183,7 +182,7 @@ function createPlayers(roles: Role[]): Player[] {
 
     `【女性】我叫克莱尔·沃伦，十九岁。我个子小小的，一头亚麻色的头发总是乱蓬蓬的。我穿着女仆服——这是我唯一的正式衣服。
 
-我本来在伦敦一个大宅里当女仆。那天晚上，主人家的小少爷喝醉了，他试图……我推开他，他摔下了楼梯。他们说是我的错，要把我送去警察局。我逃了出来，身无分文。
+我本来在伦敦一个大宅里当女仆。那天晚上，主人家的小少爷喝醉了，他试图……我推开他，他摔下了楼梯。他再也没有起来。我连夜逃了出来，身无分文。
 
 委托人找到我，说这趟旅行包吃包住，还给十英镑报酬。对我这样的人来说，这是天上掉馅饼。我没问太多问题就答应了——反正我也没有退路。
 
@@ -221,11 +220,11 @@ function createPlayers(roles: Role[]): Player[] {
 
 三个月前，我还拥有三家店铺，在曼彻斯特的商会里有一席之地。然后一笔巨额的投资失败了——该死的意大利丝绸供应商破产了——我的店铺倒闭，债主找上门来。
 
-最糟糕的是，我欠了亚历山大·莫里斯的钱。你不会想欠那个人的钱——他是个冷血的债主，传闻他会让欠债人"消失"。他给了我一个选择：要么参加这趟白烬山口的探险，要么他会让我妻子和女儿付出代价。
+最糟糕的是，我欠了亚历山大·莫里斯的钱。你不会想欠那个人的钱——他是个冷血的债主，传闻他会让欠债人"消失"。他给了我一个选择：要么参加这趟白烬山口的探险，要么他会让我的妻子和孩子付出代价。
 
 亚历山大也在这支队伍里。我知道他在监视我，确保我不会逃跑。每次他看着我，我都能感到脊背发凉。
 
-我曾经是个精明的商人，善于谈判和计算。但现在我只是个被逼上绝路的赌徒，拿命换取家人的安全。我会不择手段地活下去——撒谎、欺骗、出卖他人，只要能让我回到我的妻子和女儿身边。
+我曾经是个精明的商人，善于谈判和计算。但现在我只是个被逼上绝路的赌徒，拿命换取家人的安全。我会不择手段地活下去——撒谎、欺骗、出卖他人，只要能让我回到我的妻子和孩子身边。
 
 如果必须有人死在这座山里，我会确保那不是我。对不起，但我还有家人要养。`,
 
@@ -287,7 +286,13 @@ function createPlayers(roles: Role[]): Player[] {
     { age: 21, gender: '女性' as const, occupation: '三流演员', trait: '野心勃勃', height: '163cm', bloodType: 'B型' },
   ];
 
-  const shuffledRoles = shuffle([...roles]);
+  // 收割阵营（烙印者、背誓者）内部不能有血债：同一夜结成同类的人，不该一个正欠着另一个的命
+  const harvestClean = (order: Role[]) => {
+    const harvest = names.filter((_, i) => order[i] === 'marked' || order[i] === 'heretic');
+    return harvest.every((a, i) => harvest.slice(i + 1).every((b) => !hasBlood(a, b)));
+  };
+  let shuffledRoles = shuffle([...roles]);
+  for (let tries = 0; tries < 500 && !harvestClean(shuffledRoles); tries++) shuffledRoles = shuffle([...roles]);
 
   return shuffledRoles.map((role, index) => ({
     id: generateId(),
@@ -303,7 +308,7 @@ function createPlayers(roles: Role[]): Player[] {
 
 /**
  * Advance to next game phase
- * Flow: prologue → setup → secret_meeting (before) → day → voting → secret_meeting (after) → event → night → ...
+ * Flow: prologue → setup → day → voting → event → night → ...
  */
 export function advancePhase(state: GameState): GamePhase {
   if (state.phase === 'prologue') {
@@ -311,18 +316,6 @@ export function advancePhase(state: GameState): GamePhase {
   }
 
   if (state.phase === 'setup') {
-    // After setup, go to secret meeting before discussion
-    return 'secret_meeting';
-  }
-
-  if (state.phase === 'secret_meeting') {
-    // Determine next phase based on timing
-    if (state.pendingSecretMeeting?.timing === 'before_discussion') {
-      return 'day';
-    } else if (state.pendingSecretMeeting?.timing === 'after_sacrifice') {
-      return 'event';
-    }
-    // Fallback to day if timing is unclear
     return 'day';
   }
 
@@ -331,8 +324,7 @@ export function advancePhase(state: GameState): GamePhase {
   }
 
   if (state.phase === 'voting') {
-    // After voting, go to secret meeting after sacrifice
-    return 'secret_meeting';
+    return 'event';
   }
 
   if (state.phase === 'event') {
@@ -341,8 +333,7 @@ export function advancePhase(state: GameState): GamePhase {
   }
 
   if (state.phase === 'night') {
-    // After night, go to secret meeting before next day's discussion
-    return 'secret_meeting';
+    return 'day';
   }
 
   return 'end';
@@ -468,6 +459,10 @@ export function processNightPhase(state: GameState): {
   };
 }
 
+/** 白火收人的门槛：石头最多的人至少要有在场活人数的三分之一（向上取整） */
+export const sacrificeQuorum = (state: GameState): number =>
+  Math.ceil(state.players.filter((p) => p.isAlive).length / 3);
+
 /**
  * Process voting phase
  */
@@ -480,7 +475,7 @@ export function processVoting(state: GameState): {
   if (state.votes.length === 0) {
     return {
       eliminated: null,
-      message: createMessage(state, '叙述者', '无人被选为献祭。'),
+      message: createMessage(state, '叙述者', '没有人放下献祭石。今天，白火没有收走任何人。'),
       isTied: false,
       tiedPlayers: [],
     };
@@ -506,6 +501,21 @@ export function processVoting(state: GameState): {
       playersWithMaxVotes.push(target);
     }
   });
+
+  // 石头太散：不够门槛就谁也不献祭，也不重议
+  const quorum = sacrificeQuorum(state);
+  if (maxVotes < quorum) {
+    return {
+      eliminated: null,
+      message: createMessage(
+        state,
+        '叙述者',
+        `献祭石散落一地。最多的人面前也只有 ${maxVotes} 块——不到 ${quorum} 块，白火不收。今天没有人被献祭。`,
+      ),
+      isTied: false,
+      tiedPlayers: [],
+    };
+  }
 
   // Check for tie
   if (playersWithMaxVotes.length > 1) {
@@ -622,8 +632,8 @@ export function handleDeathTriggers(
   for (const relationship of triggeredRelationships) {
     const affectedPlayer = state.players.find(p => p.name === relationship.character);
 
-    // Only affect alive players
-    if (!affectedPlayer || !affectedPlayer.isAlive) continue;
+    // Only affect alive players；烙印者第三夜之后心如磐石，谁死都不再动摇
+    if (!affectedPlayer || !affectedPlayer.isAlive || affectedPlayer.role === 'marked') continue;
 
     // Roll for emotional state change (dual direction probability)
     const roll = Math.random();
@@ -656,6 +666,7 @@ export function handleDeathTriggers(
       character: relationship.character,
       triggerCharacter: deadCharacterName,
       relationshipType: relationship.type,
+      relationshipLabel: relationship.label,
       newState,
       reason: `${deadCharacterName}的死亡触发了${relationship.character}的情感变化`,
     };
@@ -663,58 +674,6 @@ export function handleDeathTriggers(
     // Add to pending state changes queue
     state.pendingStateChanges.push(stateChange);
   }
-}
-
-/**
- * Initialize secret meeting phase
- */
-export function initSecretMeetingPhase(
-  state: GameState,
-  timing: "before_discussion" | "after_sacrifice"
-): void {
-  state.pendingSecretMeeting = {
-    timing,
-    selectedParticipants: undefined,
-  };
-}
-
-/**
- * Set secret meeting participants (user selection)
- */
-export function setSecretMeetingParticipants(
-  state: GameState,
-  participants: [string, string]
-): void {
-  if (state.pendingSecretMeeting) {
-    state.pendingSecretMeeting.selectedParticipants = participants;
-  }
-}
-
-/**
- * Complete secret meeting and record it
- */
-export function completeSecretMeeting(
-  state: GameState,
-  messageIds: string[]
-): void {
-  if (!state.pendingSecretMeeting?.selectedParticipants) return;
-
-  const meeting: SecretMeeting = {
-    round: state.round,
-    participants: state.pendingSecretMeeting.selectedParticipants,
-    messageIds,
-    timing: state.pendingSecretMeeting.timing,
-  };
-
-  state.secretMeetings.push(meeting);
-  state.pendingSecretMeeting = undefined;
-}
-
-/**
- * Skip secret meeting (if user chooses not to have one)
- */
-export function skipSecretMeeting(state: GameState): void {
-  state.pendingSecretMeeting = undefined;
 }
 
 /**

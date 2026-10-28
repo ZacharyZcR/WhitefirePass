@@ -1,11 +1,11 @@
 /**
  * Step controls that live in the dialogue box footer, plus the error banner.
- * Same behaviour as the old control panel: next / auto / retry / secret meeting.
+ * Same behaviour as the old control panel: next / auto / retry.
  */
 
 'use client';
 
-import { AlertTriangle, ChevronRight, FastForward, Loader2, RotateCw, Square, Users, X } from 'lucide-react';
+import { AlertTriangle, ChevronRight, FastForward, Loader2, RotateCw, Square, X } from 'lucide-react';
 import { useGameStore } from '@/stores/game-store';
 import { cn } from '@/lib/utils';
 
@@ -42,7 +42,6 @@ export function ActionBar() {
     executePhaseAuto,
     stopAutoExecution,
     retryCurrentStep,
-    openSecretMeetingSelector,
   } = useGameStore();
   if (!gameState) return null;
 
@@ -53,18 +52,6 @@ export function ActionBar() {
       <BarButton primary onClick={() => void retryCurrentStep()} disabled={isProcessing}>
         {isProcessing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCw className="h-3.5 w-3.5" />}
         重试此步
-      </BarButton>
-    );
-  }
-
-  if (gameState.phase === 'secret_meeting') {
-    const pending = gameState.pendingSecretMeeting;
-    const inProgress = Boolean(pending?.selectedParticipants && isProcessing);
-    const canStart = Boolean(pending && !pending.selectedParticipants && !isProcessing);
-    return (
-      <BarButton primary onClick={openSecretMeetingSelector} disabled={!canStart || inProgress}>
-        {inProgress ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Users className="h-3.5 w-3.5" />}
-        {inProgress ? '密会进行中' : '发起密会'}
       </BarButton>
     );
   }

@@ -7,8 +7,16 @@
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { PHASE_LABELS } from '@/lib/latin-text';
-import { PHASE_NAME, isNightScene, toHanzi } from '@/lib/design-tokens';
+import { PHASE_NAME, artSrc, isNightScene, toHanzi } from '@/lib/design-tokens';
 import type { GamePhase } from '@/types/game';
+
+const PHASE_SCENE: Partial<Record<GamePhase, string>> = {
+  day: 'scenes/hall_day',
+  night: 'scenes/corridor_night',
+  voting: 'scenes/pyre',
+  event: 'scenes/cellar',
+  end: 'scenes/lodge_exterior',
+};
 
 interface PhaseTransitionProps {
   phase: GamePhase;
@@ -53,11 +61,13 @@ export function PhaseTransition({ phase, round, onComplete }: PhaseTransitionPro
         stage === 'show' ? 'opacity-100' : 'opacity-0',
       )}
       style={{
-        background: night
-          ? 'radial-gradient(ellipse at 50% 60%, rgba(40,70,110,0.55), rgba(3,5,10,0.96) 70%)'
-          : phase === 'voting'
-            ? 'radial-gradient(ellipse at 50% 60%, rgba(110,30,30,0.5), rgba(8,5,5,0.96) 70%)'
-            : 'radial-gradient(ellipse at 50% 40%, rgba(200,215,228,0.25), rgba(8,10,14,0.96) 70%)',
+        background: `${
+          night
+            ? 'radial-gradient(ellipse at 50% 60%, rgba(40,70,110,0.45), rgba(3,5,10,0.9) 75%)'
+            : phase === 'voting'
+              ? 'radial-gradient(ellipse at 50% 60%, rgba(110,30,30,0.4), rgba(8,5,5,0.9) 75%)'
+              : 'radial-gradient(ellipse at 50% 40%, rgba(200,215,228,0.15), rgba(8,10,14,0.9) 75%)'
+        }, url(${artSrc(PHASE_SCENE[phase] ?? 'scenes/mountain_pass')}) center / cover`,
       }}
     >
       <div className="grain absolute inset-0" />

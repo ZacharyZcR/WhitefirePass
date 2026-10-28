@@ -1,0 +1,71 @@
+{
+ "_说明": "背景音乐：key → public/audio/music/<key>.ogg（无缝循环），useBGM 按阶段选曲。seconds 是长度，loop 是首尾交叉淡入的秒数。改了 prompt 用 gen.mjs --music --force --only <key> 重做",
+ "title": {
+  "seconds": 60,
+  "prompt": "Main title theme for a gothic mystery set in a snowbound mountain lodge in 1913, solo cello and sparse piano over cold string pads, distant wind, melancholic and foreboding, Edwardian chamber music, instrumental, 66 bpm, steady, loopable"
+ },
+ "day": {
+  "seconds": 60,
+  "prompt": "Uneasy daytime in a snowbound Edwardian mountain lodge, 1913, fifteen strangers trapped by a blizzard, restrained string quartet, plucked cello, muted piano, quiet suspicion and cold grey light, mystery underscore, instrumental, 76 bpm, steady, loopable"
+ },
+ "night": {
+  "seconds": 60,
+  "prompt": "Night in a dark mountain lodge during a blizzard, 1913, something hunts in the corridors, low sustained strings, faint glassy harmonics like a pale ghostly fire, sparse celesta notes, creeping dread, gothic horror underscore, instrumental, 60 bpm, steady, loopable"
+ },
+ "secret_meeting": {
+  "seconds": 60,
+  "prompt": "Two people whispering secrets behind a closed door in a candlelit lodge, 1913, intimate and conspiratorial, solo viola and soft harp, low clarinet, hushed tension, gothic mystery underscore, instrumental, 68 bpm, steady, loopable"
+ },
+ "voting": {
+  "seconds": 60,
+  "prompt": "Tense ritual judgment music in a snowbound Edwardian mountain lodge, 1913, low cello ostinato, slow muffled timpani like a heartbeat, cold glassy harmonics, a ghostly pale fire, dread building but restrained, gothic chamber horror, instrumental, 70 bpm, steady, loopable"
+ },
+ "end_lamb": {
+  "seconds": 45,
+  "prompt": "The blizzard finally stops at dawn over a mountain pass, 1913, fragile solo violin and soft piano, grief and quiet relief, cold morning light on snow, bittersweet chamber music, instrumental, slow, then a soft sustained string pad",
+  "loop": 2
+ },
+ "end_marked": {
+  "seconds": 45,
+  "prompt": "Eternal night falls on a snowbound lodge, the mountain spirit's harvest is complete, 1913, low drones, distant wordless female choir, detuned music box, howling wind texture, bleak gothic horror, instrumental, slow, then a dark sustained drone",
+  "loop": 2
+ },
+ "opening": {
+  "_说明": "开场 CG（src/lib/opening-script.ts，约 199 秒）的配乐：四段分别生成，各自调到 lufs，第 at 秒切进来（提前 fade 秒交叉淡化）。at 对着镜头：0 黑场，27 十五人开始抵达，134 暴雪（到遗书、献祭石），193 标题。镜头时长改了要跟着改 at 和 seconds。seconds 比段落长，多出来的被切掉。不循环",
+  "fade": 2,
+  "parts": [
+   {
+    "at": 0,
+    "seconds": 34,
+    "lufs": -26,
+    "prompt": "Opening darkness: only howling winter wind and a faint low drone, a single lone cello note slowly emerges at the end, very quiet and sparse, gothic mystery score for a snowbound Edwardian mountain lodge in 1913, chamber orchestra, D minor, 66 bpm, instrumental"
+   },
+   {
+    "at": 27,
+    "seconds": 112,
+    "lufs": -16,
+    "prompt": "Main theme: a melancholic cello melody over a steady walking pulse, joined by strings and sparse piano, strangers arriving one by one, uneasy yet beautiful, slowly building, gothic mystery score for a snowbound Edwardian mountain lodge in 1913, chamber orchestra, D minor, 66 bpm, instrumental"
+   },
+   {
+    "at": 134,
+    "seconds": 65,
+    "lufs": -19,
+    "prompt": "Cold dread: high glassy string harmonics, low string tremolo, a deep muffled drum like a slow heartbeat, a cursed testament is read, tension slowly rising, gothic mystery score for a snowbound Edwardian mountain lodge in 1913, chamber orchestra, D minor, 66 bpm, instrumental"
+   },
+   {
+    "at": 193,
+    "seconds": 16,
+    "lufs": -9,
+    "prompt": "Title climax: full orchestra with wordless choir and timpani, the main cello theme returns powerfully, then one long sustained chord dissolving into wind, gothic mystery score for a snowbound Edwardian mountain lodge in 1913, chamber orchestra, D minor, 66 bpm, instrumental"
+   }
+  ]
+ },
+ "chosen": {
+  "seconds": 60,
+  "prompt": "Oppressive sustained low drone for a dark ritual scene, 1913, a pale white fire in a stone cellar whispering to the chosen, contrabass and cello pedal tones, sub-bass swells, faint breathy choir textures, no melody, no percussion, slow and suffocating, D minor, instrumental, loopable"
+ },
+ "dayseven": {
+  "seconds": 60,
+  "prompt": "Tense underscore for a heated argument among fifteen trapped strangers in a cold Edwardian lodge hall, 1913, restrained low string ostinato, muted pizzicato cello, sparse uneasy piano, held breath, rising dread kept quiet beneath dialogue, D minor, 72 bpm, instrumental, steady, loopable"
+ }
+}

@@ -10,6 +10,7 @@ import { BookOpen, Skull } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { artSrc } from '@/lib/design-tokens';
 import { STORY_INTRO_PAGES } from '@/lib/story-text';
 
 interface StoryIntroProps {
@@ -18,6 +19,9 @@ interface StoryIntroProps {
 }
 
 const DIARY_ENTRIES = STORY_INTRO_PAGES;
+
+// 每一页日记配的插图：抵达山庄、苍白火焰与墙上的油画、山灵契约、献祭、夜里的猎杀、最后一页
+const PAGE_ART = ['scenes/lodge_exterior', 'clues/painting', 'clues/plaque', 'scenes/pyre', 'scenes/corridor_night', 'clues/diary'];
 
 /**
  * Parse story text and identify keywords
@@ -294,7 +298,16 @@ export function StoryIntro({ open, onComplete }: StoryIntroProps) {
             <p className="mt-3 font-serif text-sm tracking-[0.3em] text-brass-light">{currentEntry.date}</p>
           </header>
 
-          <div className="relative h-[46vh] min-h-[280px] overflow-y-auto border-l border-brass/20 pl-6 pr-2">
+          <div
+            key={currentEntryIndex}
+            className="relative mb-4 aspect-[1216/300] animate-in fade-in bg-cover bg-center opacity-80 duration-1000 sepia-[0.3]"
+            style={{
+              backgroundImage: `linear-gradient(180deg, rgba(23,17,11,0.2), rgba(23,17,11,0.6)), url(${artSrc(PAGE_ART[currentEntryIndex] ?? 'clues/diary')})`,
+              maskImage: 'linear-gradient(90deg, transparent, black 12%, black 88%, transparent)',
+            }}
+          />
+
+          <div className="relative h-[36vh] min-h-[220px] overflow-y-auto border-l border-brass/20 pl-6 pr-2">
             <div className="whitespace-pre-wrap text-left font-serif text-[15px] leading-[2] tracking-wide text-parchment/90">
               {renderText()}
               {!isEntryComplete && <span className="ml-1 inline-block h-4 w-[2px] translate-y-0.5 animate-pulse bg-brass-light" />}

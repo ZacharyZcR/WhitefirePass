@@ -1,0 +1,132 @@
+{
+ "amb_blizzard": [
+  "amb_blizzard/0ab9a7c6d5.ogg"
+ ],
+ "amb_night": [
+  "amb_night/77ce3912ec.ogg"
+ ],
+ "amb_fire": [
+  "amb_fire/701917afce.ogg"
+ ],
+ "stone": [
+  "stone/0b141f5d5a.ogg",
+  "stone/31a784e5b2.ogg",
+  "stone/34e1952473.ogg",
+  "stone/2945b88f87.ogg"
+ ],
+ "pyre": [
+  "pyre/43fe9e8dab.ogg",
+  "pyre/3aab2145e8.ogg"
+ ],
+ "heartbeat": [
+  "heartbeat/80c324463d.ogg",
+  "heartbeat/34ecaa6f61.ogg"
+ ],
+ "door": [
+  "door/1fe6b5a47f.ogg",
+  "door/e3d5daec9b.ogg",
+  "door/e549414bba.ogg"
+ ],
+ "bolt": [
+  "bolt/8b0c31376a.ogg",
+  "bolt/719b99a0d3.ogg"
+ ],
+ "body": [
+  "body/fea9fda56c.ogg",
+  "body/29e2b912ec.ogg"
+ ],
+ "gust": [
+  "gust/53871fda3c.ogg",
+  "gust/77d64cd37f.ogg"
+ ],
+ "bell": [
+  "bell/a7ca300684.ogg",
+  "bell/033fb8a092.ogg"
+ ],
+ "howl": [
+  "howl/2a72a9cbab.ogg",
+  "howl/f8e10f2c67.ogg"
+ ],
+ "clock": [
+  "clock/110278772a.ogg",
+  "clock/101ad49bc7.ogg"
+ ],
+ "listen": [
+  "listen/e9524b69d9.ogg",
+  "listen/b77ecab5db.ogg"
+ ],
+ "steps": [
+  "steps/88c52e1fb3.ogg",
+  "steps/de141f1c25.ogg",
+  "steps/65e91de24a.ogg"
+ ],
+ "ash": [
+  "ash/0e8caec63b.ogg",
+  "ash/90b5e9da27.ogg"
+ ],
+ "murmur": [
+  "murmur/aee26b13bf.ogg",
+  "murmur/1d09c942c1.ogg"
+ ],
+ "virtue": [
+  "virtue/59bf6fa909.ogg",
+  "virtue/cc59f3a0d1.ogg"
+ ],
+ "vice": [
+  "vice/c8d2fe096c.ogg",
+  "vice/cb6340db9d.ogg"
+ ],
+ "cooking": [
+  "cooking/191967f2cf.ogg"
+ ],
+ "snowslide": [
+  "snowslide/5a61b0ceab.ogg"
+ ],
+ "crackle": [
+  "crackle/3e6233598f.ogg"
+ ],
+ "cards": [
+  "cards/f27624c1f3.ogg"
+ ],
+ "hammer": [
+  "hammer/06654b65e2.ogg"
+ ],
+ "piano": [
+  "piano/e8fd438b52.ogg"
+ ],
+ "prayer": [
+  "prayer/6ea7e9562a.ogg"
+ ],
+ "crates": [
+  "crates/4bccb61998.ogg"
+ ],
+ "cupboard": [
+  "cupboard/a037ec621d.ogg"
+ ],
+ "argument": [
+  "argument/81d5abab2c.ogg"
+ ],
+ "whispers": [
+  "whispers/fd92cd02ce.ogg"
+ ],
+ "dream": [
+  "dream/8b0a8b6d12.ogg"
+ ],
+ "fire_whisper": [
+  "fire_whisper/716bfb002f.ogg",
+  "fire_whisper/c9eeb505a7.ogg"
+ ],
+ "brand": [
+  "brand/16f4371394.ogg",
+  "brand/25498e2239.ogg"
+ ],
+ "slam": [
+  "slam/3f19d00ac4.ogg",
+  "slam/645e8112b5.ogg"
+ ],
+ "chair": [
+  "chair/8ecaac6d26.ogg",
+  "chair/4aab3e0b24.ogg",
+  "chair/e613067d44.ogg"
+ ]
+}

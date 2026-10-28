@@ -1,0 +1,3 @@
+#!/bin/bash
+# 整体响度（LUFS）：bash scripts/audio/lufs.sh 文件…
+for f in "$@"; do echo "$f $(ffmpeg -i "$f" -af loudnorm=print_format=summary -f null - 2>&1 | grep 'Input Integrated' | tr -s ' ')"; done

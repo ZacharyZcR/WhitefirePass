@@ -75,11 +75,6 @@ export const PHASE_LABELS = {
     english: 'VOTING',
     subtitle: 'The Sacrifice',
   },
-  secret_meeting: {
-    latin: 'Concilium Secretum',
-    english: 'SECRET MEETING',
-    subtitle: 'Hidden Council',
-  },
   event: {
     latin: 'Eventus Arcanus',
     english: 'EVENT',
